@@ -10,7 +10,7 @@ Chọn Theme là dạng game pixel. Từng thành viên là từng card nhân v�
 Chọn tech stack: 
 - html + css + js -> Vì lí do đơn giản, hoàn thành nhanh trong thời gian 
 - **Icon:** Lucide Icon -> Nhẹ
-- 
+- **Animation:** gsap -> gồm nhiều animation ấn tượng 
 
 # Quyết định 3:
 Các thông tin cần đưa vào:
