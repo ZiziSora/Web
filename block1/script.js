@@ -37,7 +37,7 @@ const TEAM_MEMBERS = [
     }
   },
   {
-    name: "Trần Công Hoàng Tấn",
+    name: "Trần Nguyễn Duy Thịnh",
     role: "Backend Developer",
     bio: "Xin chào mọi người mình là ",
     skills: ["[KỸ NĂNG 01]", "[KỸ NĂNG 02]", "[KỸ NĂNG 03]"],
