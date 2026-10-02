@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Portfolio của nhóm phát triển gồm 3 thành viên.">
+  <title>Team Portfolio — Select Your Developer</title>
+
+  <!-- Fonts: Space Grotesk cho giao diện, Inter cho nội dung -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- Hiệu ứng nền trang trí, không mang nội dung -->
+  <div class="page-noise" aria-hidden="true"></div>
+  <div class="page-glow page-glow--top" aria-hidden="true"></div>
+  <div class="page-glow page-glow--bottom" aria-hidden="true"></div>
+
+  <!-- Thanh điều hướng chính -->
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="Về đầu trang">
+      <span class="brand__mark" aria-hidden="true">03</span>
+      <!-- TODO: Thay tên viết tắt của nhóm -->
+      <span class="brand__name">[TÊN NHÓM]</span>
+    </a>
+
+    <nav class="site-nav" aria-label="Điều hướng chính">
+      <a class="site-nav__link is-active" href="#team">Team</a>
+      <a class="site-nav__link" href="#quests">Quests</a>
+      <a class="site-nav__link" href="#contact">Contact</a>
+    </nav>
+
+    <span class="system-status" aria-label="Trạng thái: sẵn sàng">
+      <span class="system-status__dot" aria-hidden="true"></span>
+      SYSTEM READY
+    </span>
+  </header>
+
+  <main id="home">
+    <!-- Phần giới thiệu chung của nhóm -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero__eyebrow reveal-item">
+        <span>PORTFOLIO / 2026</span>
+        <span>TEAM OF THREE</span>
+      </div>
+
+      <div class="hero__content">
+        <p class="hero__kicker reveal-item">PLAYER SELECT / 01</p>
+        <h1 id="hero-title" class="hero__title reveal-item">
+          SELECT YOUR<br>
+          <span>DEVELOPER</span>
+        </h1>
+        <!-- TODO: Điền slogan của nhóm -->
+        <p class="hero__intro reveal-item">[SLOGAN NGẮN GỌN CỦA NHÓM]</p>
+      </div>
+
+      <div class="hero__meta reveal-item">
+        <p>
+          <span class="meta-label">FIELD</span>
+          <!-- TODO: Điền lĩnh vực nhóm theo đuổi -->
+          <span>[LĨNH VỰC NHÓM THEO ĐUỔI]</span>
+        </p>
+        <p>
+          <span class="meta-label">LOCATION</span>
+          <!-- TODO: Điền trường/lớp hoặc địa điểm -->
+          <span>[TRƯỜNG / LỚP]</span>
+        </p>
+      </div>
+
+      <a class="scroll-cue" href="#team" aria-label="Cuộn đến phần chọn thành viên">
+        <span>SCROLL TO SELECT</span>
+        <i data-lucide="arrow-down" aria-hidden="true"></i>
+      </a>
+    </section>
+
+    <!-- Màn hình chọn thành viên; dữ liệu card được tạo từ script.js -->
+    <section id="team" class="team-select section-shell" aria-labelledby="team-title">
+      <header class="section-heading">
+        <div>
+          <p class="section-index">01 / TEAM</p>
+          <h2 id="team-title">CHOOSE A PROFILE</h2>
+        </div>
+        <p class="section-heading__note">Dùng phím mũi tên để di chuyển<br>Nhấn Enter để xem hồ sơ</p>
+      </header>
+
+      <div class="character-stage">
+        <button class="carousel-control carousel-control--prev" type="button" aria-label="Thành viên trước">
+          <i data-lucide="arrow-left" aria-hidden="true"></i>
+        </button>
+
+        <div id="member-grid" class="member-grid" role="group" aria-label="Danh sách 3 thành viên">
+          <!-- JavaScript sẽ tạo 3 character card tại đây -->
+        </div>
+
+        <button class="carousel-control carousel-control--next" type="button" aria-label="Thành viên tiếp theo">
+          <i data-lucide="arrow-right" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="mobile-pagination" aria-live="polite">
+        <span id="current-member">01</span>
+        <span class="mobile-pagination__line"></span>
+        <span>03</span>
+      </div>
+    </section>
+
+    <!-- Khu dự án, được gọi là Quests theo concept game -->
+    <section id="quests" class="quests section-shell" aria-labelledby="quests-title">
+      <header class="section-heading section-heading--quests">
+        <div>
+          <p class="section-index">02 / SELECTED WORK</p>
+          <h2 id="quests-title">ACTIVE QUESTS</h2>
+        </div>
+        <p class="section-heading__note">Những sản phẩm nhóm đã cùng nhau<br>nghiên cứu, thiết kế và phát triển.</p>
+      </header>
+
+      <div class="quest-list">
+        <!-- Dự án 01 -->
+        <article class="quest-card">
+          <div class="quest-card__visual quest-card__visual--one" aria-hidden="true">
+            <span class="quest-card__number">01</span>
+            <div class="mock-window">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <div class="quest-card__content">
+            <p class="quest-card__status"><span></span> QUEST COMPLETED</p>
+            <!-- TODO: Điền thông tin dự án 01 -->
+            <h3>[TÊN DỰ ÁN 01]</h3>
+            <p>[Mô tả ngắn về bài toán, giải pháp và kết quả nổi bật của dự án.]</p>
+
+            <dl class="quest-card__details">
+              <div>
+                <dt>STACK</dt>
+                <dd>[HTML] · [CSS] · [JAVASCRIPT]</dd>
+              </div>
+              <div>
+                <dt>CONTRIBUTION</dt>
+                <dd>[Đóng góp cụ thể của nhóm]</dd>
+              </div>
+            </dl>
+
+            <div class="quest-card__actions">
+              <a class="button button--primary" href="#" aria-label="Xem demo dự án 01">
+                LIVE DEMO <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+              </a>
+              <a class="button button--ghost" href="#" aria-label="Xem mã nguồn dự án 01">
+                GITHUB <i data-lucide="github" aria-hidden="true"></i>
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Dự án 02 -->
+        <article class="quest-card quest-card--reverse">
+          <div class="quest-card__visual quest-card__visual--two" aria-hidden="true">
+            <span class="quest-card__number">02</span>
+            <div class="pixel-orbit">
+              <span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+          <div class="quest-card__content">
+            <p class="quest-card__status"><span></span> QUEST COMPLETED</p>
+            <!-- TODO: Điền thông tin dự án 02 -->
+            <h3>[TÊN DỰ ÁN 02]</h3>
+            <p>[Mô tả ngắn về bài toán, giải pháp và kết quả nổi bật của dự án.]</p>
+
+            <dl class="quest-card__details">
+              <div>
+                <dt>STACK</dt>
+                <dd>[CÔNG NGHỆ 01] · [CÔNG NGHỆ 02]</dd>
+              </div>
+              <div>
+                <dt>CONTRIBUTION</dt>
+                <dd>[Đóng góp cụ thể của nhóm]</dd>
+              </div>
+            </dl>
+
+            <div class="quest-card__actions">
+              <a class="button button--primary" href="#" aria-label="Xem demo dự án 02">
+                LIVE DEMO <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+              </a>
+              <a class="button button--ghost" href="#" aria-label="Xem mã nguồn dự án 02">
+                GITHUB <i data-lucide="github" aria-hidden="true"></i>
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Phần liên hệ cuối trang -->
+    <section id="contact" class="contact section-shell" aria-labelledby="contact-title">
+      <p class="section-index">03 / CONTACT</p>
+      <div class="contact__inner">
+        <div>
+          <p class="contact__overline">READY FOR THE NEXT QUEST?</p>
+          <h2 id="contact-title">LET'S BUILD<br><span>SOMETHING GREAT.</span></h2>
+        </div>
+        <!-- TODO: Thay email liên hệ chung của nhóm -->
+        <a class="contact__link" href="mailto:team@example.com">
+          <span>[EMAIL CỦA NHÓM]</span>
+          <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Chân trang -->
+  <footer class="site-footer section-shell">
+    <!-- TODO: Thay tên nhóm -->
+    <p>© 2026 [TÊN NHÓM]. ALL RIGHTS RESERVED.</p>
+    <p>DESIGNED &amp; BUILT BY 03 DEVELOPERS.</p>
+  </footer>
+
+  <!-- Hộp thoại hồ sơ thành viên; nội dung được cập nhật từ script.js -->
+  <div id="profile-modal" class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-name" hidden>
+    <div class="profile-modal__backdrop" data-close-profile></div>
+    <article class="profile-panel">
+      <header class="profile-panel__topbar">
+        <button class="icon-button profile-close" type="button" data-close-profile aria-label="Đóng hồ sơ thành viên">
+          <i data-lucide="arrow-left" aria-hidden="true"></i>
+          <span>BACK</span>
+          <kbd>ESC</kbd>
+        </button>
+        <span id="profile-count">PLAYER 01 / 03</span>
+      </header>
+
+      <div class="profile-panel__body">
+        <div id="profile-portrait" class="profile-portrait" aria-hidden="true">
+          <div class="profile-portrait__figure">
+            <span class="avatar-head"></span>
+            <span class="avatar-body"></span>
+          </div>
+          <span id="profile-index" class="profile-portrait__index">01</span>
+        </div>
+
+        <div class="profile-data">
+          <p id="profile-role" class="profile-data__role">[VAI TRÒ]</p>
+          <h2 id="profile-name">[TÊN THÀNH VIÊN]</h2>
+          <p id="profile-bio" class="profile-data__bio">[GIỚI THIỆU NGẮN]</p>
+
+          <div class="profile-data__block">
+            <p class="profile-data__label">TECH STACK / SKILLS</p>
+            <ul id="profile-skills" class="skill-list" aria-label="Danh sách kỹ năng"></ul>
+          </div>
+
+          <div class="profile-data__block">
+            <p class="profile-data__label">SPECIALTY / INTERESTS</p>
+            <p id="profile-interests" class="profile-data__interest">[MỐI QUAN TÂM]</p>
+          </div>
+
+          <div class="profile-data__links">
+            <a id="profile-github" href="#" aria-label="GitHub của thành viên">
+              <i data-lucide="github" aria-hidden="true"></i> GITHUB
+            </a>
+            <a id="profile-linkedin" href="#" aria-label="LinkedIn của thành viên">
+              <i data-lucide="linkedin" aria-hidden="true"></i> LINKEDIN
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <nav class="profile-switcher" aria-label="Chuyển hồ sơ thành viên">
+        <button id="profile-prev" type="button" aria-label="Xem thành viên trước">
+          <i data-lucide="chevron-left" aria-hidden="true"></i> PREV PLAYER
+        </button>
+        <button id="profile-next" type="button" aria-label="Xem thành viên tiếp theo">
+          NEXT PLAYER <i data-lucide="chevron-right" aria-hidden="true"></i>
+        </button>
+      </nav>
+    </article>
+  </div>
+
+  <!-- Thư viện icon và animation; website vẫn hoạt động nếu CDN chưa tải -->
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
