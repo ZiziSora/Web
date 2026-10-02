@@ -4,7 +4,7 @@
 Đối tượng người xem: Giảng viên và các sinh viên cùng lớp
 
 # Quyết định 1:
-Chọn Theme là dạng game pixel. Từng thành viên là từng card nhân vật trong game
+Chọn Theme là dạng hiện đại. Từng thành viên là từng card nhân vật. Ấn vào hiện thông tin cụ thể.
 
 # Quyết định 2:
 Chọn tech stack: 
