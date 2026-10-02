@@ -7,11 +7,11 @@
 ================================================================ */
 const TEAM_MEMBERS = [
   {
-    name: "[TÊN THÀNH VIÊN 01]",
-    role: "[VAI TRÒ THÀNH VIÊN 01]",
-    bio: "[Viết 2–3 câu giới thiệu ngắn về thành viên, kinh nghiệm và điều bạn muốn tạo ra.]",
+    name: "Trần Công Hoàng Tấn ",
+    role: "Front end Developer",
+    bio: "Hello mọi người mình là Tấn.",
     skills: ["[KỸ NĂNG 01]", "[KỸ NĂNG 02]", "[KỸ NĂNG 03]"],
-    interests: "[Mối quan tâm chuyên môn hoặc định hướng phát triển của thành viên 01]",
+    interests: "Mình muốn ra trường lương 1000 USD.",
     github: "#",
     linkedin: "#",
     palette: {
@@ -22,11 +22,11 @@ const TEAM_MEMBERS = [
     }
   },
   {
-    name: "[TÊN THÀNH VIÊN 02]",
-    role: "[VAI TRÒ THÀNH VIÊN 02]",
-    bio: "[Viết 2–3 câu giới thiệu ngắn về thành viên, kinh nghiệm và điều bạn muốn tạo ra.]",
+    name: "Nguyễn Hoàng Kim Ngân",
+    role: "Project Manager",
+    bio: "Hello mọi người mình là Ngân",
     skills: ["[KỸ NĂNG 01]", "[KỸ NĂNG 02]", "[KỸ NĂNG 03]"],
-    interests: "[Mối quan tâm chuyên môn hoặc định hướng phát triển của thành viên 02]",
+    interests: "Mình muốn ra trường lương 1000 USD.",
     github: "#",
     linkedin: "#",
     palette: {
@@ -37,12 +37,12 @@ const TEAM_MEMBERS = [
     }
   },
   {
-    name: "[TÊN THÀNH VIÊN 03]",
-    role: "[VAI TRÒ THÀNH VIÊN 03]",
-    bio: "[Viết 2–3 câu giới thiệu ngắn về thành viên, kinh nghiệm và điều bạn muốn tạo ra.]",
+    name: "Trần Công Hoàng Tấn",
+    role: "Backend Developer",
+    bio: "Xin chào mọi người mình là ",
     skills: ["[KỸ NĂNG 01]", "[KỸ NĂNG 02]", "[KỸ NĂNG 03]"],
-    interests: "[Mối quan tâm chuyên môn hoặc định hướng phát triển của thành viên 03]",
-    github: "#",
+    interests: "Mình muốn ra trường lương 1000 USD.",
+    github: "https://github.com/n0thing2c",
     linkedin: "#",
     palette: {
       background: "linear-gradient(145deg, #202b30, #0c0f11 72%)",
