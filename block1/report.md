@@ -1,5 +1,8 @@
 # Group Portfolio
 
+# Quyết định 0: 
+Đối tượng người xem: Giảng viên và các sinh viên cùng lớp
+
 # Quyết định 1:
 Chọn Theme là dạng game pixel. Từng thành viên là từng card nhân vật trong game
 
