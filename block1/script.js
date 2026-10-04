@@ -133,7 +133,7 @@ function updateProfile(index) {
   const member = TEAM_MEMBERS[index];
   const portrait = document.querySelector("#profile-portrait");
 
-  document.querySelector("#profile-count").textContent = `PLAYER ${formatIndex(index)} / ${formatIndex(TEAM_MEMBERS.length)}`;
+  document.querySelector("#profile-count").textContent = `PLAYER ${formatIndex(index)} / ${String(TEAM_MEMBERS.length).padStart(2, "0")}`;
   document.querySelector("#profile-index").textContent = formatIndex(index);
   document.querySelector("#profile-role").textContent = member.role;
   document.querySelector("#profile-name").textContent = member.name;
