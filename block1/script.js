@@ -12,7 +12,7 @@ const TEAM_MEMBERS = [
     bio: "Hello mọi người mình là Tấn.",
     skills: ["[KỸ NĂNG 01]", "[KỸ NĂNG 02]", "[KỸ NĂNG 03]"],
     interests: "Mình muốn ra trường lương 1000 USD.",
-    github: "#",
+    github: "https://github.com/24127237",
     linkedin: "#",
     palette: {
       background: "linear-gradient(145deg, #263022, #0d100c 72%)",
@@ -30,7 +30,7 @@ const TEAM_MEMBERS = [
       "Teamwork",
       "Problem Solving"],
     interests: "Mình muốn ra trường lương 1000 USD.",
-    github: "#https://github.com/ZiziSora",
+    github: "https://github.com/ZiziSora",
     linkedin: "#",
     palette: {
       background: "linear-gradient(145deg, #2d2922, #100f0c 72%)",
