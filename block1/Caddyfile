@@ -1,4 +1,9 @@
 http://portfolio.localhost:8080 {
     root * .
     file_server
+
+    handle_errors {
+        rewrite * /404.html
+        file_server
+    }
 }
