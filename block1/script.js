@@ -28,7 +28,8 @@ const TEAM_MEMBERS = [
     skills: ["Project Management",
       "Full-stack Development",
       "Teamwork",
-      "Problem Solving"],
+      "Problem Solving"
+    ],
     interests: "Mình muốn ra trường lương 1000 USD.",
     github: "#https://github.com/ZiziSora",
     linkedin: "#",
@@ -133,7 +134,7 @@ function updateProfile(index) {
   const member = TEAM_MEMBERS[index];
   const portrait = document.querySelector("#profile-portrait");
 
-  document.querySelector("#profile-count").textContent = `PLAYER ${formatIndex(index)} / ${formatIndex(TEAM_MEMBERS.length)}`;
+  document.querySelector("#profile-count").textContent = `PLAYER ${formatIndex(index)} / ${formatIndex(TEAM_MEMBERS.length - 1)}`;
   document.querySelector("#profile-index").textContent = formatIndex(index);
   document.querySelector("#profile-role").textContent = member.role;
   document.querySelector("#profile-name").textContent = member.name;
