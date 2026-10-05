@@ -12,7 +12,7 @@ const TEAM_MEMBERS = [
     bio: "Hello mọi người mình là Tấn.",
     skills: ["[KỸ NĂNG 01]", "[KỸ NĂNG 02]", "[KỸ NĂNG 03]"],
     interests: "Mình muốn ra trường lương 1000 USD.",
-    github: "#",
+    github: "https://github.com/24127237",
     linkedin: "#",
     palette: {
       background: "linear-gradient(145deg, #263022, #0d100c 72%)",
@@ -31,7 +31,7 @@ const TEAM_MEMBERS = [
       "Problem Solving"
     ],
     interests: "Mình muốn ra trường lương 1000 USD.",
-    github: "#https://github.com/ZiziSora",
+    github: "https://github.com/ZiziSora",
     linkedin: "#",
     palette: {
       background: "linear-gradient(145deg, #2d2922, #100f0c 72%)",
@@ -134,7 +134,7 @@ function updateProfile(index) {
   const member = TEAM_MEMBERS[index];
   const portrait = document.querySelector("#profile-portrait");
 
-  document.querySelector("#profile-count").textContent = `PLAYER ${formatIndex(index)} / ${formatIndex(TEAM_MEMBERS.length - 1)}`;
+  document.querySelector("#profile-count").textContent = `PLAYER ${formatIndex(index)} / ${String(TEAM_MEMBERS.length).padStart(2, "0")}`;
   document.querySelector("#profile-index").textContent = formatIndex(index);
   document.querySelector("#profile-role").textContent = member.role;
   document.querySelector("#profile-name").textContent = member.name;
