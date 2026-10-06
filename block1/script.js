@@ -4,125 +4,79 @@ const TEAM_MEMBERS = [
   {
     name: "Trần Công Hoàng Tấn",
     role: "Front-end Developer",
+    cardBio: "Biến thiết kế thành giao diện có nhịp điệu, rõ ràng và thân thiện trên mọi màn hình.",
     bio: "Tấn tập trung biến bản thiết kế thành giao diện rõ ràng, dễ dùng và hoạt động ổn định trên nhiều kích thước màn hình. Cậu đặc biệt chú ý đến chi tiết thị giác và cảm giác khi người dùng tương tác.",
     skills: ["HTML5", "CSS3", "JavaScript", "Responsive UI"],
     interests: "Giao diện tương tác, chuyển động trên web và tối ưu trải nghiệm người dùng.",
     github: "https://github.com/24127237",
-    linkedin: "",
-    palette: {
-      background: "linear-gradient(145deg, #263022, #0d100c 72%)",
-      skin: "#c8a17b",
-      hair: "#232323",
-      shirt: "#586f39"
-    }
+    color: "#a96356"
   },
   {
     name: "Nguyễn Hoàng Kim Ngân",
     role: "Project Manager / Full-stack",
+    cardBio: "Kết nối mục tiêu, con người và từng phần của sản phẩm thành một hướng đi thống nhất.",
     bio: "Ngân phụ trách kết nối ý tưởng, tiến độ và các phần việc của nhóm. Bên cạnh điều phối dự án, cô tham gia phát triển cả giao diện lẫn xử lý dữ liệu để sản phẩm giữ được sự nhất quán từ đầu đến cuối.",
     skills: ["Project Planning", "JavaScript", "Node.js", "Git / GitHub"],
     interests: "Tổ chức quy trình làm việc, xây dựng sản phẩm có mục tiêu rõ ràng và giúp mọi thành viên phát huy thế mạnh.",
-    github: "https://github.com/ZiziSora",
-    linkedin: "",
-    palette: {
-      background: "linear-gradient(145deg, #2d2922, #100f0c 72%)",
-      skin: "#d9aa82",
-      hair: "#161616",
-      shirt: "#77715e"
-    }
+    github: "",
+    color: "#c9b990"
   },
   {
     name: "Trần Nguyễn Duy Thịnh",
     role: "Back-end Developer",
+    cardBio: "Xây dựng logic, API và luồng dữ liệu vững chắc để sản phẩm có thể phát triển lâu dài.",
     bio: "Thịnh xây dựng phần logic và luồng dữ liệu phía sau sản phẩm. Cậu hướng đến những API có cấu trúc dễ hiểu, dễ bảo trì và đủ linh hoạt để nhóm tiếp tục mở rộng tính năng.",
     skills: ["Node.js", "Express.js", "REST API", "MongoDB"],
     interests: "Thiết kế API, quản lý dữ liệu và cải thiện độ ổn định, bảo mật của hệ thống.",
-    github: "https://github.com/n0thing2c",
-    linkedin: "",
-    palette: {
-      background: "linear-gradient(145deg, #202b30, #0c0f11 72%)",
-      skin: "#b98868",
-      hair: "#27221f",
-      shirt: "#425f6b"
-    }
+    github: "",
+    color: "#9fb4a5"
   }
 ];
 
-const memberGrid = document.querySelector("#member-grid");
+const memberList = document.querySelector("#member-list");
 const profileModal = document.querySelector("#profile-modal");
-const currentMemberLabel = document.querySelector("#current-member");
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 let selectedMemberIndex = 0;
 let lastFocusedElement = null;
+let motionPaused = prefersReducedMotion;
 
 function formatIndex(index) {
   return String(index + 1).padStart(2, "0");
 }
 
-function applyPalette(element, palette) {
-  element.style.setProperty("--portrait-bg", palette.background);
-  element.style.setProperty("--avatar-skin", palette.skin);
-  element.style.setProperty("--avatar-hair", palette.hair);
-  element.style.setProperty("--avatar-shirt", palette.shirt);
-}
-
-function renderMemberCards() {
-  memberGrid.innerHTML = TEAM_MEMBERS.map((member, index) => `
+function renderMembers() {
+  memberList.innerHTML = TEAM_MEMBERS.map((member, index) => `
     <button
-      class="member-card${index === 0 ? " is-mobile-active is-keyboard-active" : ""}"
+      class="member-card"
       type="button"
       data-member-index="${index}"
+      data-cursor="VIEW"
+      data-reveal
       aria-label="Xem hồ sơ ${member.name}"
-      tabindex="${index === 0 ? "0" : "-1"}"
+      style="--member-color: ${member.color}"
     >
-      <div class="member-card__portrait">
-        <span class="member-card__code">PLAYER_${formatIndex(index)}</span>
-        <div class="pixel-avatar" aria-hidden="true">
-          <span class="pixel-avatar__head"></span>
-          <span class="pixel-avatar__body"></span>
-        </div>
-      </div>
-      <div class="member-card__content">
-        <p class="member-card__role">${member.role}</p>
+      <span class="member-card__index">${formatIndex(index)}</span>
+      <span class="member-card__avatar" aria-hidden="true">
+        <span class="member-avatar__eyes"></span>
+        <span class="member-avatar__smile"></span>
+      </span>
+      <span class="member-card__title">
         <h3>${member.name}</h3>
-        <span class="member-card__view">
-          VIEW PROFILE
-          <i data-lucide="corner-down-right" aria-hidden="true"></i>
-        </span>
-      </div>
+        <p>${member.role}</p>
+      </span>
+      <span class="member-card__bio">${member.cardBio}</span>
+      <span class="member-card__action" aria-hidden="true">
+        <i data-lucide="arrow-up-right"></i>
+      </span>
     </button>
   `).join("");
-
-  document.querySelectorAll(".member-card").forEach((card, index) => {
-    applyPalette(card, TEAM_MEMBERS[index].palette);
-  });
-}
-
-function setActiveMember(index, shouldFocus = false) {
-  selectedMemberIndex = (index + TEAM_MEMBERS.length) % TEAM_MEMBERS.length;
-
-  document.querySelectorAll(".member-card").forEach((card, cardIndex) => {
-    const isActive = cardIndex === selectedMemberIndex;
-    card.classList.toggle("is-mobile-active", isActive);
-    card.classList.toggle("is-keyboard-active", isActive);
-    card.tabIndex = isActive ? 0 : -1;
-  });
-
-  currentMemberLabel.textContent = formatIndex(selectedMemberIndex);
-  const activeCard = document.querySelector(`[data-member-index="${selectedMemberIndex}"]`);
-
-  if (shouldFocus) activeCard?.focus();
-
-  if (window.innerWidth <= 640 && window.gsap && !prefersReducedMotion && activeCard) {
-    gsap.fromTo(activeCard, { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.32, ease: "power2.out" });
-  }
 }
 
 function updateProfile(index) {
   const member = TEAM_MEMBERS[index];
   const portrait = document.querySelector("#profile-portrait");
-  const linkedinLink = document.querySelector("#profile-linkedin");
+  const githubLink = document.querySelector("#profile-github");
 
   document.querySelector("#profile-count").textContent = `PLAYER ${formatIndex(index)} / ${String(TEAM_MEMBERS.length).padStart(2, "0")}`;
   document.querySelector("#profile-index").textContent = formatIndex(index);
@@ -130,13 +84,10 @@ function updateProfile(index) {
   document.querySelector("#profile-name").textContent = member.name;
   document.querySelector("#profile-bio").textContent = member.bio;
   document.querySelector("#profile-interests").textContent = member.interests;
-  document.querySelector("#profile-github").href = member.github;
   document.querySelector("#profile-skills").innerHTML = member.skills.map((skill) => `<li>${skill}</li>`).join("");
-
-  linkedinLink.hidden = !member.linkedin;
-  if (member.linkedin) linkedinLink.href = member.linkedin;
-
-  applyPalette(portrait, member.palette);
+  githubLink.hidden = !member.github;
+  if (member.github) githubLink.href = member.github;
+  portrait.style.setProperty("--member-color", member.color);
 }
 
 function openProfile(index) {
@@ -147,9 +98,10 @@ function openProfile(index) {
   document.body.classList.add("modal-open");
 
   requestAnimationFrame(() => {
-    if (window.gsap && !prefersReducedMotion) {
-      gsap.fromTo(".profile-panel", { opacity: 0, scale: 0.975, y: 18 }, { opacity: 1, scale: 1, y: 0, duration: 0.42, ease: "power3.out" });
-      gsap.fromTo(".profile-data > *", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.38, stagger: 0.045, delay: 0.12, ease: "power2.out" });
+    if (window.gsap && !motionPaused) {
+      gsap.fromTo(".profile-panel", { yPercent: 105 }, { yPercent: 0, duration: 0.72, ease: "power4.out" });
+      gsap.fromTo(".profile-data > *", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.07, delay: 0.34, ease: "power3.out" });
+      gsap.fromTo(".profile-face", { scale: 0.65, rotate: -18 }, { scale: 1, rotate: -4, duration: 0.7, delay: 0.22, ease: "back.out(1.5)" });
     }
     document.querySelector(".profile-close").focus();
   });
@@ -162,8 +114,8 @@ function closeProfile() {
     lastFocusedElement?.focus();
   };
 
-  if (window.gsap && !prefersReducedMotion) {
-    gsap.to(".profile-panel", { opacity: 0, scale: 0.985, y: 12, duration: 0.22, ease: "power2.in", onComplete: finishClose });
+  if (window.gsap && !motionPaused) {
+    gsap.to(".profile-panel", { yPercent: 105, duration: 0.48, ease: "power3.in", onComplete: finishClose });
   } else {
     finishClose();
   }
@@ -171,14 +123,13 @@ function closeProfile() {
 
 function switchProfile(direction) {
   selectedMemberIndex = (selectedMemberIndex + direction + TEAM_MEMBERS.length) % TEAM_MEMBERS.length;
-  setActiveMember(selectedMemberIndex);
   updateProfile(selectedMemberIndex);
 
-  if (window.gsap && !prefersReducedMotion) {
+  if (window.gsap && !motionPaused) {
     gsap.fromTo(
-      ["#profile-name", "#profile-role", "#profile-bio", ".profile-portrait__figure"],
-      { opacity: 0, x: direction > 0 ? 22 : -22 },
-      { opacity: 1, x: 0, duration: 0.32, stagger: 0.035, ease: "power2.out" }
+      ["#profile-name", "#profile-role", "#profile-bio", ".profile-face"],
+      { opacity: 0, x: direction > 0 ? 36 : -36 },
+      { opacity: 1, x: 0, duration: 0.45, stagger: 0.05, ease: "power3.out" }
     );
   }
 }
@@ -198,89 +149,181 @@ function trapProfileFocus(event) {
   }
 }
 
+function initLoader() {
+  const loader = document.querySelector(".page-loader");
+  const counter = document.querySelector(".page-loader__count");
+  const line = document.querySelector(".page-loader__line");
+  document.body.classList.add("is-loading");
+
+  const finish = () => {
+    loader.classList.add("is-finished");
+    document.body.classList.remove("is-loading");
+    playHeroIntro();
+  };
+
+  if (!window.gsap || motionPaused) {
+    counter.textContent = "100";
+    line.style.width = "100%";
+    finish();
+    return;
+  }
+
+  const countState = { value: 0 };
+  const timeline = gsap.timeline({ onComplete: finish });
+  timeline
+    .to(countState, {
+      value: 100,
+      duration: 0.9,
+      ease: "power2.inOut",
+      onUpdate: () => { counter.textContent = String(Math.round(countState.value)).padStart(3, "0"); }
+    })
+    .to(line, { width: "100%", duration: 0.9, ease: "power2.inOut" }, 0)
+    .to(loader, { yPercent: -100, duration: 0.78, ease: "power4.inOut" }, "+=0.12");
+}
+
+function playHeroIntro() {
+  if (!window.gsap || motionPaused) return;
+
+  gsap.fromTo(".hero__title span", { yPercent: 115, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1, stagger: 0.1, ease: "power4.out" });
+  gsap.fromTo(".hero-doodle", { scale: 0.4, opacity: 0, rotate: -12 }, { scale: 1, opacity: 1, rotate: 0, duration: 1.1, delay: 0.35, ease: "back.out(1.35)" });
+  gsap.fromTo([".hero__eyebrow", ".hero__side", ".hero__bottom"], { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.65, stagger: 0.08, delay: 0.6, ease: "power3.out" });
+}
+
 function initScrollReveal() {
-  if (prefersReducedMotion || !("IntersectionObserver" in window)) return;
+  const targets = [...document.querySelectorAll("[data-reveal]")];
+
+  if (motionPaused || !("IntersectionObserver" in window)) {
+    targets.forEach((target) => target.classList.add("is-visible"));
+    return;
+  }
 
   document.body.classList.add("motion-ready");
-  const revealTargets = document.querySelectorAll(
-    ".team-select .section-heading, .member-card, .quests .section-heading, .quest-card, .contact > .section-index, .contact__inner, .site-footer"
-  );
+  targets.forEach((target, index) => target.style.setProperty("--reveal-delay", `${Math.min(index % 3, 2) * 70}ms`));
 
-  revealTargets.forEach((element, index) => {
-    element.classList.add("scroll-reveal");
-    element.style.setProperty("--reveal-delay", `${Math.min(index % 4, 3) * 70}ms`);
-  });
-
-  const revealObserver = new IntersectionObserver((entries, observer) => {
+  const observer = new IntersectionObserver((entries, revealObserver) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
       entry.target.classList.add("is-visible");
-      observer.unobserve(entry.target);
+      revealObserver.unobserve(entry.target);
     });
   }, { rootMargin: "0px 0px -10%", threshold: 0.12 });
 
-  revealTargets.forEach((element) => revealObserver.observe(element));
+  targets.forEach((target) => observer.observe(target));
 }
 
-function initCardTilt() {
-  if (prefersReducedMotion || !window.matchMedia("(pointer: fine)").matches) return;
+function initScrollProgress() {
+  const progress = document.querySelector(".scroll-progress");
 
-  document.querySelectorAll(".member-card").forEach((card) => {
-    card.addEventListener("pointermove", (event) => {
-      const bounds = card.getBoundingClientRect();
-      const x = event.clientX - bounds.left;
-      const y = event.clientY - bounds.top;
-      const rotateY = ((x / bounds.width) - 0.5) * 5;
-      const rotateX = (0.5 - (y / bounds.height)) * 5;
+  const update = () => {
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    const ratio = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+    progress.style.transform = `scaleX(${Math.min(Math.max(ratio, 0), 1)})`;
+  };
 
-      card.style.setProperty("--pointer-x", `${x}px`);
-      card.style.setProperty("--pointer-y", `${y}px`);
-      card.style.setProperty("--rotate-x", `${rotateX.toFixed(2)}deg`);
-      card.style.setProperty("--rotate-y", `${rotateY.toFixed(2)}deg`);
+  update();
+  window.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("resize", update);
+}
+
+function initCursor() {
+  if (motionPaused || !window.matchMedia("(pointer: fine)").matches) return;
+
+  const cursor = document.querySelector(".cursor-orb");
+  const label = cursor.querySelector("span");
+
+  window.addEventListener("pointermove", (event) => {
+    cursor.style.left = `${event.clientX}px`;
+    cursor.style.top = `${event.clientY}px`;
+  });
+
+  document.querySelectorAll("[data-cursor]").forEach((element) => {
+    element.addEventListener("pointerenter", () => {
+      label.textContent = element.dataset.cursor;
+      cursor.classList.add("is-visible");
     });
-
-    card.addEventListener("pointerleave", () => {
-      card.style.setProperty("--rotate-x", "0deg");
-      card.style.setProperty("--rotate-y", "0deg");
-    });
+    element.addEventListener("pointerleave", () => cursor.classList.remove("is-visible"));
   });
 }
 
 function initHeroParallax() {
-  if (prefersReducedMotion || !window.matchMedia("(pointer: fine)").matches) return;
+  if (motionPaused || !window.gsap || !window.matchMedia("(pointer: fine)").matches) return;
   const hero = document.querySelector(".hero");
 
   hero.addEventListener("pointermove", (event) => {
-    const x = (event.clientX / window.innerWidth - 0.5) * 12;
-    const y = (event.clientY / window.innerHeight - 0.5) * 12;
-    hero.style.setProperty("--hero-shift-x", `${x.toFixed(1)}px`);
-    hero.style.setProperty("--hero-shift-y", `${y.toFixed(1)}px`);
+    const x = (event.clientX / window.innerWidth - 0.5) * 20;
+    const y = (event.clientY / window.innerHeight - 0.5) * 16;
+    gsap.to(".hero-doodle", { x: x, y: y, duration: 1.1, ease: "power3.out", overwrite: "auto" });
+    gsap.to(".hero__title span:first-child", { x: -x * 0.35, duration: 1.2, ease: "power3.out", overwrite: "auto" });
+    gsap.to(".hero__title span:last-child", { x: x * 0.35, duration: 1.2, ease: "power3.out", overwrite: "auto" });
   });
 }
 
-renderMemberCards();
+function initLocalTime() {
+  const timeElement = document.querySelector("#local-time");
+  const formatter = new Intl.DateTimeFormat("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+
+  const update = () => {
+    const now = new Date();
+    timeElement.textContent = formatter.format(now);
+    timeElement.dateTime = now.toISOString();
+  };
+
+  update();
+  window.setInterval(update, 30000);
+}
+
+function initMotionToggle() {
+  const toggle = document.querySelector("#motion-toggle");
+
+  if (motionPaused) {
+    document.body.classList.add("motion-off");
+    toggle.textContent = "MOTION OFF";
+    toggle.setAttribute("aria-pressed", "true");
+  }
+
+  toggle.addEventListener("click", () => {
+    motionPaused = !motionPaused;
+    document.body.classList.toggle("motion-off", motionPaused);
+    toggle.textContent = motionPaused ? "MOTION OFF" : "MOTION ON";
+    toggle.setAttribute("aria-pressed", String(motionPaused));
+  });
+}
+
+function initNavigation() {
+  if (!("IntersectionObserver" in window)) return;
+
+  const sections = [...document.querySelectorAll("#team, #work, #process, #contact")];
+  const links = [...document.querySelectorAll(".site-nav a")];
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${entry.target.id}`));
+    });
+  }, { rootMargin: "-35% 0px -55%", threshold: 0 });
+
+  sections.forEach((section) => observer.observe(section));
+}
+
+renderMembers();
 
 if (window.lucide) lucide.createIcons();
 
+initLoader();
 initScrollReveal();
-initCardTilt();
+initScrollProgress();
+initCursor();
 initHeroParallax();
 
-memberGrid.addEventListener("click", (event) => {
+memberList.addEventListener("click", (event) => {
   const card = event.target.closest(".member-card");
   if (!card) return;
   openProfile(Number(card.dataset.memberIndex));
 });
-
-memberGrid.addEventListener("keydown", (event) => {
-  if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
-  event.preventDefault();
-  const direction = event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 1;
-  setActiveMember(selectedMemberIndex + direction, true);
-});
-
-document.querySelector(".carousel-control--prev").addEventListener("click", () => setActiveMember(selectedMemberIndex - 1));
-document.querySelector(".carousel-control--next").addEventListener("click", () => setActiveMember(selectedMemberIndex + 1));
 
 document.querySelectorAll("[data-close-profile]").forEach((element) => element.addEventListener("click", closeProfile));
 document.querySelector("#profile-prev").addEventListener("click", () => switchProfile(-1));
@@ -302,19 +345,3 @@ document.addEventListener("keydown", (event) => {
     trapProfileFocus(event);
   }
 });
-
-const navSections = [...document.querySelectorAll("#team, #quests, #contact")];
-const navLinks = [...document.querySelectorAll(".site-nav__link")];
-const sectionObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (!entry.isIntersecting) return;
-    navLinks.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${entry.target.id}`));
-  });
-}, { rootMargin: "-35% 0px -55%", threshold: 0 });
-
-navSections.forEach((section) => sectionObserver.observe(section));
-
-if (window.gsap && !prefersReducedMotion) {
-  gsap.from(".site-header", { opacity: 0, y: -18, duration: 0.55, ease: "power2.out" });
-  gsap.from(".reveal-item", { opacity: 0, y: 28, duration: 0.72, stagger: 0.085, delay: 0.12, ease: "power3.out" });
-}
