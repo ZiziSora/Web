@@ -1,19 +1,14 @@
 "use strict";
 
-/* ================================================================
-   DỮ LIỆU THÀNH VIÊN
-   TODO: Nhóm chỉ cần thay nội dung trong 3 object dưới đây.
-   Các character card và profile chi tiết sẽ tự động cập nhật.
-================================================================ */
 const TEAM_MEMBERS = [
   {
-    name: "Trần Công Hoàng Tấn ",
-    role: "Front end Developer",
-    bio: "Hello mọi người mình là Tấn.",
-    skills: ["[KỸ NĂNG 01]", "[KỸ NĂNG 02]", "[KỸ NĂNG 03]"],
-    interests: "Mình muốn ra trường lương 1000 USD.",
+    name: "Trần Công Hoàng Tấn",
+    role: "Front-end Developer",
+    bio: "Tấn tập trung biến bản thiết kế thành giao diện rõ ràng, dễ dùng và hoạt động ổn định trên nhiều kích thước màn hình. Cậu đặc biệt chú ý đến chi tiết thị giác và cảm giác khi người dùng tương tác.",
+    skills: ["HTML5", "CSS3", "JavaScript", "Responsive UI"],
+    interests: "Giao diện tương tác, chuyển động trên web và tối ưu trải nghiệm người dùng.",
     github: "https://github.com/24127237",
-    linkedin: "#",
+    linkedin: "",
     palette: {
       background: "linear-gradient(145deg, #263022, #0d100c 72%)",
       skin: "#c8a17b",
@@ -23,15 +18,12 @@ const TEAM_MEMBERS = [
   },
   {
     name: "Nguyễn Hoàng Kim Ngân",
-    role: "Project Manager",
-    bio: "Hello mọi người mình là Ngân",
-    skills: ["Project Management",
-      "Full-stack Development",
-      "Teamwork",
-      "Problem Solving"],
-    interests: "Mình muốn ra trường lương 1000 USD.",
+    role: "Project Manager / Full-stack",
+    bio: "Ngân phụ trách kết nối ý tưởng, tiến độ và các phần việc của nhóm. Bên cạnh điều phối dự án, cô tham gia phát triển cả giao diện lẫn xử lý dữ liệu để sản phẩm giữ được sự nhất quán từ đầu đến cuối.",
+    skills: ["Project Planning", "JavaScript", "Node.js", "Git / GitHub"],
+    interests: "Tổ chức quy trình làm việc, xây dựng sản phẩm có mục tiêu rõ ràng và giúp mọi thành viên phát huy thế mạnh.",
     github: "https://github.com/ZiziSora",
-    linkedin: "#",
+    linkedin: "",
     palette: {
       background: "linear-gradient(145deg, #2d2922, #100f0c 72%)",
       skin: "#d9aa82",
@@ -41,12 +33,12 @@ const TEAM_MEMBERS = [
   },
   {
     name: "Trần Nguyễn Duy Thịnh",
-    role: "Backend Developer",
-    bio: "Xin chào mọi người mình là ",
-    skills: ["[KỸ NĂNG 01]", "[KỸ NĂNG 02]", "[KỸ NĂNG 03]"],
-    interests: "Mình muốn ra trường lương 1000 USD.",
+    role: "Back-end Developer",
+    bio: "Thịnh xây dựng phần logic và luồng dữ liệu phía sau sản phẩm. Cậu hướng đến những API có cấu trúc dễ hiểu, dễ bảo trì và đủ linh hoạt để nhóm tiếp tục mở rộng tính năng.",
+    skills: ["Node.js", "Express.js", "REST API", "MongoDB"],
+    interests: "Thiết kế API, quản lý dữ liệu và cải thiện độ ổn định, bảo mật của hệ thống.",
     github: "https://github.com/n0thing2c",
-    linkedin: "#",
+    linkedin: "",
     palette: {
       background: "linear-gradient(145deg, #202b30, #0c0f11 72%)",
       skin: "#b98868",
@@ -64,12 +56,10 @@ const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)
 let selectedMemberIndex = 0;
 let lastFocusedElement = null;
 
-/** Chuyển số thành dạng 01, 02, 03. */
 function formatIndex(index) {
   return String(index + 1).padStart(2, "0");
 }
 
-/** Gắn bảng màu riêng của từng nhân vật vào phần tử. */
 function applyPalette(element, palette) {
   element.style.setProperty("--portrait-bg", palette.background);
   element.style.setProperty("--avatar-skin", palette.skin);
@@ -77,7 +67,6 @@ function applyPalette(element, palette) {
   element.style.setProperty("--avatar-shirt", palette.shirt);
 }
 
-/** Tạo 3 character card từ mảng TEAM_MEMBERS. */
 function renderMemberCards() {
   memberGrid.innerHTML = TEAM_MEMBERS.map((member, index) => `
     <button
@@ -110,7 +99,6 @@ function renderMemberCards() {
   });
 }
 
-/** Đồng bộ character card đang được chọn trên desktop và mobile. */
 function setActiveMember(index, shouldFocus = false) {
   selectedMemberIndex = (index + TEAM_MEMBERS.length) % TEAM_MEMBERS.length;
 
@@ -122,16 +110,19 @@ function setActiveMember(index, shouldFocus = false) {
   });
 
   currentMemberLabel.textContent = formatIndex(selectedMemberIndex);
+  const activeCard = document.querySelector(`[data-member-index="${selectedMemberIndex}"]`);
 
-  if (shouldFocus) {
-    document.querySelector(`[data-member-index="${selectedMemberIndex}"]`)?.focus();
+  if (shouldFocus) activeCard?.focus();
+
+  if (window.innerWidth <= 640 && window.gsap && !prefersReducedMotion && activeCard) {
+    gsap.fromTo(activeCard, { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.32, ease: "power2.out" });
   }
 }
 
-/** Đổ dữ liệu thành viên vào hộp thoại hồ sơ. */
 function updateProfile(index) {
   const member = TEAM_MEMBERS[index];
   const portrait = document.querySelector("#profile-portrait");
+  const linkedinLink = document.querySelector("#profile-linkedin");
 
   document.querySelector("#profile-count").textContent = `PLAYER ${formatIndex(index)} / ${String(TEAM_MEMBERS.length).padStart(2, "0")}`;
   document.querySelector("#profile-index").textContent = formatIndex(index);
@@ -140,15 +131,14 @@ function updateProfile(index) {
   document.querySelector("#profile-bio").textContent = member.bio;
   document.querySelector("#profile-interests").textContent = member.interests;
   document.querySelector("#profile-github").href = member.github;
-  document.querySelector("#profile-linkedin").href = member.linkedin;
-  document.querySelector("#profile-skills").innerHTML = member.skills
-    .map((skill) => `<li>${skill}</li>`)
-    .join("");
+  document.querySelector("#profile-skills").innerHTML = member.skills.map((skill) => `<li>${skill}</li>`).join("");
+
+  linkedinLink.hidden = !member.linkedin;
+  if (member.linkedin) linkedinLink.href = member.linkedin;
 
   applyPalette(portrait, member.palette);
 }
 
-/** Mở profile và đưa focus vào nút Back. */
 function openProfile(index) {
   selectedMemberIndex = index;
   lastFocusedElement = document.activeElement;
@@ -158,22 +148,13 @@ function openProfile(index) {
 
   requestAnimationFrame(() => {
     if (window.gsap && !prefersReducedMotion) {
-      gsap.fromTo(
-        ".profile-panel",
-        { opacity: 0, scale: 0.975, y: 18 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.42, ease: "power3.out" }
-      );
-      gsap.fromTo(
-        ".profile-data > *",
-        { opacity: 0, y: 18 },
-        { opacity: 1, y: 0, duration: 0.38, stagger: 0.045, delay: 0.12, ease: "power2.out" }
-      );
+      gsap.fromTo(".profile-panel", { opacity: 0, scale: 0.975, y: 18 }, { opacity: 1, scale: 1, y: 0, duration: 0.42, ease: "power3.out" });
+      gsap.fromTo(".profile-data > *", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.38, stagger: 0.045, delay: 0.12, ease: "power2.out" });
     }
     document.querySelector(".profile-close").focus();
   });
 }
 
-/** Đóng profile và trả focus về character card trước đó. */
 function closeProfile() {
   const finishClose = () => {
     profileModal.hidden = true;
@@ -182,20 +163,12 @@ function closeProfile() {
   };
 
   if (window.gsap && !prefersReducedMotion) {
-    gsap.to(".profile-panel", {
-      opacity: 0,
-      scale: 0.985,
-      y: 12,
-      duration: 0.22,
-      ease: "power2.in",
-      onComplete: finishClose
-    });
+    gsap.to(".profile-panel", { opacity: 0, scale: 0.985, y: 12, duration: 0.22, ease: "power2.in", onComplete: finishClose });
   } else {
     finishClose();
   }
 }
 
-/** Chuyển profile mà không đóng hộp thoại. */
 function switchProfile(direction) {
   selectedMemberIndex = (selectedMemberIndex + direction + TEAM_MEMBERS.length) % TEAM_MEMBERS.length;
   setActiveMember(selectedMemberIndex);
@@ -210,10 +183,9 @@ function switchProfile(direction) {
   }
 }
 
-/** Giữ focus bên trong profile khi người dùng nhấn Tab. */
 function trapProfileFocus(event) {
   const focusable = [...profileModal.querySelectorAll("button, a[href]")]
-    .filter((element) => !element.hasAttribute("disabled"));
+    .filter((element) => !element.hasAttribute("disabled") && !element.hidden);
   const first = focusable[0];
   const last = focusable[focusable.length - 1];
 
@@ -226,21 +198,80 @@ function trapProfileFocus(event) {
   }
 }
 
-renderMemberCards();
+function initScrollReveal() {
+  if (prefersReducedMotion || !("IntersectionObserver" in window)) return;
 
-// Khởi tạo icon sau khi nội dung động đã được tạo.
-if (window.lucide) {
-  lucide.createIcons();
+  document.body.classList.add("motion-ready");
+  const revealTargets = document.querySelectorAll(
+    ".team-select .section-heading, .member-card, .quests .section-heading, .quest-card, .contact > .section-index, .contact__inner, .site-footer"
+  );
+
+  revealTargets.forEach((element, index) => {
+    element.classList.add("scroll-reveal");
+    element.style.setProperty("--reveal-delay", `${Math.min(index % 4, 3) * 70}ms`);
+  });
+
+  const revealObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("is-visible");
+      observer.unobserve(entry.target);
+    });
+  }, { rootMargin: "0px 0px -10%", threshold: 0.12 });
+
+  revealTargets.forEach((element) => revealObserver.observe(element));
 }
 
-// Click/Enter trên member card để mở profile.
+function initCardTilt() {
+  if (prefersReducedMotion || !window.matchMedia("(pointer: fine)").matches) return;
+
+  document.querySelectorAll(".member-card").forEach((card) => {
+    card.addEventListener("pointermove", (event) => {
+      const bounds = card.getBoundingClientRect();
+      const x = event.clientX - bounds.left;
+      const y = event.clientY - bounds.top;
+      const rotateY = ((x / bounds.width) - 0.5) * 5;
+      const rotateX = (0.5 - (y / bounds.height)) * 5;
+
+      card.style.setProperty("--pointer-x", `${x}px`);
+      card.style.setProperty("--pointer-y", `${y}px`);
+      card.style.setProperty("--rotate-x", `${rotateX.toFixed(2)}deg`);
+      card.style.setProperty("--rotate-y", `${rotateY.toFixed(2)}deg`);
+    });
+
+    card.addEventListener("pointerleave", () => {
+      card.style.setProperty("--rotate-x", "0deg");
+      card.style.setProperty("--rotate-y", "0deg");
+    });
+  });
+}
+
+function initHeroParallax() {
+  if (prefersReducedMotion || !window.matchMedia("(pointer: fine)").matches) return;
+  const hero = document.querySelector(".hero");
+
+  hero.addEventListener("pointermove", (event) => {
+    const x = (event.clientX / window.innerWidth - 0.5) * 12;
+    const y = (event.clientY / window.innerHeight - 0.5) * 12;
+    hero.style.setProperty("--hero-shift-x", `${x.toFixed(1)}px`);
+    hero.style.setProperty("--hero-shift-y", `${y.toFixed(1)}px`);
+  });
+}
+
+renderMemberCards();
+
+if (window.lucide) lucide.createIcons();
+
+initScrollReveal();
+initCardTilt();
+initHeroParallax();
+
 memberGrid.addEventListener("click", (event) => {
   const card = event.target.closest(".member-card");
   if (!card) return;
   openProfile(Number(card.dataset.memberIndex));
 });
 
-// Điều hướng character card bằng cả 4 phím mũi tên.
 memberGrid.addEventListener("keydown", (event) => {
   if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
   event.preventDefault();
@@ -248,24 +279,13 @@ memberGrid.addEventListener("keydown", (event) => {
   setActiveMember(selectedMemberIndex + direction, true);
 });
 
-// Nút Previous/Next cho carousel trên mobile.
-document.querySelector(".carousel-control--prev").addEventListener("click", () => {
-  setActiveMember(selectedMemberIndex - 1);
-});
+document.querySelector(".carousel-control--prev").addEventListener("click", () => setActiveMember(selectedMemberIndex - 1));
+document.querySelector(".carousel-control--next").addEventListener("click", () => setActiveMember(selectedMemberIndex + 1));
 
-document.querySelector(".carousel-control--next").addEventListener("click", () => {
-  setActiveMember(selectedMemberIndex + 1);
-});
-
-// Các điều khiển trong profile.
-document.querySelectorAll("[data-close-profile]").forEach((element) => {
-  element.addEventListener("click", closeProfile);
-});
-
+document.querySelectorAll("[data-close-profile]").forEach((element) => element.addEventListener("click", closeProfile));
 document.querySelector("#profile-prev").addEventListener("click", () => switchProfile(-1));
 document.querySelector("#profile-next").addEventListener("click", () => switchProfile(1));
 
-// Escape đóng profile; Arrow trái/phải chuyển thành viên; Tab được giữ trong dialog.
 document.addEventListener("keydown", (event) => {
   if (profileModal.hidden) return;
 
@@ -283,30 +303,18 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-// Cập nhật trạng thái menu theo section đang xuất hiện trên màn hình.
 const navSections = [...document.querySelectorAll("#team, #quests, #contact")];
 const navLinks = [...document.querySelectorAll(".site-nav__link")];
-
 const sectionObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (!entry.isIntersecting) return;
-    navLinks.forEach((link) => {
-      link.classList.toggle("is-active", link.getAttribute("href") === `#${entry.target.id}`);
-    });
+    navLinks.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${entry.target.id}`));
   });
 }, { rootMargin: "-35% 0px -55%", threshold: 0 });
 
 navSections.forEach((section) => sectionObserver.observe(section));
 
-// Animation mở đầu nhẹ bằng GSAP, có tôn trọng prefers-reduced-motion.
 if (window.gsap && !prefersReducedMotion) {
   gsap.from(".site-header", { opacity: 0, y: -18, duration: 0.55, ease: "power2.out" });
-  gsap.from(".reveal-item", {
-    opacity: 0,
-    y: 28,
-    duration: 0.72,
-    stagger: 0.085,
-    delay: 0.12,
-    ease: "power3.out"
-  });
+  gsap.from(".reveal-item", { opacity: 0, y: 28, duration: 0.72, stagger: 0.085, delay: 0.12, ease: "power3.out" });
 }

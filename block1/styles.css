@@ -84,11 +84,13 @@ button {
 .page-glow--top {
   top: -180px;
   right: -120px;
+  animation: glow-drift-top 9s ease-in-out infinite alternate;
 }
 
 .page-glow--bottom {
   top: 1300px;
   left: -260px;
+  animation: glow-drift-bottom 11s ease-in-out infinite alternate;
 }
 
 .section-shell {
@@ -217,6 +219,9 @@ button {
     linear-gradient(90deg, rgba(199, 255, 61, 0.05) 1px, transparent 1px);
   background-size: 36px 36px;
   clip-path: polygon(18% 0, 100% 0, 100% 82%, 82% 100%, 0 100%, 0 18%);
+  transform: translate(var(--hero-shift-x, 0), var(--hero-shift-y, 0));
+  transition: transform 700ms var(--ease);
+  animation: grid-drift 14s linear infinite;
 }
 
 .hero__eyebrow {
@@ -361,6 +366,9 @@ button {
 }
 
 .member-card {
+  --lift: 0px;
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
   position: relative;
   overflow: hidden;
   min-height: 580px;
@@ -369,11 +377,25 @@ button {
   cursor: pointer;
   text-align: left;
   background: var(--surface);
+  transform: perspective(1000px) translateY(var(--lift)) rotateX(var(--rotate-x)) rotateY(var(--rotate-y));
+  transform-style: preserve-3d;
   transition: border-color 350ms var(--ease), transform 350ms var(--ease), box-shadow 350ms var(--ease);
+}
+
+.member-card::before {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(260px circle at var(--pointer-x, 50%) var(--pointer-y, 35%), rgba(199, 255, 61, 0.11), transparent 65%);
+  content: "";
+  opacity: 0;
+  transition: opacity 300ms var(--ease);
 }
 
 .member-card::after {
   position: absolute;
+  z-index: 5;
   top: 0;
   left: 0;
   width: 4px;
@@ -385,10 +407,15 @@ button {
 
 .member-card:hover,
 .member-card.is-keyboard-active {
+  --lift: -6px;
   z-index: 2;
   border-color: var(--accent);
   box-shadow: 0 0 32px rgba(199, 255, 61, 0.08);
-  transform: translateY(-6px);
+}
+
+.member-card:hover::before,
+.member-card.is-keyboard-active::before {
+  opacity: 1;
 }
 
 .member-card:hover::after,
@@ -448,6 +475,7 @@ button {
   box-shadow: inset -22px -12px 0 rgba(0, 0, 0, 0.14);
   clip-path: polygon(14% 0, 84% 0, 100% 18%, 92% 79%, 70% 100%, 30% 100%, 8% 79%, 0 18%);
   transform: translateX(-50%);
+  animation: avatar-idle 4.8s ease-in-out infinite;
 }
 
 .pixel-avatar__head::before {
@@ -481,6 +509,7 @@ button {
   background: var(--avatar-shirt);
   clip-path: polygon(25% 0, 75% 0, 100% 28%, 92% 100%, 8% 100%, 0 28%);
   transform: translateX(-50%);
+  animation: avatar-idle 4.8s 120ms ease-in-out infinite;
 }
 
 .pixel-avatar__body::before {
@@ -641,6 +670,16 @@ button {
     linear-gradient(90deg, var(--accent) 0 24%, transparent 24% 28%, rgba(245, 245, 240, 0.08) 28% 100%);
   box-shadow: 24px 24px 0 rgba(199, 255, 61, 0.08);
   transform: translate(-50%, -50%) rotate(-3deg);
+  animation: mock-float 5s ease-in-out infinite;
+}
+
+.mock-window::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(199, 255, 61, 0.1) 48%, transparent 66%);
+  content: "";
+  transform: translateX(-120%);
+  animation: interface-scan 4.5s 900ms ease-in-out infinite;
 }
 
 .mock-window::before {
@@ -791,7 +830,7 @@ button {
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.1em;
-  transition: color 250ms var(--ease), background 250ms var(--ease), border-color 250ms var(--ease);
+  transition: color 250ms var(--ease), background 250ms var(--ease), border-color 250ms var(--ease), transform 250ms var(--ease);
 }
 
 .button svg {
@@ -807,11 +846,13 @@ button {
 .button--primary:hover {
   color: var(--accent);
   background: transparent;
+  transform: translateY(-2px);
 }
 
 .button--ghost:hover {
   border-color: var(--text);
   background: rgba(255, 255, 255, 0.04);
+  transform: translateY(-2px);
 }
 
 .contact {
@@ -1110,6 +1151,13 @@ button {
   font-family: var(--display);
   font-size: 0.66rem;
   letter-spacing: 0.06em;
+  transition: border-color 220ms var(--ease), color 220ms var(--ease), transform 220ms var(--ease);
+}
+
+.skill-list li:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-2px);
 }
 
 .profile-data__interest {
@@ -1144,6 +1192,49 @@ button {
 .profile-switcher {
   border-top: 1px solid var(--line);
   border-bottom: 0;
+}
+
+.motion-ready .scroll-reveal {
+  opacity: 0;
+  translate: 0 28px;
+}
+
+.motion-ready .scroll-reveal.is-visible {
+  animation: reveal-in 700ms var(--reveal-delay, 0ms) var(--ease) forwards;
+}
+
+@keyframes reveal-in {
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes glow-drift-top {
+  to { transform: translate(-80px, 70px) scale(1.12); }
+}
+
+@keyframes glow-drift-bottom {
+  to { transform: translate(100px, -60px) scale(0.92); }
+}
+
+@keyframes grid-drift {
+  to { background-position: 36px 36px, 36px 36px; }
+}
+
+@keyframes avatar-idle {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -5px; }
+}
+
+@keyframes mock-float {
+  0%, 100% { transform: translate(-50%, -50%) rotate(-3deg); }
+  50% { transform: translate(-50%, calc(-50% - 7px)) rotate(-1.7deg); }
+}
+
+@keyframes interface-scan {
+  0%, 40% { transform: translateX(-120%); }
+  75%, 100% { transform: translateX(120%); }
 }
 
 @keyframes pulse {
