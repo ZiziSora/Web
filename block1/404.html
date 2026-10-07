@@ -2,14 +2,48 @@
 <html lang="vi">
 
 <head>
-    <meta charset="UTF-8">
-    <title>404 Not Found</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Trang bạn đang tìm không tồn tại — quay lại portfolio Ba Chàng Ngự Lâm.">
+  <title>Không tìm thấy trang — Ba Chàng Ngự Lâm</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Manrope:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 
-<body>
-    <h1 style="color: red;">404 - Không tìm thấy trang</h1>
-    <p>Đường dẫn bạn yêu cầu không tồn tại trên hệ thống.</p>
-    <a href="/">Quay lại trang chủ</a>
+<body class="error-page">
+  <main class="error-shell">
+    <header class="error-header">
+      <a class="error-brand" href="/" aria-label="Ba Chàng Ngự Lâm — trang chủ">BCNL®</a>
+      <p>ERROR / 404</p>
+    </header>
+
+    <section class="error-content" aria-labelledby="error-title">
+      <div class="error-visual" aria-hidden="true">
+        <p class="error-kicker">WRONG TURN · RIGHT TEAM</p>
+        <div class="error-code">
+          <span>4</span>
+          <span class="error-code__zero">0</span>
+          <span>4</span>
+        </div>
+      </div>
+
+      <div class="error-copy">
+        <p class="error-copy__label">PAGE NOT FOUND</p>
+        <h1 id="error-title">Lạc đường<br><em>trên web?</em></h1>
+        <p>Trang bạn đang tìm không tồn tại, đã được di chuyển hoặc đường dẫn chưa chính xác.</p>
+        <a class="error-home" href="/">VỀ TRANG CHỦ</a>
+      </div>
+    </section>
+
+    <footer class="error-footer">
+      <p>BA CHANG NGU LAM</p>
+      <p>THREE DEVELOPERS · ONE SHARED DIRECTION</p>
+      <p>HO CHI MINH CITY · 2026</p>
+    </footer>
+  </main>
 </body>
 
 </html>
