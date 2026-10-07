@@ -24,7 +24,7 @@ Các thông tin cần đưa vào:
 
 1. Giới thiệu chung về nhóm ở main page:
 
-- Tên nhóm
+- Tên nhóm: Ba Chàng Ngự Lâm
 - Slogan
 - Lĩnh vực nhóm theo đuổi
 
@@ -81,6 +81,8 @@ caddy run
 **Request lỗi:**
 Truy cập: http://portfolio.localhost:8080/abc
 
+![alt text](./images/image.png)
+
 ![alt text](./images/404-network.png)
 
 ## 2.4. Giải thích 1 cặp Request - Response
@@ -130,7 +132,7 @@ Nhóm lựa chọn GitHub Pages vì portfolio là một **static website đơn g
 
 ## 3.3. URL Website
 
-Public URL: [\[Điền URL GitHub Pages tại đây\]](https://zizisora.github.io/Web/block1/)
+Public URL: https://zizisora.github.io/Web/block1/
 
 ## 3.4. Minh chứng triển khai
 
