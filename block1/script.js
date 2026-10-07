@@ -18,7 +18,7 @@ const TEAM_MEMBERS = [
     bio: "Ngân phụ trách kết nối ý tưởng, tiến độ và các phần việc của nhóm. Bên cạnh điều phối dự án, cô tham gia phát triển cả giao diện lẫn xử lý dữ liệu để sản phẩm giữ được sự nhất quán từ đầu đến cuối.",
     skills: ["Project Planning", "JavaScript", "Node.js", "Git / GitHub"],
     interests: "Tổ chức quy trình làm việc, xây dựng sản phẩm có mục tiêu rõ ràng và giúp mọi thành viên phát huy thế mạnh.",
-    github: "",
+    github: "https://github.com/ZiziSora",
     color: "#c9b990"
   },
   {
