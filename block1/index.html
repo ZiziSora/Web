@@ -4,274 +4,233 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Portfolio của nhóm phát triển gồm 3 thành viên.">
-  <title>Team Portfolio — Select Your Developer</title>
+  <meta name="description" content="Portfolio của Ba Chàng Ngự Lâm — nhóm ba sinh viên phát triển web tại Đại học Khoa học Tự nhiên.">
+  <title>Ba Chàng Ngự Lâm — Creative Developer Team</title>
 
-  <!-- Fonts: Space Grotesk cho giao diện, Inter cho nội dung -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Manrope:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-  <!-- Hiệu ứng nền trang trí, không mang nội dung -->
-  <div class="page-noise" aria-hidden="true"></div>
-  <div class="page-glow page-glow--top" aria-hidden="true"></div>
-  <div class="page-glow page-glow--bottom" aria-hidden="true"></div>
+  <div class="page-loader" aria-hidden="true">
+    <span class="page-loader__brand">BCNL®</span>
+    <span class="page-loader__count">000</span>
+    <span class="page-loader__line"></span>
+  </div>
 
-  <!-- Thanh điều hướng chính -->
-  <header class="site-header">
-    <a class="brand" href="#home" aria-label="Về đầu trang">
-      <span class="brand__mark" aria-hidden="true">03</span>
-      <!-- TODO: Thay tên viết tắt của nhóm -->
-      <span class="brand__name">BACHANGNGULAM</span>
-    </a>
-
-    <nav class="site-nav" aria-label="Điều hướng chính">
-      <a class="site-nav__link is-active" href="#team">Team</a>
-      <a class="site-nav__link" href="#quests">Quests</a>
-      <a class="site-nav__link" href="#contact">Contact</a>
-    </nav>
-
-    <span class="system-status" aria-label="Trạng thái: sẵn sàng">
-      <span class="system-status__dot" aria-hidden="true"></span>
-      SYSTEM READY
-    </span>
-  </header>
+  <div class="scroll-progress" aria-hidden="true"></div>
+  <div class="cursor-orb" aria-hidden="true"><span>VIEW</span></div>
 
   <main id="home">
-    <!-- Phần giới thiệu chung của nhóm -->
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero__eyebrow reveal-item">
-        <span>PORTFOLIO / 2026</span>
-        <span>TEAM OF THREE</span>
-      </div>
+      <p class="hero__side hero__side--left">FRONT-END<br>DEVELOPMENT</p>
+      <p class="hero__side hero__side--right">BACK-END<br>DEVELOPMENT</p>
 
-      <div class="hero__content">
-        <p class="hero__kicker reveal-item">PLAYER SELECT / 01</p>
-        <h1 id="hero-title" class="hero__title reveal-item">
-          SELECT YOUR<br>
-          <span>DEVELOPER</span>
+      <div class="hero__heading-wrap">
+        <p class="hero__eyebrow">THREE DEVELOPERS · ONE SHARED DIRECTION</p>
+        <h1 id="hero-title" class="hero__title" aria-label="Ba Chàng Ngự Lâm">
+          <span>BA CHÀNG</span>
+          <span>NGỰ LÂM</span>
         </h1>
-        <!-- TODO: Điền slogan của nhóm -->
-        <p class="hero__intro reveal-item">One prompt one kill</p>
       </div>
 
-      <div class="hero__meta reveal-item">
-        <p>
-          <span class="meta-label">FIELD</span>
-          <!-- TODO: Điền lĩnh vực nhóm theo đuổi -->
-          <span>Full-stack developer</span>
-        </p>
-        <p>
-          <span class="meta-label">LOCATION</span>
-          <!-- TODO: Điền trường/lớp hoặc địa điểm -->
-          <span>Đại học Khoa học Tự Nhiên</span>
-        </p>
+      <div class="hero-doodle" aria-hidden="true">
+        <svg viewBox="0 0 640 680" role="presentation">
+          <path class="hero-doodle__accent" d="M131 197C188 84 393 44 510 160c90 89 58 294-58 391-100 84-287 59-346-74-43-97-29-174 25-280Z"/>
+          <g class="hero-doodle__orbit">
+            <ellipse cx="320" cy="337" rx="278" ry="205"/>
+            <path d="M80 321c93-63 380-102 497 18"/>
+          </g>
+          <g class="hero-doodle__face hero-doodle__face--one">
+            <path d="M174 224c-18-43 9-94 62-99 46-4 83 30 83 75 0 27-10 49-25 67-17 20-41 35-64 32-31-4-45-42-56-75Z"/>
+            <path class="fill-light" d="M184 225c-8-39 13-79 54-84 37-5 67 24 68 60 0 50-38 87-73 84-26-2-39-35-49-60Z"/>
+            <path d="M190 175c17-42 74-55 108-15-34-12-72 5-85 35Z"/>
+            <circle cx="222" cy="218" r="5"/><circle cx="275" cy="211" r="5"/>
+            <path d="M233 251c16 9 32 6 43-5"/>
+          </g>
+          <g class="hero-doodle__face hero-doodle__face--two">
+            <path d="M231 413c-9-58 30-112 91-116 68-5 111 53 96 115-11 48-53 96-103 92-47-4-78-45-84-91Z"/>
+            <path class="fill-light" d="M250 409c-7-44 23-87 71-91 51-4 84 39 73 89-9 38-39 76-78 74-38-2-60-36-66-72Z"/>
+            <path d="M255 349c23-44 101-53 133 7-43-27-88-17-128 18Z"/>
+            <circle cx="290" cy="411" r="6"/><circle cx="354" cy="405" r="6"/>
+            <path d="M299 447c18 12 39 9 54-7"/>
+          </g>
+          <g class="hero-doodle__face hero-doodle__face--three">
+            <path d="M392 207c0-51 43-90 95-77 50 12 70 68 50 113-17 39-59 70-99 53-32-13-46-52-46-89Z"/>
+            <path class="fill-light" d="M407 210c0-38 31-68 70-59 37 9 52 51 37 86-13 30-44 53-74 40-24-10-33-39-33-67Z"/>
+            <path d="M413 173c29-42 91-32 107 14-35-25-70-16-104 8Z"/>
+            <circle cx="445" cy="216" r="5"/><circle cx="493" cy="224" r="5"/>
+            <path d="M449 252c13 10 29 11 42 1"/>
+          </g>
+          <g class="hero-doodle__spark">
+            <path d="m86 165 15 24 27 3-22 18 5 27-25-14-24 14 5-27-21-18 27-3Z"/>
+            <path d="m542 440 9 15 18 2-14 11 3 18-16-9-16 9 3-18-14-11 18-2Z"/>
+            <circle cx="544" cy="121" r="13"/>
+            <circle cx="103" cy="493" r="10"/>
+          </g>
+        </svg>
       </div>
 
-      <a class="scroll-cue" href="#team" aria-label="Cuộn đến phần chọn thành viên">
-        <span>SCROLL TO SELECT</span>
-        <i data-lucide="arrow-down" aria-hidden="true"></i>
-      </a>
+      <div class="hero__bottom">
+        <p>BA SINH VIÊN, BA GÓC NHÌN<br>MỘT SẢN PHẨM THỐNG NHẤT.</p>
+        <a href="#team" class="round-link" aria-label="Khám phá đội ngũ">
+          <span>SCROLL</span>
+          <i data-lucide="arrow-down" aria-hidden="true"></i>
+        </a>
+        <p>BASED IN HO CHI MINH CITY<br>BUILDING FOR THE WEB.</p>
+      </div>
     </section>
 
-    <!-- Màn hình chọn thành viên; dữ liệu card được tạo từ script.js -->
-    <section id="team" class="team-select section-shell" aria-labelledby="team-title">
-      <header class="section-heading">
-        <div>
-          <p class="section-index">01 / TEAM</p>
-          <h2 id="team-title">CHOOSE A PROFILE</h2>
-        </div>
-        <p class="section-heading__note">Dùng phím mũi tên để di chuyển<br>Nhấn Enter để xem hồ sơ</p>
+    <section class="marquee" aria-label="Năng lực của nhóm">
+      <div class="marquee__track">
+        <span>WEB DEVELOPMENT</span><i>✦</i>
+        <span>INTERACTION DESIGN</span><i>✦</i>
+        <span>API &amp; DATA</span><i>✦</i>
+        <span>PROJECT MANAGEMENT</span><i>✦</i>
+        <span>WEB DEVELOPMENT</span><i>✦</i>
+        <span>INTERACTION DESIGN</span><i>✦</i>
+        <span>API &amp; DATA</span><i>✦</i>
+        <span>PROJECT MANAGEMENT</span><i>✦</i>
+      </div>
+    </section>
+
+    <section id="team" class="team section-shell" aria-labelledby="team-title">
+      <header class="section-header" data-reveal>
+        <p class="section-label">01 — THE TEAM</p>
+        <p class="section-note">CLICK A PROFILE<br>TO MEET THE PLAYER</p>
       </header>
 
-      <div class="character-stage">
-        <button class="carousel-control carousel-control--prev" type="button" aria-label="Thành viên trước">
-          <i data-lucide="arrow-left" aria-hidden="true"></i>
-        </button>
-
-        <div id="member-grid" class="member-grid" role="group" aria-label="Danh sách 3 thành viên">
-          <!-- JavaScript sẽ tạo 3 character card tại đây -->
-        </div>
-
-        <button class="carousel-control carousel-control--next" type="button" aria-label="Thành viên tiếp theo">
-          <i data-lucide="arrow-right" aria-hidden="true"></i>
-        </button>
+      <div class="team-intro">
+        <h2 id="team-title" data-reveal>Different strengths,<br><em>shared standards.</em></h2>
+        <p data-reveal>Chúng mình là một nhóm ba sinh viên cùng quan tâm đến việc biến ý tưởng thành trải nghiệm web có cấu trúc, có cá tính và thực sự dễ sử dụng.</p>
       </div>
 
-      <div class="mobile-pagination" aria-live="polite">
-        <span id="current-member">01</span>
-        <span class="mobile-pagination__line"></span>
-        <span>03</span>
+      <div id="member-list" class="member-list" aria-label="Danh sách thành viên"></div>
+    </section>
+
+    <section class="manifesto" aria-label="Tuyên ngôn của nhóm">
+      <div class="manifesto__stamp" aria-hidden="true">03</div>
+      <p class="manifesto__kicker" data-reveal>OUR LITTLE MANIFESTO</p>
+      <p class="manifesto__text" data-reveal>
+        Chúng mình không chỉ làm cho trang web <em>chạy được.</em><br>
+        Chúng mình muốn nó <strong>rõ ràng, đáng nhớ</strong><br>
+        và có lý do để tồn tại.
+      </p>
+      <div class="manifesto__tags" data-reveal>
+        <span>CURIOUS BY DEFAULT</span>
+        <span>BUILD WITH PURPOSE</span>
+        <span>LEARN IN PUBLIC</span>
       </div>
     </section>
 
-    <!-- Khu dự án, được gọi là Quests theo concept game -->
-    <section id="quests" class="quests section-shell" aria-labelledby="quests-title">
-      <header class="section-heading section-heading--quests">
-        <div>
-          <p class="section-index">02 / SELECTED WORK</p>
-          <h2 id="quests-title">ACTIVE QUESTS</h2>
-        </div>
-        <p class="section-heading__note">Những sản phẩm nhóm đã cùng nhau<br>nghiên cứu, thiết kế và phát triển.</p>
+    <section id="process" class="process section-shell" aria-labelledby="process-title">
+      <header class="section-header" data-reveal>
+        <p class="section-label">02 — HOW WE WORK</p>
+        <p class="section-note">A SMALL TEAM<br>WITH A CLEAR RHYTHM</p>
       </header>
 
-      <div class="quest-list">
-        <!-- Dự án 01 -->
-        <article class="quest-card">
-          <div class="quest-card__visual quest-card__visual--one" aria-hidden="true">
-            <span class="quest-card__number">01</span>
-            <div class="mock-window">
-              <span></span><span></span><span></span>
-            </div>
-          </div>
-          <div class="quest-card__content">
-            <p class="quest-card__status"><span></span> QUEST COMPLETED</p>
-            <!-- TODO: Điền thông tin dự án 01 -->
-            <h3>Web project</h3>
-            <p>[Mô tả ngắn về bài toán, giải pháp và kết quả nổi bật của dự án.]</p>
-
-            <dl class="quest-card__details">
-              <div>
-                <dt>STACK</dt>
-                <dd>[HTML] · [CSS] · [JAVASCRIPT]</dd>
-              </div>
-            </dl>
-
-            <div class="quest-card__actions">
-              <a class="button button--primary" href="#" aria-label="Xem demo dự án 01">
-                LIVE DEMO <i data-lucide="arrow-up-right" aria-hidden="true"></i>
-              </a>
-              <a class="button button--ghost" href="https://github.com/ZiziSora/Web"
-                target="_blank" 
-                rel="noopener noreferrer"s
-                aria-label="Xem mã nguồn dự án 01">
-                GITHUB <i data-lucide="github" aria-hidden="true"></i>
-              </a>
-            </div>
-          </div>
-        </article>
-
-        <!-- Dự án 02 -->
-        <article class="quest-card quest-card--reverse">
-          <div class="quest-card__visual quest-card__visual--two" aria-hidden="true">
-            <span class="quest-card__number">02</span>
-            <div class="pixel-orbit">
-              <span></span><span></span><span></span><span></span>
-            </div>
-          </div>
-          <div class="quest-card__content">
-            <p class="quest-card__status"><span></span> QUEST COMPLETED</p>
-            <!-- TODO: Điền thông tin dự án 02 -->
-            <h3>[TÊN DỰ ÁN 02]</h3>
-            <p>[Mô tả ngắn về bài toán, giải pháp và kết quả nổi bật của dự án.]</p>
-
-            <dl class="quest-card__details">
-              <div>
-                <dt>STACK</dt>
-                <dd>[CÔNG NGHỆ 01] · [CÔNG NGHỆ 02]</dd>
-              </div>
-              <div>
-                <dt>CONTRIBUTION</dt>
-                <dd>[Đóng góp cụ thể của nhóm]</dd>
-              </div>
-            </dl>
-
-            <div class="quest-card__actions">
-              <a class="button button--primary" href="#" aria-label="Xem demo dự án 02">
-                LIVE DEMO <i data-lucide="arrow-up-right" aria-hidden="true"></i>
-              </a>
-              <a class="button button--ghost" href="#" aria-label="Xem mã nguồn dự án 02">
-                GITHUB <i data-lucide="github" aria-hidden="true"></i>
-              </a>
-            </div>
-          </div>
-        </article>
+      <div class="process-heading">
+        <h2 id="process-title" data-reveal>From rough idea<br><em>to working product.</em></h2>
       </div>
+
+      <ol class="process-list">
+        <li data-reveal>
+          <span>01</span>
+          <h3>Discover</h3>
+          <p>Làm rõ người dùng, vấn đề và mục tiêu trước khi viết dòng code đầu tiên.</p>
+          <i data-lucide="search" aria-hidden="true"></i>
+        </li>
+        <li data-reveal>
+          <span>02</span>
+          <h3>Shape</h3>
+          <p>Chuyển yêu cầu thành luồng sử dụng, cấu trúc dữ liệu và hướng giao diện cụ thể.</p>
+          <i data-lucide="pen-tool" aria-hidden="true"></i>
+        </li>
+        <li data-reveal>
+          <span>03</span>
+          <h3>Build</h3>
+          <p>Chia nhỏ công việc, phát triển theo từng phần và tích hợp thường xuyên.</p>
+          <i data-lucide="code-2" aria-hidden="true"></i>
+        </li>
+        <li data-reveal>
+          <span>04</span>
+          <h3>Refine</h3>
+          <p>Kiểm thử, nhận phản hồi và chỉnh lại những chi tiết tạo nên trải nghiệm tốt.</p>
+          <i data-lucide="sparkles" aria-hidden="true"></i>
+        </li>
+      </ol>
     </section>
 
-    <!-- Phần liên hệ cuối trang -->
     <section id="contact" class="contact section-shell" aria-labelledby="contact-title">
-      <p class="section-index">03 / CONTACT</p>
-      <div class="contact__inner">
-        <div>
-          <p class="contact__overline">READY FOR THE NEXT QUEST?</p>
-          <h2 id="contact-title">LET'S BUILD<br><span>SOMETHING GREAT.</span></h2>
-        </div>
+      <div class="contact__copy" data-reveal>
+        <p class="contact__label">03 — CONTACT</p>
+        <h2 id="contact-title">Have an idea?<br><em>Let’s talk.</em></h2>
       </div>
+      <a class="contact__link" href="#team">
+        VIEW THE TEAM <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+      </a>
     </section>
   </main>
 
-  <!-- Chân trang -->
   <footer class="site-footer section-shell">
-    <p>© 2026 [BACHANGNGULAM]. ALL RIGHTS RESERVED.</p>
-    <p>DESIGNED &amp; BUILT BY 03 DEVELOPERS.</p>
+    <p>© 2026 BA CHÀNG NGỰ LÂM</p>
+    <p>DESIGN, CODE &amp; PLENTY OF COFFEE.</p>
+    <a href="#home">BACK TO TOP ↑</a>
   </footer>
 
-  <!-- Hộp thoại hồ sơ thành viên; nội dung được cập nhật từ script.js -->
   <div id="profile-modal" class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-name" hidden>
     <div class="profile-modal__backdrop" data-close-profile></div>
     <article class="profile-panel">
       <header class="profile-panel__topbar">
-        <button class="icon-button profile-close" type="button" data-close-profile aria-label="Đóng hồ sơ thành viên">
-          <i data-lucide="arrow-left" aria-hidden="true"></i>
-          <span>BACK</span>
-          <kbd>ESC</kbd>
-        </button>
         <span id="profile-count">PLAYER 01 / 03</span>
+        <button class="profile-close" type="button" data-close-profile aria-label="Đóng hồ sơ thành viên">
+          CLOSE <kbd>ESC</kbd>
+        </button>
       </header>
 
       <div class="profile-panel__body">
         <div id="profile-portrait" class="profile-portrait" aria-hidden="true">
-          <div class="profile-portrait__figure">
-            <span class="avatar-head"></span>
-            <span class="avatar-body"></span>
-          </div>
           <span id="profile-index" class="profile-portrait__index">01</span>
+          <div class="profile-face">
+            <span class="profile-face__hair"></span>
+            <span class="profile-face__eye profile-face__eye--left"></span>
+            <span class="profile-face__eye profile-face__eye--right"></span>
+            <span class="profile-face__smile"></span>
+          </div>
+          <span class="profile-orbit"></span>
         </div>
 
         <div class="profile-data">
-          <p id="profile-role" class="profile-data__role">[VAI TRÒ]</p>
-          <h2 id="profile-name">[TÊN THÀNH VIÊN]</h2>
-          <p id="profile-bio" class="profile-data__bio">[GIỚI THIỆU NGẮN]</p>
+          <p id="profile-role" class="profile-data__role">ROLE</p>
+          <h2 id="profile-name">MEMBER NAME</h2>
+          <p id="profile-bio" class="profile-data__bio">Giới thiệu thành viên.</p>
 
-          <div class="profile-data__block">
-            <p class="profile-data__label">TECH STACK / SKILLS</p>
-            <ul id="profile-skills" class="skill-list" aria-label="Danh sách kỹ năng"></ul>
+          <div class="profile-data__grid">
+            <div>
+              <p class="profile-data__label">TOOLKIT</p>
+              <ul id="profile-skills" class="skill-list"></ul>
+            </div>
+            <div>
+              <p class="profile-data__label">INTERESTS</p>
+              <p id="profile-interests"></p>
+            </div>
           </div>
 
-          <div class="profile-data__block">
-            <p class="profile-data__label">SPECIALTY / INTERESTS</p>
-            <p id="profile-interests" class="profile-data__interest">[MỐI QUAN TÂM]</p>
-          </div>
-
-          <div class="profile-data__links">
-            <a id="profile-github" href="#" aria-label="GitHub của thành viên">
-              <i data-lucide="github" aria-hidden="true"></i> GITHUB
-            </a>
-            <a id="profile-linkedin" href="#" aria-label="LinkedIn của thành viên">
-              <i data-lucide="linkedin" aria-hidden="true"></i> LINKEDIN
-            </a>
-          </div>
+          <a id="profile-github" class="profile-github" href="#" target="_blank" rel="noreferrer">
+            GITHUB <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+          </a>
         </div>
       </div>
 
       <nav class="profile-switcher" aria-label="Chuyển hồ sơ thành viên">
-        <button id="profile-prev" type="button" aria-label="Xem thành viên trước">
-          <i data-lucide="chevron-left" aria-hidden="true"></i> PREV PLAYER
-        </button>
-        <button id="profile-next" type="button" aria-label="Xem thành viên tiếp theo">
-          NEXT PLAYER <i data-lucide="chevron-right" aria-hidden="true"></i>
-        </button>
+        <button id="profile-prev" type="button">← PREVIOUS</button>
+        <button id="profile-next" type="button">NEXT →</button>
       </nav>
     </article>
   </div>
 
-  <!-- Thư viện icon và animation; website vẫn hoạt động nếu CDN chưa tải -->
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="script.js"></script>
