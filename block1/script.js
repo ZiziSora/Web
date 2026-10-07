@@ -90,10 +90,16 @@ function updateProfile(index) {
   portrait.style.setProperty("--member-color", member.color);
 }
 
+function resetProfileScroll() {
+  document.querySelector(".profile-panel__body").scrollTop = 0;
+  document.querySelector(".profile-data").scrollTop = 0;
+}
+
 function openProfile(index) {
   selectedMemberIndex = index;
   lastFocusedElement = document.activeElement;
   updateProfile(index);
+  resetProfileScroll();
   profileModal.hidden = false;
   document.body.classList.add("modal-open");
 
@@ -124,6 +130,7 @@ function closeProfile() {
 function switchProfile(direction) {
   selectedMemberIndex = (selectedMemberIndex + direction + TEAM_MEMBERS.length) % TEAM_MEMBERS.length;
   updateProfile(selectedMemberIndex);
+  resetProfileScroll();
 
   if (window.gsap && !motionPaused) {
     gsap.fromTo(
