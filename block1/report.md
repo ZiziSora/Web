@@ -8,7 +8,7 @@
 
 ## Quyết định 1:
 
-Chọn Theme là dạng hiện đại. Từng thành viên là từng card nhân vật. Ấn vào hiện thông tin cụ thể.
+Giao diện thiết kế theo phong cách Editorial Minimalist kết hợp Retro-Modern, kết hợp các minh họa cho từng thành viên là  nét vẽ tay (doodle). Khi nhấn vào nhân vật đại diện thì sẽ hiển thị thông tin chi tiết của thành viên. 
 
 ## Quyết định 2:
 
