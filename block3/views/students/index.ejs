@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Danh sách và biểu mẫu thêm sinh viên">
+    <title><%= pageTitle %></title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <p class="eyebrow">ExpressJS · EJS · JSON</p>
+        <h1>Quản lý sinh viên</h1>
+        <p class="subtitle">Thêm sinh viên mới và theo dõi danh sách trên cùng một trang.</p>
+      </div>
+    </header>
+
+    <main class="container page-layout">
+      <section class="card form-card" aria-labelledby="create-heading">
+        <div class="section-heading">
+          <span class="section-number" aria-hidden="true">01</span>
+          <div>
+            <p class="section-label">Thông tin sinh viên</p>
+            <h2 id="create-heading">Thêm sinh viên</h2>
+          </div>
+        </div>
+
+        <% if (successMessage) { %>
+          <div class="alert alert-success" role="status"><%= successMessage %></div>
+        <% } %>
+
+        <% if (errorMessage) { %>
+          <div class="alert alert-error" role="alert"><%= errorMessage %></div>
+        <% } %>
+
+        <form action="/students" method="post" class="student-form">
+          <div class="form-group">
+            <label for="name">Họ và tên</label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              maxlength="100"
+              autocomplete="name"
+              placeholder="Ví dụ: Nguyễn Văn An"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              maxlength="254"
+              autocomplete="email"
+              placeholder="Ví dụ: an@example.com"
+              required
+            >
+          </div>
+
+          <button type="submit">Thêm sinh viên</button>
+        </form>
+      </section>
+
+      <section class="card list-card" aria-labelledby="list-heading">
+        <div class="section-heading list-heading">
+          <span class="section-number section-number-blue" aria-hidden="true">02</span>
+          <div>
+            <p class="section-label">Dữ liệu hiện tại</p>
+            <h2 id="list-heading">Danh sách sinh viên</h2>
+          </div>
+          <span class="student-count"><%= students.length %> sinh viên</span>
+        </div>
+
+        <% if (students.length === 0) { %>
+          <div class="empty-state">
+            <span aria-hidden="true">◎</span>
+            <p>Chưa có sinh viên nào. Hãy thêm sinh viên đầu tiên.</p>
+          </div>
+        <% } else { %>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Họ và tên</th>
+                  <th scope="col">Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% students.forEach((student) => { %>
+                  <tr>
+                    <td><span class="id-badge">#<%= student.id %></span></td>
+                    <td class="student-name"><%= student.name %></td>
+                    <td><a href="mailto:<%= student.email %>"><%= student.email %></a></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">Dữ liệu được lưu cục bộ bằng JSON.</div>
+    </footer>
+  </body>
+</html>
