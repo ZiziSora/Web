@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Management SSR &mdash; Thuyết Trình Block 3</title>
+  <meta name="description" content="Thuyết trình Block 3: SSR Web Application với AI Agent &mdash; Express, EJS, Node.js">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --n800:#0f172a;--n600:#1e3a8a;--n500:#2563eb;
+      --r600:#dc2626;--r500:#ef4444;--r400:#f87171;
+      --g100:#e2e8f0;--g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g600:#475569;
+      --code:#1e293b;
+      --green:#4ade80;--yellow:#facc15;--sky:#38bdf8;--orange:#fb923c;
+    }
+    html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Inter',-apple-system,sans-serif}
+    #app{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,#0d1a33 0%,#000 70%)}
+    #progressBar{position:fixed;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.07);z-index:200}
+    #progressFill{height:100%;width:10%;background:linear-gradient(90deg,var(--r600),var(--orange));border-radius:0 2px 2px 0;transition:width .4s ease}
+    #slidesWrapper{position:absolute;width:1280px;height:720px;transform-origin:top left;border-radius:12px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.06)}
+    .slide{position:absolute;inset:0;width:1280px;height:720px;display:flex;flex-direction:column;padding:42px 54px 36px;background:var(--n800);opacity:0;transform:translateY(14px);transition:opacity .4s ease,transform .4s ease;pointer-events:none;overflow:hidden}
+    .slide::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--r600) 0%,transparent 60%)}
+    .slide.active{opacity:1;transform:translateY(0);pointer-events:all}
+    .s-meta{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .s-num{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--r400);background:rgba(220,38,38,.10);border:1px solid rgba(220,38,38,.20);padding:4px 10px;border-radius:4px}
+    .s-cat{font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--g500)}
+    .s-title{font-size:30px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:18px;letter-spacing:-.02em}
+    .acc{color:var(--r500)}
+    .card{background:rgba(255,255,255,.030);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+    .card-r{background:rgba(220,38,38,.05);border-color:rgba(220,38,38,.15)}
+    .card-b{background:rgba(37,99,235,.05);border-color:rgba(37,99,235,.15)}
+    .card-g{background:rgba(74,222,128,.04);border-color:rgba(74,222,128,.13)}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--g500);margin-bottom:7px}
+    .dtbl{width:100%;border-collapse:collapse;font-size:12.5px}
+    .dtbl th{background:rgba(255,255,255,.04);color:var(--g300);font-weight:600;padding:8px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.07);font-size:10px;text-transform:uppercase;letter-spacing:1px}
+    .dtbl td{padding:8px 12px;color:var(--g100);border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;line-height:1.4}
+    .dtbl tr:last-child td{border-bottom:none}
+    .dtbl tr:hover td{background:rgba(255,255,255,.018)}
+    .cb{background:var(--code);border:1px solid #334155;border-radius:8px;padding:12px 15px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.72;white-space:pre;color:var(--g100)}
+    .kw{color:#ff9580}.fn{color:#7dd3fc}.str{color:#86efac}.cm{color:#4b5563;font-style:italic}.num{color:#fb923c}.cls{color:#c084fc}.op{color:#94a3b8}
+    .flow{display:flex;flex-direction:column;align-items:center}
+    .f-step{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:7px;padding:7px 13px;font-size:12px;font-weight:500;color:var(--g100);text-align:center;width:240px;margin:0}
+    .f-step.hi{background:rgba(220,38,38,.10);border-color:rgba(220,38,38,.25);color:var(--r400)}
+    .f-step.ac{background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.20);color:var(--sky)}
+    .f-arr{color:var(--g600);font-size:12px;padding:3px 0;line-height:1;text-align:center}
+    .f-split{display:flex;gap:10px;align-items:flex-start}
+    .f-sm{width:152px;font-size:11px}
+    .ftree{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.9;color:var(--g300)}
+    .ftree .dir{color:var(--sky);font-weight:500}
+    .ftree .hl{color:var(--yellow);font-weight:500}
+    .ftree .ann{color:var(--g600);font-style:italic;font-size:11px;font-family:'Inter',sans-serif}
+    .steps{display:flex;flex-direction:column;gap:9px}
+    .step-i{display:flex;align-items:flex-start;gap:10px}
+    .step-n{width:22px;height:22px;border-radius:50%;background:var(--r600);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+    .step-t{font-size:12.5px;color:var(--g100);line-height:1.4}
+    .step-t strong{color:#fff}
+    .step-s{font-size:11.5px;color:var(--g400);margin-top:2px}
+    .bdg{display:inline-flex;align-items:center;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:600;letter-spacing:.3px}
+    .bdg-pass{background:rgba(74,222,128,.10);color:var(--green);border:1px solid rgba(74,222,128,.20)}
+    .bdg-info{background:rgba(56,189,248,.10);color:var(--sky);border:1px solid rgba(56,189,248,.20)}
+    .hb{background:rgba(220,38,38,.055);border:1px solid rgba(220,38,38,.18);border-left:3px solid var(--r600);border-radius:6px;padding:10px 14px;font-size:12.5px;color:var(--g100);line-height:1.6}
+    .hb.b{background:rgba(37,99,235,.055);border-color:rgba(37,99,235,.18);border-left-color:var(--n500)}
+    .hb.g{background:rgba(74,222,128,.04);border-color:rgba(74,222,128,.15);border-left-color:var(--green)}
+    .img-ph{background:rgba(255,255,255,.025);border:2px dashed rgba(255,255,255,.12);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--g500);font-size:12px;text-align:center;padding:12px}
+    .img-ph .ico{font-size:24px;margin-bottom:2px}
+    .img-ph strong{color:var(--g400);font-size:12.5px}
+    .img-ph em{font-size:11px;color:var(--g600)}
+    .tb{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:6px 11px;font-size:12.5px;font-weight:600;color:var(--g100)}
+    .tb .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+    .clbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px}
+    .clbl.prob{color:var(--r400)}.clbl.dec{color:var(--sky)}.clbl.sol{color:var(--green)}
+    #navBar{position:fixed;bottom:0;left:0;right:0;height:48px;display:flex;align-items:center;justify-content:center;gap:16px;background:rgba(7,13,26,.95);border-top:1px solid rgba(255,255,255,.06);backdrop-filter:blur(10px);z-index:200}
+    .nav-btn{display:flex;align-items:center;gap:6px;padding:6px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:7px;color:var(--g300);font-family:'Inter',sans-serif;font-size:12.5px;font-weight:500;cursor:pointer;transition:background .18s,color .18s,border-color .18s}
+    .nav-btn:hover:not(:disabled){background:rgba(255,255,255,.10);color:#fff;border-color:rgba(255,255,255,.18)}
+    .nav-btn:disabled{opacity:.28;cursor:not-allowed}
+    #slideCounter{font-size:12.5px;color:var(--g500);font-weight:500;min-width:52px;text-align:center;letter-spacing:1px}
+    .col{display:flex;flex-direction:column}
+    .row{display:flex;align-items:center}
+    .flex1{flex:1}
+    .ai-start{align-items:flex-start}
+    .gap6{gap:6px}.gap8{gap:8px}.gap10{gap:10px}.gap12{gap:12px}.gap14{gap:14px}.gap16{gap:16px}
+    .mt6{margin-top:6px}.mt8{margin-top:8px}.mt10{margin-top:10px}.mt12{margin-top:12px}
+    .c-w{color:#fff}.c-r{color:var(--r400)}.c-g{color:var(--green)}.c-s{color:var(--sky)}
+    .c-m{color:var(--g400)}.c-d{color:var(--g300)}
+    .fw6{font-weight:600}.fw7{font-weight:700}
+    .fs12{font-size:12px}.fs13{font-size:13px}.fs11{font-size:11px}
+    .lh14{line-height:1.4}.lh16{line-height:1.6}.lh18{line-height:1.8}
+    .mono{font-family:'JetBrains Mono',monospace}
+    code{font-family:'JetBrains Mono',monospace;font-size:.88em;color:var(--sky);background:rgba(56,189,248,.08);padding:1px 5px;border-radius:3px}
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="progressBar"><div id="progressFill"></div></div>
+  <div id="slidesWrapper">
+
+<!-- SLIDE 1 -->
+<section class="slide active" id="slide-1">
+  <div class="s-meta"><span class="s-num">01 / 10</span><span class="s-cat">Giới thiệu</span></div>
+  <h2 class="s-title">Student Management <span class="acc">SSR</span></h2>
+  <div class="g2 flex1 ai-start" style="gap:20px">
+    <div class="col gap12">
+      <p class="fs13 c-m lh16">Ứng dụng quản lý danh sách sinh viên xây dựng theo kiến trúc <strong class="c-w">Server-Side Rendering</strong> với sự hỗ trợ của AI Agent.</p>
+      <div class="row gap10" style="flex-wrap:wrap">
+        <span class="tb"><span class="dot"></span>Node.js &ge; 18</span>
+        <span class="tb"><span class="dot"></span>Express 5.x</span>
+        <span class="tb"><span class="dot"></span>EJS</span>
+        <span class="tb"><span class="dot"></span>JSON Storage</span>
+      </div>
+      <div class="card">
+        <div class="lbl">Bài toán</div>
+        <p class="fs13 c-d lh16">Xây dựng ứng dụng web cho phép <strong class="c-w">xem danh sách</strong> và <strong class="c-w">thêm sinh viên mới</strong>, với dữ liệu được render tại server.</p>
+      </div>
+      <div class="card card-r">
+        <div class="lbl">Mục tiêu SSR</div>
+        <p class="fs13 c-d lh16">HTML hoàn chỉnh được tạo tại server trước khi gửi về browser &mdash; không cần JavaScript phía client để hiển thị dữ liệu.</p>
+      </div>
+    </div>
+    <div class="col gap12">
+      <div class="card">
+        <div class="lbl">Chức năng chính</div>
+        <div class="col gap10 mt8">
+          <div class="row gap10 fs13 c-d"><span class="c-g fw7">&#10003;</span><div><strong class="c-w">GET /students</strong> &mdash; Hiển thị danh sách sinh viên (SSR)</div></div>
+          <div class="row gap10 fs13 c-d"><span class="c-g fw7">&#10003;</span><div><strong class="c-w">POST /students</strong> &mdash; Thêm sinh viên mới với validation</div></div>
+          <div class="row gap10 fs13 c-d"><span class="c-g fw7">&#10003;</span><div>Thông báo lỗi chi tiết khi input không hợp lệ</div></div>
+          <div class="row gap10 fs13 c-d"><span class="c-g fw7">&#10003;</span><div>Dữ liệu lưu vào file JSON, không mất khi restart</div></div>
+        </div>
+      </div>
+      <div class="card card-b">
+        <div class="lbl">Vai trò AI Agent</div>
+        <p class="fs13 c-d lh16">AI phân tích yêu cầu, đề xuất tech stack và tạo implementation plan. Team <strong class="c-w">review, phê duyệt và kiểm thử</strong> từng kết quả.</p>
+      </div>
+      <div class="hb" style="font-size:12.5px">
+        <strong>Câu chuyện xuyên suốt:</strong> Yêu cầu &rarr; AI plan &rarr; Team review &rarr; Implementation &rarr; Testing &rarr; Nghiệm thu
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2 -->
+<section class="slide" id="slide-2">
+  <div class="s-meta"><span class="s-num">02 / 10</span><span class="s-cat">Kiến trúc</span></div>
+  <h2 class="s-title">Kiến trúc <span class="acc">SSR</span></h2>
+  <div class="g2 flex1 ai-start" style="gap:14px">
+    <div class="card" style="padding:14px 16px">
+      <div class="lbl" style="text-align:center;margin-bottom:12px">Luồng GET /students &mdash; Render danh sách</div>
+      <div class="flow">
+        <div class="f-step ac">Browser</div>
+        <div class="f-arr">&darr; GET /students</div>
+        <div class="f-step">Router &rarr; Controller.index()</div>
+        <div class="f-arr">&darr;</div>
+        <div class="f-step">StudentStore.getAll()</div>
+        <div class="f-arr">&darr; data: [ {...}, {...} ]</div>
+        <div class="f-step">res.render('students/index', { students })</div>
+        <div class="f-arr">&darr; EJS xử lý template</div>
+        <div class="f-step hi">HTML hoàn chỉnh (đã có dữ liệu)</div>
+        <div class="f-arr">&darr; HTTP 200 OK</div>
+        <div class="f-step ac">Browser hiển thị trang ngay</div>
+      </div>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div class="lbl" style="text-align:center;margin-bottom:12px">Luồng POST /students &mdash; Thêm sinh viên</div>
+      <div class="flow">
+        <div class="f-step ac">Browser gửi form</div>
+        <div class="f-arr">&darr; POST /students</div>
+        <div class="f-step">Router &rarr; Controller.create()</div>
+        <div class="f-arr">&darr;</div>
+        <div class="f-step">validateStudentInput(req.body)</div>
+        <div class="f-arr">&darr;</div>
+        <div class="f-split">
+          <div class="flow">
+            <div class="f-step hi f-sm">&#10007; Invalid<br>redirect 303<br>?error=...</div>
+          </div>
+          <div class="flow">
+            <div class="f-step f-sm">&#10003; Valid<br>store.create()</div>
+            <div class="f-arr" style="font-size:11px">&darr;</div>
+            <div class="f-step ac f-sm">redirect 303<br>GET /students</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hb mt12" style="font-size:12.5px">
+    <strong>Tại sao đây là SSR?</strong> &mdash; HTML được render tại server (Express + EJS), trước khi gửi về browser. Browser chỉ nhận HTML hoàn chỉnh và hiển thị &mdash; không cần chạy JavaScript để fetch dữ liệu. Việc lấy dữ liệu từ JSON file ở server không quyết định CSR hay SSR; điều quyết định là HTML được tạo ở đâu.
+  </div>
+</section>
+
+<!-- SLIDE 3 -->
+<section class="slide" id="slide-3">
+  <div class="s-meta"><span class="s-num">03 / 10</span><span class="s-cat">Tech Stack</span></div>
+  <h2 class="s-title">Tech Stack <span class="acc">&amp;</span> Rationale</h2>
+  <div class="g2 flex1 ai-start" style="gap:16px">
+    <div class="col gap10">
+      <table class="dtbl">
+        <thead><tr><th>Thành phần</th><th>Lựa chọn</th><th>Lý do chính</th></tr></thead>
+        <tbody>
+          <tr><td><span class="c-m">Runtime</span></td><td><strong>Node.js &ge; 18</strong></td><td class="fs12">Async I/O, npm ecosystem, built-in test runner</td></tr>
+          <tr><td><span class="c-m">Framework</span></td><td><strong>Express 5.x</strong></td><td class="fs12">Minimal, SSR-friendly, cộng đồng lớn</td></tr>
+          <tr><td><span class="c-m">Template</span></td><td><strong>EJS</strong></td><td class="fs12">Syntax HTML quen thuộc, render HTML tại server</td></tr>
+          <tr><td><span class="c-m">Storage</span></td><td><strong>JSON file</strong></td><td class="fs12">Đơn giản, không cần database, data persist</td></tr>
+          <tr><td><span class="c-m">Validation</span></td><td><strong>Custom</strong></td><td class="fs12">Không phụ thuộc library ngoài, kiểm soát hoàn toàn</td></tr>
+          <tr><td><span class="c-m">Testing</span></td><td><strong>node:test</strong></td><td class="fs12">Built-in Node.js &ge; 18, zero dependency</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col gap10">
+      <div class="lbl">Decision: Tại sao chọn Express + EJS?</div>
+      <div class="card card-r" style="padding:11px 14px">
+        <div class="lbl">Requirement</div>
+        <p class="fs13 c-d lh16">Xây dựng ứng dụng SSR nhỏ trong thời gian giới hạn; HTML phải được render hoàn toàn tại server.</p>
+      </div>
+      <div class="card" style="padding:11px 14px">
+        <div class="lbl">Alternatives đã cân nhắc</div>
+        <div class="col gap6 fs13 c-d mt8">
+          <div><strong class="c-w">Express + EJS</strong> &mdash; SSR thuần, ít setup, EJS là template engine render HTML ở server</div>
+          <div><span class="c-m">Express + React (CSR)</span> &mdash; HTML render ở browser &rarr; không đáp ứng yêu cầu SSR</div>
+          <div><span class="c-m">Next.js / Nuxt.js</span> &mdash; hỗ trợ SSR tốt nhưng phức tạp hơn scope bài toán</div>
+        </div>
+      </div>
+      <div class="card" style="padding:11px 14px">
+        <div class="lbl">Rationale</div>
+        <p class="fs13 c-d lh16">EJS render HTML tại server và tích hợp trực tiếp với Express qua <code>res.render()</code>. Luồng SSR rõ ràng: route &rarr; data &rarr; template &rarr; HTML response. Phù hợp scope, không over-engineer.</p>
+      </div>
+      <div class="hb" style="font-size:12.5px">
+        <strong>Trade-off:</strong> <span class="c-m">EJS không hỗ trợ component tái sử dụng như React. Chấp nhận được với ứng dụng nhỏ, ít interactivity ở client.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4 -->
+<section class="slide" id="slide-4">
+  <div class="s-meta"><span class="s-num">04 / 10</span><span class="s-cat">AI Agent</span></div>
+  <h2 class="s-title">AI Agent <span class="acc">Workflow</span></h2>
+  <div class="g2 flex1 ai-start" style="gap:20px">
+    <div class="col gap8">
+      <div class="lbl">Quy trình làm việc với AI Agent</div>
+      <div class="steps">
+        <div class="step-i"><div class="step-n">1</div><div class="col"><div class="step-t"><strong>Cung cấp yêu cầu</strong></div><div class="step-s">Chụp nguyên yêu cầu bài tập của giảng viên &rarr; gửi cho AI Agent</div></div></div>
+        <div class="step-i"><div class="step-n">2</div><div class="col"><div class="step-t"><strong>Yêu cầu AI tạo implementation plan</strong></div><div class="step-s">AI phân tích yêu cầu, đề xuất tech stack, kiến trúc và các bước thực hiện chi tiết</div></div></div>
+        <div class="step-i"><div class="step-n">3</div><div class="col"><div class="step-t"><strong>Team review và phê duyệt plan</strong></div><div class="step-s">Đánh giá plan trước khi thực thi &mdash; điều chỉnh nếu cần thiết</div></div></div>
+        <div class="step-i"><div class="step-n">4</div><div class="col"><div class="step-t"><strong>AI implement theo plan đã duyệt</strong></div><div class="step-s">AI tạo code: cấu trúc project, routes, controllers, validators, templates, tests</div></div></div>
+        <div class="step-i"><div class="step-n">5</div><div class="col"><div class="step-t"><strong>Team review code</strong></div><div class="step-s">Đọc, hiểu code &mdash; xác minh logic đúng với yêu cầu, không chỉ tin AI tạo là đúng</div></div></div>
+        <div class="step-i"><div class="step-n">6</div><div class="col"><div class="step-t"><strong>Chạy ứng dụng &amp; kiểm thử</strong></div><div class="step-s">npm start &rarr; test thủ công trên browser + npm test (automated)</div></div></div>
+        <div class="step-i"><div class="step-n">7</div><div class="col"><div class="step-t"><strong>Xác minh acceptance criteria</strong></div><div class="step-s">Kiểm tra 4 tiêu chí nghiệm thu của giảng viên &mdash; TC-01 đến TC-04</div></div></div>
+      </div>
+    </div>
+    <div class="col gap12">
+      <div class="card card-b" style="padding:12px 16px">
+        <div class="lbl">Prompt Strategy</div>
+        <div class="col gap8 fs13 c-d lh16 mt6">
+          <div><span class="c-s fw6">Bước 1:</span> Gửi <strong class="c-w">toàn bộ yêu cầu bài tập</strong> của giảng viên cho AI Agent</div>
+          <div><span class="c-s fw6">Bước 2:</span> Yêu cầu AI tạo <strong class="c-w">implementation plan</strong> trước khi implement</div>
+          <div><span class="c-s fw6">Bước 3:</span> Review plan &rarr; phê duyệt &rarr; AI implement theo plan</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="lbl" style="color:var(--green)">Những gì AI làm tốt</div>
+        <div class="fs13 c-d lh18 mt8">
+          <div>&#10003; Đề xuất tech stack phù hợp với scope và yêu cầu SSR</div>
+          <div>&#10003; Tạo cấu trúc project 4 layer rõ ràng, có thể test độc lập</div>
+          <div>&#10003; Viết automated test cases với nhiều edge cases</div>
+          <div>&#10003; Implement validation logic đầy đủ các trường hợp lỗi</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="lbl" style="color:var(--r400)">Những gì team phải quyết định</div>
+        <div class="fs13 c-d lh18 mt8">
+          <div>&rsaquo; Chọn JSON file thay vì in-memory array</div>
+          <div>&rsaquo; Áp dụng PRG pattern sau POST thành công</div>
+          <div>&rsaquo; Dùng query params thay vì session để truyền error</div>
+        </div>
+      </div>
+      <div class="hb" style="font-size:12.5px">AI đề xuất &mdash; <span class="c-r fw6">Team quyết định.</span> Không thực thi bất kỳ plan nào trước khi team review và phê duyệt.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5 -->
+<section class="slide" id="slide-5">
+  <div class="s-meta"><span class="s-num">05 / 10</span><span class="s-cat">Kiến trúc</span></div>
+  <h2 class="s-title">Cấu trúc <span class="acc">Project</span></h2>
+  <div class="g2 flex1 ai-start" style="gap:20px">
+    <div class="card">
+      <div class="lbl">Cây thư mục thực tế</div>
+      <div class="ftree mt10">
+        <div><span class="dir">&#128193; block3/</span></div>
+        <div>&nbsp;&nbsp;&#9500;&#9472;&#9472; <span class="dir">&#128193; src/</span></div>
+        <div>&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472; <span class="hl">&#128196; server.js</span> <span class="ann">&larr; Khởi động HTTP server</span></div>
+        <div>&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472; <span class="hl">&#128196; app.js</span> <span class="ann">&larr; Express factory + middleware</span></div>
+        <div>&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472; <span class="dir">&#128193; routes/</span></div>
+        <div>&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472; &#128196; students.js <span class="ann">&larr; Đăng ký GET / POST</span></div>
+        <div>&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472; <span class="dir">&#128193; controllers/</span></div>
+        <div>&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472; &#128196; student-controller.js</div>
+        <div>&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9500;&#9472;&#9472; <span class="dir">&#128193; services/</span></div>
+        <div>&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472; &#128196; student-store.js <span class="ann">&larr; Đọc/ghi JSON</span></div>
+        <div>&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472; <span class="dir">&#128193; validators/</span></div>
+        <div>&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472; &#128196; student-validator.js</div>
+        <div>&nbsp;&nbsp;&#9500;&#9472;&#9472; <span class="dir">&#128193; views/students/</span></div>
+        <div>&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&#9492;&#9472;&#9472; &#128196; index.ejs <span class="ann">&larr; HTML template</span></div>
+        <div>&nbsp;&nbsp;&#9500;&#9472;&#9472; <span class="dir">&#128193; data/</span> &nbsp;&#9492;&#9472;&#9472; &#128196; students.json</div>
+        <div>&nbsp;&nbsp;&#9492;&#9472;&#9472; <span class="dir">&#128193; test/</span> &nbsp;&nbsp;&#9492;&#9472;&#9472; &#128196; app.test.js <span class="ann">&larr; 9 test cases</span></div>
+      </div>
+    </div>
+    <div class="col gap10">
+      <div class="lbl">Vai trò từng layer</div>
+      <div class="card" style="padding:10px 14px">
+        <div class="row gap8" style="margin-bottom:4px"><span class="bdg bdg-info">Routes</span><code>students.js</code></div>
+        <p class="fs12 c-d lh14">Đăng ký endpoint GET / và POST /, kết nối đến controller tương ứng</p>
+      </div>
+      <div class="card" style="padding:10px 14px">
+        <div class="row gap8" style="margin-bottom:4px"><span class="bdg bdg-info">Controllers</span><code>student-controller.js</code></div>
+        <p class="fs12 c-d lh14">Điều phối request: gọi validator &rarr; gọi service &rarr; render hoặc redirect</p>
+      </div>
+      <div class="card" style="padding:10px 14px">
+        <div class="row gap8" style="margin-bottom:4px"><span class="bdg bdg-info">Services</span><code>student-store.js</code></div>
+        <p class="fs12 c-d lh14">Đọc/ghi <code>students.json</code>, kiểm tra email trùng, tạo ID tự tăng</p>
+      </div>
+      <div class="card" style="padding:10px 14px">
+        <div class="row gap8" style="margin-bottom:4px"><span class="bdg bdg-info">Validators</span><code>student-validator.js</code></div>
+        <p class="fs12 c-d lh14">Kiểm tra input: required, max length, email format &mdash; trả về error code cụ thể</p>
+      </div>
+      <div class="hb" style="font-size:12px">
+        <strong>Lợi ích tách layer:</strong> Mỗi file có 1 trách nhiệm &rarr; dễ test độc lập, dễ debug, thay đổi storage không ảnh hưởng route logic.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6 -->
+<section class="slide" id="slide-6">
+  <div class="s-meta"><span class="s-num">06 / 10</span><span class="s-cat">Implementation</span></div>
+  <h2 class="s-title">Route <span class="acc">GET</span> &amp; Template Rendering</h2>
+  <div class="g2 flex1 ai-start" style="gap:14px">
+    <div class="col gap10">
+      <div class="lbl">Controller &mdash; index()</div>
+      <div class="cb"><span class="cm">// src/controllers/student-controller.js</span>
+<span class="kw">async</span> <span class="fn">index</span>(request, response, next) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> students = <span class="kw">await</span> store.<span class="fn">getAll</span>();
+
+    response.<span class="fn">render</span>(<span class="str">'students/index'</span>, {
+      pageTitle: <span class="str">'Quan ly sinh vien'</span>,
+      students,
+      successMessage: STATUS_MESSAGES[request.query.status] || <span class="kw">null</span>,
+      errorMessage:   ERROR_MESSAGES[request.query.error]  || <span class="kw">null</span>
+    });
+  } <span class="kw">catch</span> (error) { <span class="fn">next</span>(error); }
+}</div>
+      <div class="lbl mt10">EJS Template &mdash; Render danh sách</div>
+      <div class="cb" style="font-size:11.5px"><span class="cm">&lt;!-- views/students/index.ejs --&gt;</span>
+<span class="op">&lt;%</span> students.<span class="fn">forEach</span>((student) <span class="op">=&gt;</span> { <span class="op">%&gt;</span>
+  <span class="op">&lt;</span>tr<span class="op">&gt;</span>
+    <span class="op">&lt;</span>td<span class="op">&gt;</span>#<span class="op">&lt;%=</span> student.id    <span class="op">%&gt;&lt;</span>/td<span class="op">&gt;</span>
+    <span class="op">&lt;</span>td<span class="op">&gt;&lt;%=</span> student.name  <span class="op">%&gt;&lt;</span>/td<span class="op">&gt;</span>
+    <span class="op">&lt;</span>td<span class="op">&gt;&lt;%=</span> student.email <span class="op">%&gt;&lt;</span>/td<span class="op">&gt;</span>
+  <span class="op">&lt;</span>/tr<span class="op">&gt;</span>
+<span class="op">&lt;%</span> }) <span class="op">%&gt;</span></div>
+    </div>
+    <div class="col gap12">
+      <div class="img-ph" style="flex:1;min-height:185px">
+        <div class="ico">&#128444;&#65039;</div>
+        <strong>Ảnh: Giao diện danh sách sinh viên</strong>
+        <em>http://localhost:3000/students</em>
+        <em style="font-size:10.5px;color:#334155;margin-top:4px">&rarr; Thay bằng ảnh chụp màn hình thực tế</em>
+      </div>
+      <div class="hb b" style="font-size:12.5px">
+        <strong>Data flow &mdash; 5 bước:</strong>
+        <ol style="margin-top:6px;padding-left:16px;line-height:1.9;color:var(--g100)">
+          <li>Browser gửi <code>GET /students</code></li>
+          <li>Store đọc <code>students.json</code> &rarr; trả về array</li>
+          <li>Controller truyền <code>{ students }</code> vào EJS</li>
+          <li>EJS render HTML với dữ liệu thực tế</li>
+          <li>Browser nhận HTML hoàn chỉnh &mdash; <strong>không cần JS client</strong></li>
+        </ol>
+      </div>
+      <div class="hb" style="font-size:12.5px">
+        <strong>Minh chứng SSR:</strong> Mở DevTools &rarr; Network &rarr; GET /students &rarr; tab Response &rarr; HTML đã chứa tên &amp; email sinh viên.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7 -->
+<section class="slide" id="slide-7">
+  <div class="s-meta"><span class="s-num">07 / 10</span><span class="s-cat">Implementation</span></div>
+  <h2 class="s-title">Route <span class="acc">POST</span> &amp; Input Validation</h2>
+  <div class="g2 flex1 ai-start" style="gap:14px">
+    <div class="col gap10">
+      <div class="lbl">Controller &mdash; create()</div>
+      <div class="cb" style="font-size:11.5px"><span class="kw">async</span> <span class="fn">create</span>(request, response, next) {
+  <span class="kw">const</span> validation = <span class="fn">validateStudentInput</span>(request.body);
+
+  <span class="kw">if</span> (!validation.valid) {
+    <span class="kw">return</span> response.<span class="fn">redirect</span>(<span class="num">303</span>,
+      <span class="str">`/students?error=${validation.errorCode}`</span>);
+  }
+
+  <span class="kw">try</span> {
+    <span class="kw">await</span> store.<span class="fn">create</span>(validation.student);
+    <span class="kw">return</span> response.<span class="fn">redirect</span>(<span class="num">303</span>, <span class="str">'/students?status=created'</span>);
+  } <span class="kw">catch</span> (error) {
+    <span class="kw">if</span> (error <span class="kw">instanceof</span> <span class="cls">DuplicateStudentEmailError</span>) {
+      <span class="kw">return</span> response.<span class="fn">redirect</span>(<span class="num">303</span>, <span class="str">'/students?error=duplicate_email'</span>);
+    }
+    <span class="kw">return</span> <span class="fn">next</span>(error);
+  }
+}</div>
+      <div class="lbl mt10">Validator &mdash; validateStudentInput()</div>
+      <div class="cb" style="font-size:11.5px"><span class="kw">const</span> EMAIL_PATTERN = <span class="str">/^[^\s@]+@[^\s@]+\.[^\s@]+$/</span>;
+
+<span class="kw">function</span> <span class="fn">validateStudentInput</span>(input = {}) {
+  <span class="kw">const</span> name  = input.name?.trim()  || <span class="str">''</span>;
+  <span class="kw">const</span> email = input.email?.trim() || <span class="str">''</span>;
+
+  <span class="kw">if</span> (!name || !email)
+    <span class="kw">return</span> { valid: <span class="kw">false</span>, errorCode: <span class="str">'required'</span> };
+  <span class="kw">if</span> (!EMAIL_PATTERN.<span class="fn">test</span>(email))
+    <span class="kw">return</span> { valid: <span class="kw">false</span>, errorCode: <span class="str">'invalid_email'</span> };
+
+  <span class="kw">return</span> { valid: <span class="kw">true</span>, student: { name, email } };
+}</div>
+    </div>
+    <div class="col gap12">
+      <div class="img-ph" style="min-height:148px">
+        <div class="ico">&#128444;&#65039;</div>
+        <strong>Ảnh: Thông báo lỗi khi submit rỗng / sai email</strong>
+        <em>&rarr; Thay bằng ảnh chụp màn hình thực tế</em>
+      </div>
+      <div class="card" style="padding:11px 14px">
+        <div class="lbl">Validation rules</div>
+        <div class="fs13 c-d lh18 mt8">
+          <div><span class="c-r">&#10007;</span> <code>required</code> &mdash; Họ tên hoặc email bỏ trống</div>
+          <div><span class="c-r">&#10007;</span> <code>too_long</code> &mdash; Tên &gt; 100 ký tự, email &gt; 254</div>
+          <div><span class="c-r">&#10007;</span> <code>invalid_email</code> &mdash; Sai định dạng email</div>
+          <div><span class="c-r">&#10007;</span> <code>duplicate_email</code> &mdash; Email đã tồn tại (case-insensitive)</div>
+        </div>
+      </div>
+      <div class="hb" style="font-size:12.5px">
+        <strong>Post-Redirect-Get (PRG):</strong> Sau POST thành công &rarr; redirect 303 về GET /students. Khi user nhấn F5, browser gửi lại GET &mdash; không tạo bản ghi mới.
+      </div>
+      <div class="hb b" style="font-size:12.5px">
+        <strong>Tại sao không chỉ dùng HTML <code>required</code>?</strong> Attribute này có thể bị bypass bằng DevTools hoặc curl. Validation <em>luôn phải</em> được thực hiện ở server.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8 -->
+<section class="slide" id="slide-8">
+  <div class="s-meta"><span class="s-num">08 / 10</span><span class="s-cat">Testing</span></div>
+  <h2 class="s-title">Acceptance <span class="acc">Testing</span></h2>
+  <table class="dtbl">
+    <thead><tr><th style="width:64px">ID</th><th>Tiêu chí nghiệm thu</th><th>Cách kiểm tra</th><th>Kết quả mong đợi</th><th style="width:80px">Trạng thái</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="mono c-m">TC-01</td>
+        <td>HTML response chứa dữ liệu sinh viên từ server</td>
+        <td>DevTools Network &rarr; GET /students &rarr; tab Response</td>
+        <td>HTML có tên &amp; email sinh viên &mdash; không phải JSON rỗng</td>
+        <td><span class="bdg bdg-pass">&#10003; PASS</span></td>
+      </tr>
+      <tr>
+        <td class="mono c-m">TC-02</td>
+        <td>Sinh viên mới xuất hiện trong danh sách sau submit</td>
+        <td>Submit form hợp lệ &rarr; kiểm tra danh sách cập nhật</td>
+        <td>Sinh viên mới hiển thị, có banner "Đã thêm thành công"</td>
+        <td><span class="bdg bdg-pass">&#10003; PASS</span></td>
+      </tr>
+      <tr>
+        <td class="mono c-m">TC-03</td>
+        <td>Submit input rỗng nhận thông báo lỗi phù hợp</td>
+        <td>Submit form với tên hoặc email bỏ trống</td>
+        <td>Thông báo lỗi hiển thị; không có bản ghi mới được tạo</td>
+        <td><span class="bdg bdg-pass">&#10003; PASS</span></td>
+      </tr>
+      <tr>
+        <td class="mono c-m">TC-04</td>
+        <td>Refresh sau submit không tạo bản ghi trùng</td>
+        <td>Submit thành công &rarr; nhấn F5 &rarr; kiểm tra students.json</td>
+        <td>Số bản ghi không tăng sau refresh (PRG pattern)</td>
+        <td><span class="bdg bdg-pass">&#10003; PASS</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="g2 mt12" style="gap:14px">
+    <div class="img-ph" style="min-height:148px">
+      <div class="ico">&#128444;&#65039;</div>
+      <strong>Ảnh: Network response HTML có dữ liệu (TC-01)</strong>
+      <em>&rarr; Thay bằng ảnh chụp DevTools / Response tab</em>
+    </div>
+    <div class="col gap10">
+      <div class="img-ph" style="min-height:68px">
+        <strong>Ảnh: Danh sách sau khi thêm thành công (TC-02)</strong>
+        <em>&rarr; Thay bằng ảnh chụp màn hình thực tế</em>
+      </div>
+      <div class="hb g" style="font-size:12.5px">
+        <strong>9 automated test cases</strong> được thực thi bằng <code>node:test</code> (Node.js built-in, zero dependency). Chạy bằng lệnh <code>npm test</code> &mdash; tất cả PASS.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9 -->
+<section class="slide" id="slide-9">
+  <div class="s-meta"><span class="s-num">09 / 10</span><span class="s-cat">Decisions</span></div>
+  <h2 class="s-title">Thách thức <span class="acc">&amp;</span> Quyết định kỹ thuật</h2>
+  <div class="col flex1 gap12">
+    <div class="card" style="padding:13px 17px">
+      <div class="g3">
+        <div><div class="clbl prob">&#9888; Vấn đề phát sinh</div><p class="fs13 c-d lh16">Sau POST thành công, user nhấn F5 &rarr; browser gửi lại POST request &rarr; tạo bản ghi trùng lặp.</p></div>
+        <div><div class="clbl dec">&rarr; AI đề xuất</div><p class="fs13 c-d lh16">Re-render template với thông báo thành công ngay sau POST (không redirect về GET).</p></div>
+        <div><div class="clbl sol">&#10003; Quyết định cuối cùng</div><p class="fs13 c-d lh16"><strong class="c-w">Post-Redirect-Get (PRG):</strong> Redirect 303 về GET /students sau POST thành công. Refresh &rarr; browser gửi lại GET, không POST.</p></div>
+      </div>
+    </div>
+    <div class="card" style="padding:13px 17px">
+      <div class="g3">
+        <div><div class="clbl prob">&#9888; Vấn đề phát sinh</div><p class="fs13 c-d lh16">Sau redirect, không thể truyền error message qua request body &mdash; context request đã thay đổi.</p></div>
+        <div><div class="clbl dec">&rarr; AI đề xuất</div><p class="fs13 c-d lh16">Dùng session hoặc flash message để lưu error qua redirect &mdash; cần thêm middleware phức tạp.</p></div>
+        <div><div class="clbl sol">&#10003; Quyết định cuối cùng</div><p class="fs13 c-d lh16"><strong class="c-w">Error code qua query param:</strong> <code>redirect(303, '?error=required')</code>. Controller đọc param, map sang message. Đơn giản, zero dependency.</p></div>
+      </div>
+    </div>
+    <div class="card" style="padding:13px 17px">
+      <div class="g3">
+        <div><div class="clbl prob">&#9888; Vấn đề phát sinh</div><p class="fs13 c-d lh16">Lựa chọn storage: in-memory array hay JSON file? Dữ liệu sẽ mất khi server restart nếu dùng in-memory.</p></div>
+        <div><div class="clbl dec">&rarr; AI đề xuất ban đầu</div><p class="fs13 c-d lh16">In-memory array &mdash; đơn giản hơn, không cần xử lý file I/O bất đồng bộ.</p></div>
+        <div><div class="clbl sol">&#10003; Quyết định cuối cùng</div><p class="fs13 c-d lh16"><strong class="c-w">JSON file:</strong> Dữ liệu persist qua các lần restart. Phù hợp hơn với yêu cầu thực tế. Trade-off: cần async file I/O.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10 -->
+<section class="slide" id="slide-10">
+  <div class="s-meta"><span class="s-num">10 / 10</span><span class="s-cat">Conclusion</span></div>
+  <h2 class="s-title">Kết quả <span class="acc">&amp;</span> Nhìn lại</h2>
+  <div class="g2 flex1 ai-start" style="gap:14px">
+    <div class="col gap12">
+      <div class="img-ph" style="min-height:183px">
+        <div class="ico">&#128444;&#65039;</div>
+        <strong>Ảnh: Giao diện ứng dụng hoàn chỉnh</strong>
+        <em>http://localhost:3000/students &mdash; có danh sách sinh viên</em>
+        <em style="font-size:10.5px;color:#334155;margin-top:4px">&rarr; Thay bằng ảnh chụp màn hình thực tế</em>
+      </div>
+      <div class="card" style="padding:11px 14px">
+        <div class="lbl">Tech Stack cuối cùng</div>
+        <div class="row gap8 mt8" style="flex-wrap:wrap">
+          <span class="bdg bdg-info">Node.js &ge; 18</span>
+          <span class="bdg bdg-info">Express 5.x</span>
+          <span class="bdg bdg-info">EJS</span>
+          <span class="bdg bdg-info">JSON Storage</span>
+          <span class="bdg bdg-info">node:test</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="lbl">Acceptance Criteria</div>
+        <div class="g2 mt8" style="gap:7px">
+          <div class="row gap8 fs13 c-d"><span class="bdg bdg-pass">PASS</span> TC-01 HTML SSR</div>
+          <div class="row gap8 fs13 c-d"><span class="bdg bdg-pass">PASS</span> TC-02 Add student</div>
+          <div class="row gap8 fs13 c-d"><span class="bdg bdg-pass">PASS</span> TC-03 Validation</div>
+          <div class="row gap8 fs13 c-d"><span class="bdg bdg-pass">PASS</span> TC-04 No duplicate</div>
+        </div>
+      </div>
+    </div>
+    <div class="col gap12">
+      <div class="card card-g" style="padding:13px 16px">
+        <div class="lbl" style="color:var(--green)">Những gì AI hỗ trợ tốt</div>
+        <div class="fs13 c-d lh18 mt8">
+          <div>&#10003; Phân tích yêu cầu và đề xuất tech stack phù hợp SSR</div>
+          <div>&#10003; Thiết kế cấu trúc project 4 layer, separation of concerns</div>
+          <div>&#10003; Viết automated test cases với nhiều edge cases</div>
+          <div>&#10003; Implement validation logic và error handling đầy đủ</div>
+        </div>
+      </div>
+      <div class="card card-r" style="padding:13px 16px">
+        <div class="lbl" style="color:var(--r400)">Những gì team cần review &amp; quyết định</div>
+        <div class="fs13 c-d lh18 mt8">
+          <div>&rsaquo; Chọn JSON file thay vì in-memory array</div>
+          <div>&rsaquo; Áp dụng PRG pattern sau POST thành công</div>
+          <div>&rsaquo; Dùng query params thay vì session để truyền error message</div>
+          <div>&rsaquo; Xác minh từng test case theo acceptance criteria thực tế</div>
+        </div>
+      </div>
+      <div class="card" style="padding:11px 14px">
+        <div class="lbl">Hướng cải thiện</div>
+        <div class="fs13 c-d lh18 mt8">
+          <div>&bull; Thêm chức năng xóa / sửa sinh viên</div>
+          <div>&bull; Chuyển sang database thực (SQLite, PostgreSQL)</div>
+          <div>&bull; Thêm pagination khi danh sách lớn</div>
+        </div>
+      </div>
+      <div class="hb" style="font-size:12.5px;line-height:1.65">
+        <strong>Kết luận:</strong> AI Agent hỗ trợ mạnh mẽ trong việc đề xuất và implement &mdash; nhưng <span class="c-r fw6">team phải chịu trách nhiệm đánh giá kiến trúc, kiểm tra tính đúng đắn và xác minh sản phẩm</span> theo yêu cầu thực tế.
+      </div>
+    </div>
+  </div>
+</section>
+
+  </div>
+  <div id="navBar">
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>&larr; Trước</button>
+    <span id="slideCounter">1 / 10</span>
+    <button class="nav-btn" id="nextBtn" onclick="navigate(1)">Tiếp &rarr;</button>
+  </div>
+</div>
+<script>
+  var TOTAL=10,current=1;
+  function navigate(dir){
+    var next=current+dir;
+    if(next<1||next>TOTAL)return;
+    document.getElementById('slide-'+current).classList.remove('active');
+    current=next;
+    document.getElementById('slide-'+current).classList.add('active');
+    document.getElementById('slideCounter').textContent=current+' / '+TOTAL;
+    document.getElementById('progressFill').style.width=(current/TOTAL*100)+'%';
+    document.getElementById('prevBtn').disabled=current===1;
+    document.getElementById('nextBtn').disabled=current===TOTAL;
+  }
+  function scaleSlides(){
+    var w=document.getElementById('slidesWrapper');
+    var navH=48,progH=3;
+    var aW=window.innerWidth,aH=window.innerHeight-navH-progH;
+    var scale=Math.min(aW/1280,aH/720);
+    var sW=1280*scale,sH=720*scale;
+    w.style.transform='scale('+scale+')';
+    w.style.transformOrigin='top left';
+    w.style.left=Math.max(0,(aW-sW)/2)+'px';
+    w.style.top=Math.max(progH,progH+(aH-sH)/2)+'px';
+  }
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown')navigate(1);
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp')navigate(-1);
+  });
+  window.addEventListener('resize',scaleSlides);
+  scaleSlides();
+</script>
+</body>
+</html>
