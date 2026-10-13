@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+    content="Bài trình bày Block 4: React CSR, component tree, state, API, pagination và minh chứng DevTools.">
+  <title>Block 4 · Quản lý sinh viên với React</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script src="slides.js" defer></script>
+</head>
+
+<body>
+  <div class="progress" aria-hidden="true">
+    <div id="progress"></div>
+  </div>
+  <main class="stage" aria-label="Bài trình bày Block 4">
+    <div class="deck" id="deck">
+      <section class="slide cover active" id="slide-1" aria-labelledby="title-1">
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Giới thiệu</span></div>
+        <p class="eyebrow">01 / Client-Side Rendering</p>
+
+        <div class="body ">
+          <div class="cover-layout">
+            <div>
+              <h1 id="title-1">Quản lý<br> sinh viên<br> với <em>React</em></h1>
+              <p class="lead">Trong Block 4, nhóm em dùng React để hiển thị danh sách, thêm sinh viên và phân trang ngay
+                trên trình duyệt.</p>
+              <div class="tags"><span class="tag">Client-Side Rendering</span><span class="tag">14 slide · 8–10
+                  phút</span></div>
+            </div>
+            <div>
+              <div class="cover-mark" aria-hidden="true"><span class="letters">CSR</span></div>
+              <p class="cover-sub">React frontend / Express API / JSON storage</p>
+              <div class="cover-bottom"><span><strong>Xem danh sách</strong>Dữ liệu từ API</span><span><strong>Thêm sinh
+                    viên</strong>Form và state</span><span><strong>Phân trang</strong>10 hàng mỗi trang</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="footer"><span>Student Management / Block 4</span><span>01 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-2" aria-labelledby="title-2" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Cách render</span></div>
+        <p class="eyebrow">02 / Cách render</p>
+        <h2 id="title-2">Từ SSR ở Block 3 đến CSR ở Block 4</h2>
+        <p class="lead">Chức năng vẫn là quản lý sinh viên. Điều thay đổi là nơi tạo giao diện.</p>
+        <div class="body ">
+          <div class="grid2">
+            <div class="box wash"><span class="label">Block 3 · SSR</span>
+              <h3>Server tạo HTML bằng EJS</h3>
+              <p>Server đọc dữ liệu, render template rồi gửi trang đã có danh sách sinh viên.</p>
+              <div class="mini-flow"><span>GET /students</span><b>→</b><span>EJS render</span><b>→</b><span>HTML có dữ
+                  liệu</span></div>
+            </div>
+            <div class="box blue"><span class="label">Block 4 · CSR</span>
+              <h3>Browser tạo UI bằng React</h3>
+              <p>Browser nhận khung HTML, chạy JavaScript và lấy dữ liệu từ API để render danh sách.</p>
+              <div class="mini-flow"><span>HTML + JS</span><b>→</b><span>GET API</span><b>→</b><span>React render</span>
+              </div>
+            </div>
+          </div>
+          <table class="table comparison" style="margin-top:20px">
+            <thead>
+              <tr>
+                <th>Quan sát</th>
+                <th>Block 3</th>
+                <th>Block 4</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>HTML response đầu tiên</td>
+                <td>Có bảng và sinh viên</td>
+                <td>Root rỗng + script</td>
+              </tr>
+              <tr>
+                <td>Sau khi thêm sinh viên</td>
+                <td>POST → redirect 303 → GET document</td>
+                <td>POST fetch → JSON → cập nhật state</td>
+              </tr>
+              <tr>
+                <td>Lưu dữ liệu</td>
+                <td>JSON trên server</td>
+                <td>JSON trên server</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout blue">Trong bài này, nhóm em sẽ đi theo luồng của Block 4 và chỉ ra những bước diễn ra
+            trên browser.</div>
+        </div>
+        <div class="footer"><span>Block 3: student-controller.js / Block 4: main.jsx, App.jsx</span><span>02 / 14</span>
+        </div>
+      </section>
+
+      <section class="slide" id="slide-3" aria-labelledby="title-3" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Kiến trúc</span></div>
+        <p class="eyebrow">03 / Kiến trúc</p>
+        <h2 id="title-3">Ứng dụng được chia thành những phần nào?</h2>
+        <p class="lead">Frontend lo hiển thị và tương tác. Backend cung cấp API và lưu dữ liệu.</p>
+        <div class="body grid2">
+          <div class="stack">
+            <table class="table compact">
+              <thead>
+                <tr>
+                  <th>Công nghệ</th>
+                  <th>Vai trò / Lý do chọn</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>React 19</strong></td>
+                  <td>Component, state, render tại client.</td>
+                </tr>
+                <tr>
+                  <td><strong>Express 5</strong></td>
+                  <td>Phục vụ trang, API đọc/thêm Student.</td>
+                </tr>
+                <tr>
+                  <td><strong>Vite 7</strong></td>
+                  <td>Xử lý JSX, HMR ở dev, build assets.</td>
+                </tr>
+                <tr>
+                  <td><strong>JSON file</strong></td>
+                  <td>Lưu bền vững, phù hợp bài tập nhỏ.</td>
+                </tr>
+                <tr>
+                  <td><strong>Node.js ≥ 22.12</strong></td>
+                  <td>Runtime của server và công cụ build.</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="box wash"><span class="label">Cách chạy</span>
+              <p><code>npm run dev</code> → Express + Vite<br><code>npm run build</code> →
+                <code>dist/</code><br><code>npm start</code> → Express phục vụ bản build
+              </p>
+            </div>
+            <p class="small muted">Frontend và API cùng origin. State cục bộ đủ cho phạm vi hiện tại.</p>
+          </div>
+          <div class="box">
+            <span class="label">Cây thư mục rút gọn</span>
+            <pre class="filetree"><span class="dir">block4/</span>
+├── index.html
+├── <span class="dir">src/</span>                 ← trình duyệt
+│   ├── main.jsx / App.jsx
+│   ├── api.js / pagination.js
+│   └── components/
+├── <span class="dir">server/</span>              ← Node.js
+│   ├── index.js / app.js
+│   └── student-store.js
+├── <span class="dir">shared/</span>
+│   └── validation.js
+├── data/students.json
+└── test/</pre>
+            <div class="callout blue"><strong>Hai điểm khởi động:</strong><br><code>server/index.js</code> mở HTTP
+              server.<br><code>src/main.jsx</code> khởi động React trong browser.</div>
+          </div>
+        </div>
+        <div class="footer"><span>package.json / server/index.js / src/main.jsx</span><span>03 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-4" aria-labelledby="title-4" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Tải trang</span></div>
+        <p class="eyebrow">04 / Tải trang</p>
+        <h2 id="title-4">Điều gì xảy ra khi mở /students?</h2>
+        <p class="lead">Server trả HTML trước. React chạy trên browser rồi mới tạo giao diện.</p>
+        <div class="body ">
+          <div class="flow-row initial-flow">
+            <div class="flow-node"><strong>GET /students</strong><span>Nhận HTML và script</span></div><span
+              class="arrow">→</span>
+            <div class="flow-node"><strong>Chạy main.jsx</strong><span>JavaScript trên browser</span></div><span
+              class="arrow">→</span>
+            <div class="flow-node"><strong>createRoot()</strong><span>Render App vào #root</span></div><span
+              class="arrow">→</span>
+            <div class="flow-node primary"><strong>App được mount</strong><span>Hiện trạng thái loading</span></div>
+          </div>
+          <div class="grid2" style="margin-top:22px">
+            <div class="codebox">
+              <div class="code-title"><span>index.html · lược trích</span></div>
+              <pre><code>&lt;div id=<span class="str">"root"</span>&gt;&lt;/div&gt;
+&lt;script type=<span class="str">"module"</span>
+  src=<span class="str">"/src/main.jsx"</span>&gt;&lt;/script&gt;</code></pre>
+            </div>
+            <div class="codebox">
+              <div class="code-title"><span>src/main.jsx · định dạng lại</span></div>
+              <pre><code><span class="fn">createRoot</span>(document.<span class="fn">getElementById</span>(<span class="str">'root'</span>)).<span class="fn">render</span>(
+  &lt;React.StrictMode&gt;
+    &lt;App /&gt;
+  &lt;/React.StrictMode&gt;
+);</code></pre>
+            </div>
+          </div>
+          <div class="callout"><strong>Ở thời điểm nhận HTML, chưa có bảng sinh viên.</strong> App bắt đầu với danh sách
+            rỗng và trạng thái loading; bước tiếp theo là gọi API.</div>
+        </div>
+        <div class="footer"><span>index.html / src/main.jsx / src/App.jsx</span><span>04 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-5" aria-labelledby="title-5" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Dữ liệu</span></div>
+        <p class="eyebrow">05 / Dữ liệu</p>
+        <h2 id="title-5">App lấy danh sách từ API</h2>
+        <p class="lead">Khi App mount, useEffect gọi GET /api/students và đưa kết quả vào state.</p>
+        <div class="body split">
+          <div class="codebox dense">
+            <div class="code-title"><span>src/App.jsx · useEffect</span><span>lược trích</span></div>
+            <pre><code><span class="fn">useEffect</span>(() =&gt; {
+  <span class="kw">const</span> controller = <span class="kw">new</span> <span class="fn">AbortController</span>();
+  <span class="fn">setStatus</span>(<span class="str">'loading'</span>);
+  <span class="fn">requestStudents</span>({ signal: controller.signal })
+    .<span class="fn">then</span>(data =&gt; {
+      <span class="kw">if</span> (controller.signal.aborted) <span class="kw">return</span>;
+<span class="focus">      <span class="fn">setStudents</span>(data);</span>
+      <span class="fn">setPage</span>(<span class="number">1</span>);
+      <span class="fn">setStatus</span>(<span class="str">'ready'</span>);
+    }).<span class="fn">catch</span>(error =&gt; {
+      <span class="kw">if</span> (controller.signal.aborted) <span class="kw">return</span>;
+      <span class="comment">// … setError theo loại lỗi …</span>
+      <span class="fn">setStatus</span>(<span class="str">'error'</span>);
+    });
+  <span class="kw">return</span> () =&gt; controller.<span class="fn">abort</span>();
+}, [loadAttempt]);</code></pre>
+          </div>
+          <div class="stack">
+            <div class="codebox dense">
+              <div class="code-title"><span>src/api.js · đầy đủ hàm</span></div>
+              <pre><code><span class="kw">export async function</span> <span class="fn">requestStudents</span>(options = {}) {
+  <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/students'</span>, options);
+  <span class="kw">const</span> body = <span class="kw">await</span> response.<span class="fn">json</span>();
+  <span class="kw">if</span> (!response.ok) <span class="kw">throw new</span> Error(
+    body.message || <span class="str">'Không thể xử lý yêu cầu.'</span>);
+  <span class="kw">return</span> body;
+}</code></pre>
+            </div>
+            <div class="tags"><span class="tag">loading · Đang tải</span><span class="tag">ready · Hiện bảng</span><span
+                class="tag">error · Thử lại</span></div>
+            <p class="small muted"><code>AbortController</code> hủy request khi effect cleanup. Tăng
+              <code>loadAttempt</code> chạy lại effect để thử tải lại.
+            </p>
+            <div class="callout blue"><strong><code>fetch</code> không tự ném lỗi với HTTP 400/409/500.</strong> Vì vậy
+              cần kiểm tra <code>response.ok</code>.</div>
+          </div>
+        </div>
+        <div class="footer"><span>src/App.jsx / src/api.js</span><span>05 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-6" aria-labelledby="title-6" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Component</span></div>
+        <p class="eyebrow">06 / Component</p>
+        <h2 id="title-6">State nằm ở đâu trong component tree?</h2>
+        <p class="lead">App giữ danh sách dùng chung. Form giữ dữ liệu đang nhập. StudentList nhận props để hiển thị.
+        </p>
+        <div class="body ">
+          <div class="diagram-heading"><span class="label">Component tree · cấu trúc cha–con</span><span
+              class="small muted">Nhánh nối = component cha render component con</span></div><svg
+            class="component-tree technical-diagram" viewBox="0 0 1184 340" role="img"
+            aria-labelledby="tree-title tree-desc">
+            <title id="tree-title">Component tree và state owner của Block 4</title>
+            <desc id="tree-desc">App render AddStudentForm và StudentList. App giữ students, page, status, error,
+              loadAttempt. AddStudentForm giữ name, email, saving, notice và ref submitting. StudentList không giữ local
+              state; nhận dữ liệu và callback qua props.</desc>
+            <g class="tree-links">
+              <path d="M592 106 V136 M282 136 H902 M282 136 V164 M902 136 V164" />
+            </g>
+            <text x="300" y="153" class="diagram-muted">renders</text><text x="920" y="153"
+              class="diagram-muted">renders</text>
+            <g class="tree-parent">
+              <rect x="362" y="0" width="460" height="106" rx="3" />
+              <path d="M362 32 H822" />
+              <text x="592" y="23" text-anchor="middle" class="diagram-name">App</text>
+              <text x="382" y="54" class="diagram-label">State</text><text x="458" y="54">students, page</text>
+              <text x="458" y="74">status, error, loadAttempt</text>
+              <text x="382" y="95" class="diagram-muted">Props: —</text><text x="640" y="95" class="diagram-muted">Ref:
+                —</text>
+            </g>
+            <g class="tree-child">
+              <rect x="0" y="164" width="565" height="165" rx="3" />
+              <path d="M0 202 H565" />
+              <text x="20" y="190" class="diagram-name">AddStudentForm</text>
+              <text x="20" y="228" class="diagram-label">State</text><text x="100" y="228">name, email, saving,
+                notice</text>
+              <text x="20" y="262" class="diagram-label">Props</text><text x="100" y="262">disabled, onAddStudent</text>
+              <text x="20" y="302" class="diagram-label">Ref</text><text x="100" y="302">submitting</text>
+              <rect x="619" y="164" width="565" height="165" rx="3" />
+              <path d="M619 202 H1184" />
+              <text x="639" y="190" class="diagram-name">StudentList</text>
+              <text x="639" y="228" class="diagram-label">State</text><text x="719" y="228">—</text>
+              <text x="639" y="260" class="diagram-label">Props</text><text x="719" y="260">students, page, status,
+                error</text>
+              <text x="719" y="282">onPageChange, onRetry</text>
+              <text x="639" y="309" class="diagram-label">Ref</text><text x="719" y="309">—</text>
+            </g>
+          </svg>
+          <div class="grid2" style="margin-top:10px">
+            <div class="codebox dense">
+              <div class="code-title"><span>src/App.jsx · lược trích</span></div>
+              <pre><code><span class="kw">const</span> [students, setStudents] = <span class="fn">useState</span>([]);
+<span class="kw">const</span> [page, setPage] = <span class="fn">useState</span>(<span class="number">1</span>);</code></pre>
+            </div>
+            <p class="small muted"><strong>Props gồm dữ liệu và callback.</strong> Form gọi <code>onAddStudent</code> để
+              App thêm sinh viên. StudentList tính số trang và các hàng hiển thị từ props, không giữ bản sao state của
+              danh sách.</p>
+          </div>
+        </div>
+        <div class="footer"><span>App.jsx / AddStudentForm.jsx / StudentList.jsx</span><span>06 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-7" aria-labelledby="title-7" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Hiển thị</span></div>
+        <p class="eyebrow">07 / Hiển thị</p>
+        <h2 id="title-7">StudentList hiển thị từng trang như thế nào?</h2>
+        <p class="lead">Danh sách đã nằm trong state của App. StudentList nhận props và lấy 10 hàng cho trang hiện tại.
+        </p>
+        <div class="body split">
+          <div class="stack">
+            <div class="codebox dense">
+              <div class="code-title"><span>pagination.js + StudentList.jsx</span><span>lược trích</span></div>
+              <pre><code><span class="kw">export const</span> PAGE_SIZE = <span class="number">10</span>;
+<span class="kw">export function</span> <span class="fn">pageCount</span>(length) {
+  <span class="kw">return</span> Math.<span class="fn">max</span>(<span class="number">1</span>, Math.<span class="fn">ceil</span>(length / PAGE_SIZE));
+}
+<span class="comment">// Trong StudentList:</span>
+<span class="kw">const</span> total = <span class="fn">pageCount</span>(students.length);
+<span class="kw">const</span> current = Math.<span class="fn">min</span>(page, total);
+<span class="kw">const</span> start = (current - <span class="number">1</span>) * PAGE_SIZE;
+<span class="focus">students.<span class="fn">slice</span>(start, start + PAGE_SIZE).<span class="fn">map</span>(<span class="comment">/* … hàng … */</span>);</span></code></pre>
+            </div>
+            <div class="codebox dense">
+              <div class="code-title"><span>pagination.js · pageItems</span><span>lược trích khi &gt; 7 trang</span>
+              </div>
+              <pre><code><span class="kw">const</span> pages = <span class="kw">new</span> Set([<span class="number">1</span>, total]);
+<span class="comment">// … thêm các trang lân cận và xử lý gần đầu/cuối …</span>
+<span class="kw">const</span> result = [];
+<span class="kw">for</span> (<span class="kw">const</span> page <span class="kw">of</span> [...pages].<span class="fn">sort</span>((a, b) =&gt; a - b)) {
+  <span class="kw">const</span> previous = result.<span class="fn">at</span>(-<span class="number">1</span>);
+  <span class="kw">if</span> (<span class="kw">typeof</span> previous === <span class="str">'number'</span> &amp;&amp; page - previous &gt; <span class="number">1</span>)
+    result.<span class="fn">push</span>(<span class="str">`gap-${page}`</span>);
+  result.<span class="fn">push</span>(page);
+}</code></pre>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="box wash"><span class="label">Ví dụ: thêm sinh viên thứ 61</span>
+              <h3>60 → 61 sinh viên</h3>
+              <p>60 / 10 = <strong>6 trang</strong><br>ceil(61 / 10) = <strong>7 trang</strong><br>Trang 7:
+                <code>slice(60, 70)</code> → <strong>1 hàng</strong>
+              </p>
+              <div class="page-demo">
+                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span
+                  class="selected">7</span>
+              </div>
+            </div>
+            <div class="codebox dense">
+              <div class="code-title"><span>StudentList.jsx · nút Sau</span><span>lược trích</span></div>
+              <pre><code>&lt;button
+  disabled={current === total}
+  onClick={() =&gt; <span class="fn">onPageChange</span>(current + <span class="number">1</span>)}
+  &gt;Sau&lt;/button&gt;</code></pre>
+            </div>
+            <ul class="bullets compact">
+              <li><code>onPageChange</code> là <code>setPage</code> từ App.</li>
+              <li><code>pageItems</code> tạo các số trang; khoảng trống được hiển thị thành <code>…</code>.</li>
+              <li>Đổi trang chỉ thay state trang, không gọi lại API.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer"><span>src/pagination.js / src/components/StudentList.jsx</span><span>07 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-8" aria-labelledby="title-8" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Tương tác</span></div>
+        <p class="eyebrow">08 / Tương tác</p>
+        <h2 id="title-8">Form xử lý dữ liệu người dùng nhập</h2>
+        <p class="lead">Tên và email được giữ trong state của form; submit hợp lệ sẽ gọi callback do App truyền xuống.
+        </p>
+        <div class="body split">
+          <div class="codebox dense">
+            <div class="code-title"><span>AddStudentForm.jsx · handleSubmit</span><span>lược trích</span></div>
+            <pre><code><span class="kw">async function</span> <span class="fn">handleSubmit</span>(event) {
+<span class="focus">  event.<span class="fn">preventDefault</span>();</span>
+  <span class="kw">if</span> (disabled || submitting.current) <span class="kw">return</span>;
+  <span class="kw">const</span> validation = <span class="fn">validateStudentInput</span>({ name, email });
+  <span class="kw">if</span> (!validation.student) {
+    <span class="fn">setNotice</span>({ error: <span class="kw">true</span>, message: validation.message });
+    <span class="kw">return</span>;
+  }
+  submitting.current = <span class="kw">true</span>;
+  <span class="fn">setSaving</span>(<span class="kw">true</span>);
+  <span class="comment">// … xóa notice cũ …</span>
+  <span class="kw">try</span> {
+    <span class="kw">await</span> <span class="fn">onAddStudent</span>(validation.student);
+    <span class="fn">setName</span>(<span class="str">''</span>); <span class="fn">setEmail</span>(<span class="str">''</span>);
+    <span class="comment">// … notice thành công …</span>
+  } <span class="kw">catch</span> (error) {
+    <span class="comment">// … notice lỗi; giữ input để thử lại …</span>
+  } <span class="kw">finally</span> {
+    submitting.current = <span class="kw">false</span>;
+    <span class="fn">setSaving</span>(<span class="kw">false</span>);
+  }
+}</code></pre>
+          </div>
+          <div class="stack">
+            <div class="codebox">
+              <div class="code-title"><span>AddStudentForm.jsx · controlled input</span><span>lược trích</span></div>
+              <pre><code>&lt;input
+  value={name}
+  onChange={event =&gt; <span class="fn">setName</span>(event.target.value)}
+  disabled={disabled || saving} /&gt;</code></pre>
+            </div>
+            <ul class="bullets compact">
+              <li><strong>State → input:</strong> <code>value</code> phản ánh giá trị hiện tại.</li>
+              <li><strong>Input → state:</strong> <code>onChange</code> cập nhật mỗi lần nhập.</li>
+              <li><strong>Ref khóa ngay:</strong> <code>submitting.current</code> chặn submit lặp trước render tiếp
+                theo.</li>
+              <li><strong>Validation dùng chung:</strong> trim, bắt buộc, độ dài và định dạng email.</li>
+            </ul>
+            <div class="callout"><strong>Chỉ reset khi lưu thành công.</strong><br>Lỗi input không gửi POST; lỗi server
+              giữ nguyên input và danh sách.</div>
+          </div>
+        </div>
+        <div class="footer"><span>AddStudentForm.jsx / shared/validation.js</span><span>08 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-9" aria-labelledby="title-9" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Backend</span></div>
+        <p class="eyebrow">09 / Backend</p>
+        <h2 id="title-9">API kiểm tra và lưu sinh viên mới</h2>
+        <p class="lead">App gửi POST bằng fetch. Server kiểm tra input, cấp ID và ghi dữ liệu trước khi trả response.
+        </p>
+        <div class="body grid2">
+          <div class="stack">
+            <div class="codebox dense">
+              <div class="code-title"><span>server/app.js · POST /api/students</span><span>lược trích</span></div>
+              <pre><code>app.<span class="fn">post</span>(<span class="str">'/api/students'</span>, <span class="kw">async</span> (req, res) =&gt; {
+  <span class="kw">const</span> validation = <span class="fn">validateStudentInput</span>(req.body);
+  <span class="kw">if</span> (!validation.student)
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="number">400</span>).<span class="fn">json</span>(validation);
+  <span class="kw">try</span> {
+<span class="focus">    res.<span class="fn">status</span>(<span class="number">201</span>).<span class="fn">json</span>(<span class="kw">await</span> store.<span class="fn">create</span>(validation.student));</span>
+  } <span class="kw">catch</span> (error) {
+    <span class="comment">// … email trùng → 409; lỗi lưu → middleware 500 …</span>
+  }
+});</code></pre>
+            </div>
+            <div class="tags"><span class="tag">200 · GET thành công</span><span class="tag">201 · Đã tạo</span><span
+                class="tag">400 · Input sai</span><span class="tag">409 · Email trùng</span></div>
+            <p class="small muted">Chỉ trả thành công sau khi ghi xong. Frontend dùng Student trả về để cập nhật state.
+            </p>
+          </div>
+          <div class="stack">
+            <div class="codebox dense">
+              <div class="code-title"><span>student-store.js · create</span><span>phần chính</span></div>
+              <pre><code><span class="kw">const</span> operation = <span class="kw">this</span>.writeQueue.<span class="fn">then</span>(<span class="kw">async</span> () =&gt; {
+  <span class="kw">const</span> students = <span class="kw">await this</span>.<span class="fn">getAll</span>();
+  <span class="comment">// … kiểm tra email trùng, không phân biệt hoa/thường …</span>
+  <span class="kw">const</span> id = students.<span class="fn">reduce</span>(
+    (max, student) =&gt; Math.<span class="fn">max</span>(max, student.id), <span class="number">0</span>) + <span class="number">1</span>;
+  <span class="kw">const</span> student = { id, ...input };
+  <span class="comment">// … tạo tên file tạm duy nhất …</span>
+  <span class="kw">await</span> fs.<span class="fn">writeFile</span>(temporaryFile,
+    <span class="str">`${JSON.stringify([...students, student], null, 2)}\n`</span>,
+    <span class="str">'utf8'</span>);
+  <span class="kw">await</span> fs.<span class="fn">rename</span>(temporaryFile, <span class="kw">this</span>.dataFile);
+  <span class="comment">// … cleanup file tạm trong finally …</span>
+  <span class="kw">return</span> student;
+});</code></pre>
+            </div>
+            <div class="callout blue"><strong>State và storage có vai trò khác nhau.</strong><br>State giữ UI hiện tại.
+              JSON trên server giữ dữ liệu sau reload/restart.</div>
+          </div>
+        </div>
+        <div class="footer"><span>server/app.js / server/student-store.js</span><span>09 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-10" aria-labelledby="title-10" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Cập nhật state</span></div>
+        <p class="eyebrow">10 / Cập nhật state</p>
+        <h2 id="title-10">Sau POST, React cập nhật danh sách</h2>
+        <p class="lead">Khi API trả thành công, App thêm Student vào state; form hoàn tất submit và xóa input.</p>
+        <div class="body sequence-layout">
+          <div><span class="label">Sequence diagram · luồng thành công</span><svg
+              class="sequence-diagram technical-diagram" viewBox="0 0 620 410" role="img"
+              aria-labelledby="sequence-title sequence-desc">
+              <title id="sequence-title">Sequence diagram: thêm sinh viên thành công</title>
+              <desc id="sequence-desc">Form gọi callback onAddStudent của App. App gửi POST tới API và đợi Student có
+                ID. App cập nhật students và page, callback hoàn tất rồi form xóa input. React render StudentList từ
+                state mới.</desc>
+              <defs>
+                <marker id="call-head" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                  <path d="M0 0 L8 4 L0 8 Z" fill="#083b79" />
+                </marker>
+                <marker id="reply-head" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto">
+                  <path d="M0 0 L8 4 L0 8" fill="none" stroke="#687786" stroke-width="1.4" />
+                </marker>
+                <marker id="async-head" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto">
+                  <path d="M0 0 L8 4 L0 8" fill="none" stroke="#083b79" stroke-width="1.4" />
+                </marker>
+              </defs>
+              <g class="participants">
+                <rect x="5" y="1" width="180" height="42" rx="2" />
+                <rect x="215" y="1" width="180" height="42" rx="2" />
+                <rect x="425" y="1" width="180" height="42" rx="2" /><text x="95" y="27"
+                  text-anchor="middle">AddStudentForm</text><text x="305" y="27" text-anchor="middle">App</text><text
+                  x="515" y="27" text-anchor="middle">API</text>
+              </g>
+              <g class="lifelines">
+                <path d="M95 43 V399 M305 43 V399 M515 43 V399" />
+              </g>
+              <g class="activations">
+                <rect x="89" y="82" width="12" height="290" />
+                <rect x="299" y="82" width="12" height="222" />
+                <rect x="509" y="132" width="12" height="54" />
+              </g>
+              <g class="messages">
+                <path d="M101 82 H299" marker-end="url(#call-head)" /><text x="200" y="71"
+                  text-anchor="middle">onAddStudent(input)</text>
+                <path d="M311 132 H509" marker-end="url(#async-head)" /><text x="410" y="119" text-anchor="middle">POST
+                  /api/students</text>
+                <path d="M311 233 H365 V262 H312" marker-end="url(#call-head)" /><text x="376"
+                  y="242">setStudents()</text><text x="376" y="261">setPage()</text>
+                <path d="M101 344 H155 V372 H102" marker-end="url(#call-head)" /><text x="166"
+                  y="351">setName('')</text><text x="166" y="371">setEmail('')</text>
+              </g>
+              <g class="replies">
+                <path d="M509 186 H311" marker-end="url(#reply-head)" /><text x="410" y="174" text-anchor="middle">201 ·
+                  Student có ID</text>
+                <path d="M299 304 H101" marker-end="url(#reply-head)" /><text x="200" y="292"
+                  text-anchor="middle">onAddStudent hoàn tất</text>
+              </g>
+            </svg>
+            <p class="diagram-legend">Mũi tên liền: gọi xử lý / gửi request. Mũi tên ngang nét đứt: response / hoàn tất.
+              Trục dọc: lifeline, thời gian đi từ trên xuống.</p>
+          </div>
+          <div class="stack">
+            <div class="codebox">
+              <div class="code-title"><span>src/App.jsx · addStudent</span><span>định dạng lại</span></div>
+              <pre><code><span class="kw">async function</span> <span class="fn">addStudent</span>(input) {
+  <span class="kw">const</span> student = <span class="kw">await</span> <span class="fn">requestStudents</span>({
+    method: <span class="str">'POST'</span>,
+    headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+    body: JSON.<span class="fn">stringify</span>(input)
+  });
+<span class="focus">  <span class="fn">setStudents</span>(previous =&gt; [...previous, student]);</span>
+  <span class="fn">setPage</span>(<span class="fn">pageCount</span>(students.length + <span class="number">1</span>));
+}</code></pre>
+            </div>
+            <ul class="bullets compact">
+              <li><code>previous =&gt; [...previous, student]</code> tạo mảng mới từ state mới nhất.</li>
+              <li><code>setPage</code> chuyển tới trang cuối để thấy sinh viên vừa thêm.</li>
+              <li>React render lại <code>StudentList</code> với props mới; document hiện tại vẫn được giữ.</li>
+            </ul>
+            <div class="callout blue">State được cập nhật sau khi server xác nhận đã lưu. Sau đó
+              <code>handleSubmit</code> mới reset form.
+            </div>
+          </div>
+        </div>
+        <div class="footer"><span>App.jsx: addStudent / AddStudentForm.jsx: handleSubmit</span><span>10 / 14</span>
+        </div>
+      </section>
+
+      <section class="slide" id="slide-11" aria-labelledby="title-11" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Xử lý lỗi</span></div>
+        <p class="eyebrow">11 / Xử lý lỗi</p>
+        <h2 id="title-11">Nếu thêm sinh viên thất bại thì sao?</h2>
+        <p class="lead">Mỗi bước đều có thể báo lỗi. Form cho phép người dùng sửa input hoặc thử lại.</p>
+        <div class="body ">
+          <div class="grid3 error-cases">
+            <div class="box red"><span class="label">01 · Input chưa hợp lệ</span>
+              <h3>Chặn ngay ở form</h3>
+              <p>Tên rỗng hoặc email sai định dạng sẽ hiện thông báo. Chưa gọi callback nên chưa có POST.</p><span
+                class="tag" style="margin-top:14px">Client validation</span>
+            </div>
+            <div class="box blue"><span class="label">02 · Email đã tồn tại</span>
+              <h3>Server trả 409</h3>
+              <p>API kiểm tra email trùng. <code>requestStudents</code> ném lỗi để form hiển thị message từ server.</p>
+              <span class="tag" style="margin-top:14px">Input được giữ lại</span>
+            </div>
+            <div class="box wash"><span class="label">03 · Kết nối hoặc lưu thất bại</span>
+              <h3>Cho phép thử lại</h3>
+              <p>Form hiển thị lỗi và mở lại input, nút submit. Danh sách không được thêm Student khi request báo lỗi.
+              </p><span class="tag" style="margin-top:14px">Form được mở lại</span>
+            </div>
+          </div>
+          <div class="grid2" style="margin-top:18px">
+            <div class="codebox">
+              <div class="code-title"><span>AddStudentForm.jsx · finally</span><span>lược trích</span></div>
+              <pre><code><span class="kw">finally</span> {
+  submitting.current = <span class="kw">false</span>;
+  <span class="fn">setSaving</span>(<span class="kw">false</span>);
+}</code></pre>
+            </div>
+            <div class="box"><span class="label">Điểm chung</span>
+              <p>Input được reset ở nhánh thành công, không nằm trong <code>finally</code>. Vì vậy khi lỗi, người dùng
+                vẫn còn tên/email để sửa.</p>
+              <p class="small muted" style="margin-top:8px">Nếu mất kết nối sau khi server đã lưu, reload để kiểm tra
+                trước khi gửi lại.</p>
+            </div>
+          </div>
+        </div>
+        <div class="footer"><span>AddStudentForm.jsx / api.js / server/app.js</span><span>11 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-12" aria-labelledby="title-12" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Kiểm chứng</span></div>
+        <p class="eyebrow">12 / Kiểm chứng</p>
+        <h2 id="title-12">Kiểm tra CSR bằng HTML response và DOM</h2>
+        <p class="lead">Sau khi hiểu luồng code, nhóm em đối chiếu HTML server trả về với DOM đã được React render.</p>
+        <div class="body ">
+          <div class="grid2 proof-images">
+            <div>
+              <figure class="media" data-file="csr-html-response.png"
+                data-alt="HTML response ban đầu chưa có bảng và dữ liệu sinh viên">
+                <div class="media-placeholder"><span class="media-icon">HTML RESPONSE</span><span
+                    class="media-file">csr-html-response.png</span>
+                  <p>Network → document /students → Response<br>Chụp vùng có &lt;div id="root"&gt;&lt;/div&gt; rỗng.</p>
+                </div>
+              </figure>
+              <p class="media-caption">HTML ban đầu chưa có bảng hoặc tên/email sinh viên.</p>
+            </div>
+            <div>
+              <figure class="media" data-file="csr-dom-rendered.png"
+                data-alt="DOM sau React render đã có bảng và các hàng sinh viên">
+                <div class="media-placeholder"><span class="media-icon">DOM SAU KHI RENDER</span><span
+                    class="media-file">csr-dom-rendered.png</span>
+                  <p>Elements → #root → table → tbody<br>Chụp các hàng có ID, tên và email.</p>
+                </div>
+              </figure>
+              <p class="media-caption">DOM hiện tại đã có những hàng được tạo từ state.</p>
+            </div>
+          </div>
+          <div class="grid2" style="margin-top:18px">
+            <div class="box wash">
+              <h3>Response cho biết server gửi gì</h3>
+              <p class="small">Xem HTML gốc trong Network, trước khi JavaScript thay đổi giao diện.</p>
+            </div>
+            <div class="box blue">
+              <h3>Elements cho biết browser đang có gì</h3>
+              <p class="small">React đã chạy, lấy JSON và tạo các hàng trong DOM.</p>
+            </div>
+          </div>
+          <div class="callout">Sự khác biệt này, cùng với <code>createRoot</code> và GET API, cho thấy giao diện Block 4
+            được render trên client.</div>
+        </div>
+        <div class="footer"><span>DevTools: Network → Response / Elements</span><span>12 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-13" aria-labelledby="title-13" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Kiểm chứng</span></div>
+        <p class="eyebrow">13 / Kiểm chứng</p>
+        <h2 id="title-13">Quan sát Network khi submit</h2>
+        <p class="lead">Giữ log từ lúc tải trang, rồi thêm một sinh viên để so sánh các request trước và sau submit.</p>
+        <div class="body grid2">
+          <div class="stack network-media">
+            <figure class="media" data-file="network-before-submit.png"
+              data-alt="Network lúc tải ban đầu có document và GET API">
+              <div class="media-placeholder"><span class="media-icon">TRƯỚC SUBMIT</span><span
+                  class="media-file">network-before-submit.png</span>
+                <p>Chụp document, JS/CSS và GET /api/students.<br>Giữ các cột Name, Status và Type.</p>
+              </div>
+            </figure>
+            <figure class="media" data-file="network-after-submit.png"
+              data-alt="Network sau submit có POST fetch 201 và không có document mới">
+              <div class="media-placeholder"><span class="media-icon">SAU SUBMIT</span><span
+                  class="media-file">network-after-submit.png</span>
+                <p>Chụp POST /api/students · Type fetch · Status 201.<br>Giữ log để đối chiếu request document.</p>
+              </div>
+            </figure>
+          </div>
+          <div class="stack">
+            <div class="box wash"><span class="label">Trong khoảng submit, cần quan sát</span>
+              <ul class="bullets compact">
+                <li>POST <code>/api/students</code> có type <code>fetch</code>.</li>
+                <li>Payload chứa <code>name</code> và <code>email</code>.</li>
+                <li>Response <code>201</code> trả Student có <code>id</code>.</li>
+                <li>Không có request loại <code>document</code> mới.</li>
+              </ul>
+            </div>
+            <div class="box blue"><span class="label">WebSocket ở development</span>
+              <h3><code>vite-hmr</code> phục vụ cập nhật code</h3>
+              <p class="small">Khi chạy <code>npm run dev</code>, Vite chèn <code>/@vite/client</code> và mở WebSocket
+                để báo thay đổi code. Dữ liệu sinh viên vẫn đi qua HTTP API.</p>
+              <p class="small" style="margin-top:8px">Production không chạy Vite HMR. Giữ filter <strong>All</strong>
+                khi chụp để không che request document.</p>
+            </div>
+            <p class="small muted">Submit không reload là một dấu hiệu hỗ trợ. Kết hợp với HTML response và client
+              render ở slide trước để xác nhận CSR.</p>
+          </div>
+        </div>
+        <div class="footer"><span>DevTools: Network → All / Preserve log</span><span>13 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-14" aria-labelledby="title-14" hidden>
+        <div class="masthead"><span class="issue">Block 04 / Student Management</span><span>Kết quả</span></div>
+        <p class="eyebrow">14 / Kết quả</p>
+        <h2 id="title-14">Kết quả kiểm thử và những điểm cần nhớ</h2>
+        <p class="lead">Ứng dụng đã được kiểm thử tự động. Các ảnh DevTools giúp nhóm kiểm chứng trực tiếp khi trình
+          bày.</p>
+        <div class="body grid2">
+          <div class="stack">
+            <div class="statrow">
+              <div class="stat"><span class="big navy-text">7/7</span>
+                <p>API, storage và pagination<br><strong>PASS</strong></p>
+              </div>
+              <div class="stat"><span class="big navy-text">4/4</span>
+                <p>React UI trong jsdom<br><strong>PASS</strong></p>
+              </div>
+              <div class="stat"><span class="big navy-text">1/1</span>
+                <p>Runtime dev + production<br><strong>PASS</strong></p>
+              </div>
+            </div>
+            <div class="box wash"><span class="label">Đã chạy ngày 13/10/2026</span>
+              <p><code>npm test</code><br><code>npm run test:ui</code><br><code>npm run build</code> <span
+                  class="tag pass">PASS</span><br><code>npm run test:runtime</code></p>
+            </div>
+            <div class="box blue"><span class="label">Minh chứng trong bài</span>
+              <p>Component tree và sequence diagram.<br>HTML response đối chiếu với DOM.<br>Network trước và sau submit.
+              </p>
+              <p class="small muted" style="margin-top:8px">Bốn khung ảnh đang ghi tên file để nhóm bổ sung.</p>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="box navy"><span class="label">Kết luận</span>
+              <h3>Giao diện được render trên browser.</h3>
+              <p>App giữ state, component con nhận props. API lưu dữ liệu, còn React cập nhật giao diện sau mỗi lần
+                state thay đổi.</p>
+            </div>
+            <div class="box"><span class="label">Giới hạn hiện tại</span>
+              <p class="small">GET tải toàn bộ danh sách; JSON storage phù hợp một tiến trình. Chưa có sửa/xóa, tìm kiếm
+                hoặc đồng bộ realtime.</p>
+              <p class="small" style="margin-top:8px">Khi mở rộng, nhóm có thể dùng database và phân trang ở API.</p>
+            </div>
+            <div class="box red"><span class="label">Qua bài này</span>
+              <p class="small">Nhóm em cần giải thích được luồng code và tự kiểm chứng bằng DevTools, kể cả khi có AI hỗ
+                trợ viết ứng dụng.</p>
+            </div>
+          </div>
+        </div>
+        <div class="footer"><span>Kết quả test ngày 13/10/2026 / Chi tiết: README.md</span><span>14 / 14</span></div>
+      </section>
+    </div>
+  </main>
+  <nav class="nav" aria-label="Điều hướng slide">
+    <button id="previous" type="button" aria-label="Slide trước" disabled>← Trước</button>
+    <span class="counter" id="counter" role="status" aria-live="polite">01 / 14</span>
+    <button id="next" type="button" aria-label="Slide tiếp theo">Sau →</button>
+  </nav>
+  <noscript>Bật JavaScript để điều hướng bài trình bày.</noscript>
+</body>
+
+</html>
