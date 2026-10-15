@@ -112,17 +112,17 @@ Nếu kết nối mất sau khi server đã lưu, cần reload để kiểm tra 
 
 ## Slide 12 — Kiểm tra CSR bằng HTML response và DOM
 
-*Khoảng 35–40 giây. Chỉ ảnh Response trước, ảnh Elements sau. Bổ sung đúng hai file ảnh được ghi trên slide.*
+*Khoảng 35–40 giây. Mở tab HTML response trước, sau đó chuyển sang DOM sau render. Bấm ảnh nếu cần phóng to; Esc để quay lại.*
 
-Ảnh bên trái là HTML response của request document /students. Phần root còn rỗng, chưa có bảng và tên sinh viên. Đây là nội dung server gửi về ban đầu.
+Ảnh trong tab HTML response là nội dung của request document /students. Phần root còn rỗng, chưa có bảng và tên sinh viên. Đây là nội dung server gửi về ban đầu.
 
-Ảnh bên phải là tab Elements sau khi trang tải xong. Lúc này root đã có bảng và các hàng sinh viên. Elements hiển thị DOM hiện tại, sau khi React chạy, lấy dữ liệu và render.
+Chuyển sang ảnh DOM sau render, mình thấy tab Elements sau khi trang tải xong. Lúc này root đã có bảng và các hàng sinh viên. Elements hiển thị DOM hiện tại, sau khi React chạy, lấy dữ liệu và render.
 
 Vì vậy, chỉ nhìn Elements có dữ liệu chưa đủ để nói trang dùng SSR. Trong Block 4, sự khác nhau giữa HTML response và DOM, cùng createRoot và GET API, cho thấy UI được tạo trên client. Còn khi thêm sinh viên, Network sẽ cho mình thấy cơ chế cập nhật trang rõ hơn.
 
 ## Slide 13 — Quan sát Network khi submit
 
-*Khoảng 40–45 giây. Đối chiếu hai ảnh Network. Giữ filter All và Preserve log khi chụp.*
+*Khoảng 40–45 giây. Chuyển giữa Trước submit và Sau submit để đối chiếu. Bấm ảnh để mở lớn; có thể chọn 100% và cuộn xem chi tiết.*
 
 Trước submit, log có document, JavaScript, CSS và GET API để tải danh sách. Sau submit xuất hiện POST /api/students với type là fetch và status 201. Payload chứa tên, email; response trả lại Student có ID. Trong khoảng submit, không có document request mới.
 

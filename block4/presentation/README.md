@@ -11,6 +11,8 @@ Mở trực tiếp `index.html` bằng trình duyệt. Giữ `index.html`, `styl
 - **F11**: bật toàn màn hình bằng chức năng của trình duyệt.
 - Mở `index.html#slide-7` để bắt đầu từ slide 7.
 
+Ở slide 12–13, mỗi ảnh có một tab riêng để dành vùng hiển thị lớn hơn. Bấm ảnh để mở khung xem lớn; chọn **Vừa màn hình** hoặc **100%** (kích thước gốc, có thể cuộn). Nhấn **Esc**, nút **Đóng** hoặc vùng nền ngoài khung để quay lại. Khi đang xem ảnh phóng to, các phím mũi tên không chuyển slide. Khi focus ở thanh tab ảnh, dùng ←/→ hoặc Home/End để chọn ảnh.
+
 Slide giữ tỷ lệ **16:9**, co lớn tối đa trong vùng trình chiếu. Nền ngoài slide cùng màu trắng. Trên màn hình khác tỷ lệ hoặc khi có thanh điều hướng, vẫn có thể có khoảng trống để giữ nguyên tỷ lệ và nội dung.
 
 Muốn xuất PDF, dùng Print → Save as PDF → Landscape và bật Background graphics. Kiểm tra print preview trước khi lưu.

@@ -607,41 +607,31 @@
         <p class="eyebrow">12 / Kiểm chứng</p>
         <h2 id="title-12">Kiểm tra CSR bằng HTML response và DOM</h2>
         <p class="lead">Sau khi hiểu luồng code, nhóm em đối chiếu HTML server trả về với DOM đã được React render.</p>
-        <div class="body ">
-          <div class="grid2 proof-images">
-            <div>
-              <figure class="media" data-file="csr-html-response.png"
-                data-alt="HTML response ban đầu chưa có bảng và dữ liệu sinh viên">
-                <div class="media-placeholder"><span class="media-icon">HTML RESPONSE</span><span
-                    class="media-file">csr-html-response.png</span>
-                  <p>Network → document /students → Response<br>Chụp vùng có &lt;div id="root"&gt;&lt;/div&gt; rỗng.</p>
-                </div>
-              </figure>
-              <p class="media-caption">HTML ban đầu chưa có bảng hoặc tên/email sinh viên.</p>
+        <div class="body evidence-layout">
+          <div class="evidence-gallery">
+            <div class="evidence-tabs" role="tablist" aria-label="So sánh HTML response và DOM">
+              <button type="button" id="response-tab" role="tab" aria-selected="true" aria-controls="response-panel" data-media-target="response-panel">1. HTML response</button>
+              <button type="button" id="dom-tab" role="tab" aria-selected="false" aria-controls="dom-panel" tabindex="-1" data-media-target="dom-panel">2. DOM sau render</button>
             </div>
-            <div>
-              <figure class="media" data-file="csr-dom-rendered.png"
-                data-alt="DOM sau React render đã có bảng và các hàng sinh viên">
-                <div class="media-placeholder"><span class="media-icon">DOM SAU KHI RENDER</span><span
-                    class="media-file">csr-dom-rendered.png</span>
-                  <p>Elements → #root → table → tbody<br>Chụp các hàng có ID, tên và email.</p>
-                </div>
+            <div class="evidence-panel" id="response-panel" role="tabpanel" aria-labelledby="response-tab">
+              <figure class="media" data-file="csr-html-response.png" data-alt="HTML response ban đầu chưa có bảng và dữ liệu sinh viên">
+                <div class="media-placeholder"><span class="media-icon">ẢNH MINH CHỨNG</span><span class="media-file">csr-html-response.png</span><p>Đặt ảnh vào thư mục assets rồi tải lại bài trình bày.</p></div>
               </figure>
-              <p class="media-caption">DOM hiện tại đã có những hàng được tạo từ state.</p>
+              <p class="media-caption">Network → Response: root rỗng, chưa có bảng hoặc tên/email sinh viên.</p>
+            </div>
+            <div class="evidence-panel" id="dom-panel" role="tabpanel" aria-labelledby="dom-tab" hidden>
+              <figure class="media" data-file="csr-dom-rendered.png" data-alt="DOM sau React render đã có bảng và các hàng sinh viên">
+                <div class="media-placeholder"><span class="media-icon">ẢNH MINH CHỨNG</span><span class="media-file">csr-dom-rendered.png</span><p>Đặt ảnh vào thư mục assets rồi tải lại bài trình bày.</p></div>
+              </figure>
+              <p class="media-caption">Elements: React đã tạo bảng và các hàng sinh viên từ state.</p>
             </div>
           </div>
-          <div class="grid2" style="margin-top:18px">
-            <div class="box wash">
-              <h3>Response cho biết server gửi gì</h3>
-              <p class="small">Xem HTML gốc trong Network, trước khi JavaScript thay đổi giao diện.</p>
-            </div>
-            <div class="box blue">
-              <h3>Elements cho biết browser đang có gì</h3>
-              <p class="small">React đã chạy, lấy JSON và tạo các hàng trong DOM.</p>
-            </div>
+          <div class="stack evidence-summary">
+            <div class="box wash"><span class="label">HTML response</span><h3>Server gửi khung HTML</h3><p class="small">Kiểm tra <code>#root</code> trong response ban đầu: chưa có dữ liệu sinh viên.</p></div>
+            <div class="box blue"><span class="label">DOM sau render</span><h3>React đã tạo giao diện</h3><p class="small">Browser chạy JavaScript, lấy JSON rồi render các hàng trong bảng.</p></div>
+            <p class="small muted">Kết hợp với <code>createRoot</code> và GET API để nhận biết CSR.</p>
+            <p class="image-hint">Bấm ảnh để phóng to. Chọn <strong>100%</strong> để xem kích thước gốc.</p>
           </div>
-          <div class="callout">Sự khác biệt này, cùng với <code>createRoot</code> và GET API, cho thấy giao diện Block 4
-            được render trên client.</div>
         </div>
         <div class="footer"><span>DevTools: Network → Response / Elements</span><span>12 / 14</span></div>
       </section>
@@ -651,41 +641,30 @@
         <p class="eyebrow">13 / Kiểm chứng</p>
         <h2 id="title-13">Quan sát Network khi submit</h2>
         <p class="lead">Giữ log từ lúc tải trang, rồi thêm một sinh viên để so sánh các request trước và sau submit.</p>
-        <div class="body grid2">
-          <div class="stack network-media">
-            <figure class="media" data-file="network-before-submit.png"
-              data-alt="Network lúc tải ban đầu có document và GET API">
-              <div class="media-placeholder"><span class="media-icon">TRƯỚC SUBMIT</span><span
-                  class="media-file">network-before-submit.png</span>
-                <p>Chụp document, JS/CSS và GET /api/students.<br>Giữ các cột Name, Status và Type.</p>
-              </div>
-            </figure>
-            <figure class="media" data-file="network-after-submit.png"
-              data-alt="Network sau submit có POST fetch 201 và không có document mới">
-              <div class="media-placeholder"><span class="media-icon">SAU SUBMIT</span><span
-                  class="media-file">network-after-submit.png</span>
-                <p>Chụp POST /api/students · Type fetch · Status 201.<br>Giữ log để đối chiếu request document.</p>
-              </div>
-            </figure>
+        <div class="body evidence-layout">
+          <div class="evidence-gallery">
+            <div class="evidence-tabs" role="tablist" aria-label="So sánh Network trước và sau submit">
+              <button type="button" id="before-tab" role="tab" aria-selected="true" aria-controls="before-panel" data-media-target="before-panel">1. Trước submit</button>
+              <button type="button" id="after-tab" role="tab" aria-selected="false" aria-controls="after-panel" tabindex="-1" data-media-target="after-panel">2. Sau submit</button>
+            </div>
+            <div class="evidence-panel" id="before-panel" role="tabpanel" aria-labelledby="before-tab">
+              <figure class="media" data-file="network-before-submit.png" data-alt="Network lúc tải ban đầu có document và GET API">
+                <div class="media-placeholder"><span class="media-icon">ẢNH MINH CHỨNG</span><span class="media-file">network-before-submit.png</span><p>Đặt ảnh vào thư mục assets rồi tải lại bài trình bày.</p></div>
+              </figure>
+              <p class="media-caption">Trước submit: document, JS/CSS và GET /api/students.</p>
+            </div>
+            <div class="evidence-panel" id="after-panel" role="tabpanel" aria-labelledby="after-tab" hidden>
+              <figure class="media" data-file="network-after-submit.png" data-alt="Network sau submit: đối chiếu POST fetch và document request">
+                <div class="media-placeholder"><span class="media-icon">ẢNH MINH CHỨNG</span><span class="media-file">network-after-submit.png</span><p>Đặt ảnh vào thư mục assets rồi tải lại bài trình bày.</p></div>
+              </figure>
+              <p class="media-caption">Sau submit: kiểm tra POST /api/students, status 201 và request loại document.</p>
+            </div>
           </div>
-          <div class="stack">
-            <div class="box wash"><span class="label">Trong khoảng submit, cần quan sát</span>
-              <ul class="bullets compact">
-                <li>POST <code>/api/students</code> có type <code>fetch</code>.</li>
-                <li>Payload chứa <code>name</code> và <code>email</code>.</li>
-                <li>Response <code>201</code> trả Student có <code>id</code>.</li>
-                <li>Không có request loại <code>document</code> mới.</li>
-              </ul>
-            </div>
-            <div class="box blue"><span class="label">WebSocket ở development</span>
-              <h3><code>vite-hmr</code> phục vụ cập nhật code</h3>
-              <p class="small">Khi chạy <code>npm run dev</code>, Vite chèn <code>/@vite/client</code> và mở WebSocket
-                để báo thay đổi code. Dữ liệu sinh viên vẫn đi qua HTTP API.</p>
-              <p class="small" style="margin-top:8px">Production không chạy Vite HMR. Giữ filter <strong>All</strong>
-                khi chụp để không che request document.</p>
-            </div>
-            <p class="small muted">Submit không reload là một dấu hiệu hỗ trợ. Kết hợp với HTML response và client
-              render ở slide trước để xác nhận CSR.</p>
+          <div class="stack evidence-summary">
+            <div class="box wash"><span class="label">Khi submit</span><ul class="bullets compact"><li>POST <code>/api/students</code>, type <code>fetch</code>.</li><li>Payload có <code>name</code>, <code>email</code>.</li><li>Response <code>201</code> có <code>id</code>.</li><li>Không có document mới.</li></ul></div>
+            <div class="box blue"><span class="label">WebSocket ở development</span><h3><code>vite-hmr</code></h3><p class="small">Vite dùng WS để cập nhật code. Dữ liệu sinh viên vẫn dùng HTTP API.</p></div>
+            <p class="small muted">Giữ filter <strong>All</strong> khi đối chiếu. Kết hợp với HTML response ở slide trước để xác nhận CSR.</p>
+            <p class="image-hint">Bấm ảnh để phóng to. Nhấn <strong>Esc</strong> để quay lại slide.</p>
           </div>
         </div>
         <div class="footer"><span>DevTools: Network → All / Preserve log</span><span>13 / 14</span></div>
@@ -717,7 +696,7 @@
             <div class="box blue"><span class="label">Minh chứng trong bài</span>
               <p>Component tree và sequence diagram.<br>HTML response đối chiếu với DOM.<br>Network trước và sau submit.
               </p>
-              <p class="small muted" style="margin-top:8px">Bốn khung ảnh đang ghi tên file để nhóm bổ sung.</p>
+              <p class="small muted" style="margin-top:8px">Bấm ảnh ở slide 12–13 để mở lớn và đọc chi tiết.</p>
             </div>
           </div>
           <div class="stack">
@@ -746,6 +725,17 @@
     <span class="counter" id="counter" role="status" aria-live="polite">01 / 14</span>
     <button id="next" type="button" aria-label="Slide tiếp theo">Sau →</button>
   </nav>
+  <dialog class="image-dialog" id="image-dialog" aria-labelledby="image-dialog-title">
+    <header class="image-dialog-header">
+      <h2 id="image-dialog-title">Ảnh minh chứng</h2>
+      <div class="image-dialog-controls">
+        <button type="button" id="image-fit" aria-pressed="true">Vừa màn hình</button>
+        <button type="button" id="image-original" aria-pressed="false">100%</button>
+        <button type="button" id="image-close" aria-label="Đóng ảnh phóng to" autofocus>Đóng ×</button>
+      </div>
+    </header>
+    <div class="image-dialog-body"><img id="image-dialog-image" alt=""></div>
+  </dialog>
   <noscript>Bật JavaScript để điều hướng bài trình bày.</noscript>
 </body>
 
