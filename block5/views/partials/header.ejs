@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f5f0e6">
+  <meta name="theme-color" content="#122c25">
   <meta name="description" content="The Table — Một chút thân quen, một chút khám phá. Thực đơn Việt và quốc tế, được chăm chút từ những nguyên liệu giản dị.">
   <title><%= pageTitle %> · The Table</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -12,7 +12,7 @@
 <body class="<%= admin ? 'admin-page' : 'guest-page' %>">
   <a class="skip-link" href="#main">Đến nội dung chính</a>
   <header class="site-header">
-    <a href="/dishes" class="wordmark" aria-label="The Table — về thực đơn">the table<span class="brand-dot">.</span></a>
+    <a href="/dishes" class="wordmark" aria-label="The Table — về thực đơn"><svg class="brand-symbol" viewBox="0 0 26 38" fill="none" aria-hidden="true"><path d="M4 2v9m4-9v9m4-9v9M4 7h8v6a4 4 0 0 1-4 4v19M22 36V2c-5 3-6 8-6 16h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>THE TABLE<small>ẨM THỰC & SẺ CHIA</small></span></a>
     <span class="header-note">GÓI GHÉM NHỮNG ĐIỀU NGON</span>
     <nav aria-label="Điều hướng chính" class="main-nav">
       <a href="/dishes" <%- !admin ? 'aria-current="page"' : '' %>>Thực đơn</a>

@@ -29,7 +29,7 @@
         <% } %>
       </div>
     <% } else { %>
-      <aside class="form-aside"><span class="large-star" aria-hidden="true">✳</span><h2><%= resource === 'chefs' ? 'Người giữ lửa, người giữ vị.' : 'Món ngon bắt đầu từ đây.' %></h2><p><%= resource === 'chefs' ? 'Sau khi lưu đầu bếp, bạn có thể chọn những món họ biết nấu trong form chỉnh sửa món ăn.' : 'Sau khi lưu, bạn có thể thêm nguyên liệu này vào món ăn. Nguyên liệu đang được dùng cần được gỡ khỏi các món trước khi xóa.' %></p></aside>
+      <aside class="form-aside"><span class="kitchen-mark" aria-hidden="true"><svg viewBox="0 0 96 96" fill="none"><path d="M21 70h54M27 65a21 21 0 0 1 42 0M44 42v-6h8v6M16 78h64M49 29c9-3 13-10 12-19-10 3-14 9-12 19Zm-3 1C35 28 30 21 30 13c10 2 17 8 16 17Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h2><%= resource === 'chefs' ? 'Người giữ lửa, người giữ vị.' : 'Món ngon bắt đầu từ đây.' %></h2><p><%= resource === 'chefs' ? 'Sau khi lưu đầu bếp, bạn có thể chọn những món họ biết nấu trong form chỉnh sửa món ăn.' : 'Sau khi lưu, bạn có thể thêm nguyên liệu này vào món ăn. Nguyên liệu đang được dùng cần được gỡ khỏi các món trước khi xóa.' %></p></aside>
     <% } %>
     </div>
     <div class="form-actions"><a class="button secondary" href="/admin/<%= resource %>">Hủy bỏ</a><button class="button" type="submit"><%= entity ? 'Lưu thay đổi' : 'Thêm ' + labels[resource].singular %> <span aria-hidden="true">↗</span></button></div>

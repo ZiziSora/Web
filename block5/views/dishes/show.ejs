@@ -7,7 +7,7 @@
       <h1 id="dish-title"><%= dish.name %><span class="accent">.</span></h1>
       <p class="detail-description"><%= dish.description %></p>
       <div class="detail-price-row"><span class="detail-price"><%= money(dish.price) %></span><span class="availability <%= dish.available ? '' : 'unavailable' %>"><i aria-hidden="true"></i><%= dish.available ? 'Sẵn sàng phục vụ' : 'Tạm hết món' %></span></div>
-      <div class="detail-quote"><span aria-hidden="true">✳</span><p>Một hương vị đáng để<br><em>chậm lại và thưởng thức.</em></p></div>
+      <div class="detail-quote"><span aria-hidden="true"><svg viewBox="0 0 48 64" fill="none"><path d="M8 5v15m6-15v15m6-15v15M8 13h12v10a6 6 0 0 1-6 6v30M39 59V5c-8 5-9 14-9 27h9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><p>Một hương vị đáng để<br><em>chậm lại và thưởng thức.</em></p></div>
     </section>
     <aside class="detail-aside">
       <section><p class="eyebrow">01 / TỪ NHỮNG ĐIỀU GIẢN DỊ</p><h2>Nguyên liệu</h2><% if (dish.ingredients.length) { %><ul class="ingredient-list"><% for(const ingredient of dish.ingredients) { %><li><span><%= ingredient.name %></span><span><%= ingredient.unit %></span></li><% } %></ul><% } else { %><p class="muted">Danh sách nguyên liệu đang được cập nhật.</p><% } %></section>

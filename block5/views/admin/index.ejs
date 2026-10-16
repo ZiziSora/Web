@@ -15,8 +15,8 @@
           <td><div class="row-actions"><a href="/admin/<%= resource %>/<%= entity.id %>/edit" aria-label="Sửa <%= entity.name %>">Sửa <span aria-hidden="true">↗</span></a><a href="/admin/<%= resource %>/<%= entity.id %>/delete" class="danger-link" aria-label="Xóa <%= entity.name %>">Xóa</a></div></td>
         </tr><% } %></tbody>
       </table></div>
-    <% } else { %><div class="empty-state"><span class="empty-symbol" aria-hidden="true">✳</span><h2>Chưa có <%= labels[resource].singular %>.</h2><p>Bắt đầu bằng cách thêm <%= labels[resource].singular %> đầu tiên.</p><a class="button secondary" href="/admin/<%= resource %>/new">Thêm <%= labels[resource].singular %></a></div><% } %>
+    <% } else { %><div class="empty-state"><span class="empty-symbol" aria-hidden="true"><svg viewBox="0 0 64 48" fill="none"><path d="M10 34h44M15 31a17 17 0 0 1 34 0M29 13V9h6v4M7 39h50" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><h2>Chưa có <%= labels[resource].singular %>.</h2><p>Bắt đầu bằng cách thêm <%= labels[resource].singular %> đầu tiên.</p><a class="button secondary" href="/admin/<%= resource %>/new">Thêm <%= labels[resource].singular %></a></div><% } %>
   </div>
-  <p class="admin-footnote"><span aria-hidden="true">✳</span> Mọi thay đổi được lưu và hiển thị trong thực đơn của nhà hàng.</p>
+  <p class="admin-footnote"><span aria-hidden="true"></span> Mọi thay đổi được lưu và hiển thị trong thực đơn của nhà hàng.</p>
 </section>
 <%- include('../partials/footer') %>
