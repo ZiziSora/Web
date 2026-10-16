@@ -1,0 +1,18 @@
+<%- include('../partials/header') %>
+<div class="container detail-page">
+  <a class="back-link" href="/dishes#menu">← Trở lại thực đơn</a>
+  <div class="detail-layout">
+    <section class="detail-main" aria-labelledby="dish-title">
+      <p class="eyebrow"><%= dish.category %> <span class="small-divider">/</span> THE TABLE KITCHEN</p>
+      <h1 id="dish-title"><%= dish.name %><span class="accent">.</span></h1>
+      <p class="detail-description"><%= dish.description %></p>
+      <div class="detail-price-row"><span class="detail-price"><%= money(dish.price) %></span><span class="availability <%= dish.available ? '' : 'unavailable' %>"><i aria-hidden="true"></i><%= dish.available ? 'Sẵn sàng phục vụ' : 'Tạm hết món' %></span></div>
+      <div class="detail-quote"><span aria-hidden="true">✳</span><p>Một hương vị đáng để<br><em>chậm lại và thưởng thức.</em></p></div>
+    </section>
+    <aside class="detail-aside">
+      <section><p class="eyebrow">01 / TỪ NHỮNG ĐIỀU GIẢN DỊ</p><h2>Nguyên liệu</h2><% if (dish.ingredients.length) { %><ul class="ingredient-list"><% for(const ingredient of dish.ingredients) { %><li><span><%= ingredient.name %></span><span><%= ingredient.unit %></span></li><% } %></ul><% } else { %><p class="muted">Danh sách nguyên liệu đang được cập nhật.</p><% } %></section>
+      <section><p class="eyebrow">02 / NHỮNG NGƯỜI GIỮ VỊ</p><h2>Đầu bếp biết nấu món này</h2><% if(dish.chefs.length) { %><ul class="chef-list"><% for(const chef of dish.chefs) { %><li><span class="chef-avatar" aria-hidden="true"><%= chef.name.split(' ').slice(-1)[0].slice(0, 1) %></span><div><strong><%= chef.name %></strong><span><%= chef.specialty %></span></div></li><% } %></ul><% } else { %><p class="muted">Thông tin đầu bếp đang được cập nhật.</p><% } %></section>
+    </aside>
+  </div>
+</div>
+<%- include('../partials/footer') %>

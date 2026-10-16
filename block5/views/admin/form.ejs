@@ -1,0 +1,38 @@
+<%- include('../partials/header') %>
+<section class="container admin-content form-page">
+  <a class="back-link" href="/admin/<%= resource %>">← Danh sách <%= labels[resource].singular %></a>
+  <div class="section-heading"><div><p class="eyebrow"><%= labels[resource].eyebrow %> / <%= entity ? 'CHỈNH SỬA' : 'THÊM MỚI' %></p><h1><%= entity ? 'Chỉnh sửa' : 'Thêm' %> <%= labels[resource].singular %><span class="accent">.</span></h1></div><span class="section-aside">Chăm chút từng chi tiết nhỏ.</span></div>
+  <% if(Object.keys(errors).length) { %><div class="notice error" role="alert"><strong>Chưa thể lưu thông tin.</strong><p><%= errors.form || 'Vui lòng kiểm tra các trường được đánh dấu bên dưới. Thông tin bạn đã nhập vẫn được giữ lại.' %></p></div><% } %>
+  <form action="/admin/<%= resource %><%= entity ? '/' + entity.id : '' %>" method="post" class="edit-form" novalidate>
+    <% if(entity) { %><input type="hidden" name="_method" value="PATCH"><% } %>
+    <div class="form-layout"><div class="form-panel">
+      <div class="panel-heading"><span class="eyebrow">01 / THÔNG TIN CƠ BẢN</span><p>Các trường có dấu <span class="accent">*</span> là bắt buộc.</p></div>
+      <div class="field"><label for="name">Tên <%= labels[resource].singular %> <span class="required">*</span></label><input id="name" name="name" value="<%= values.name %>" maxlength="120" required aria-invalid="<%= Boolean(errors.name) %>" <%- errors.name ? 'aria-describedby="name-error"' : '' %> placeholder="<%= resource === 'dishes' ? 'Ví dụ: Bò lúc lắc' : resource === 'chefs' ? 'Ví dụ: Nguyễn Minh An' : 'Ví dụ: Hành tây' %>"><%- include('../partials/field-error', {field: 'name'}) %></div>
+      <% if(resource === 'dishes') { %>
+        <div class="field"><label for="description">Mô tả món ăn <span class="required">*</span></label><textarea id="description" name="description" rows="5" maxlength="2000" required aria-invalid="<%= Boolean(errors.description) %>" <%- errors.description ? 'aria-describedby="description-error"' : '' %> placeholder="Kể một chút về hương vị, cách chế biến và điều làm nên món ăn này…"><%= values.description %></textarea><%- include('../partials/field-error', {field: 'description'}) %></div>
+        <div class="field-row"><div class="field"><label for="price">Giá (VNĐ) <span class="required">*</span></label><input id="price" name="price" type="text" inputmode="decimal" value="<%= values.price %>" required aria-invalid="<%= Boolean(errors.price) %>" <%- errors.price ? 'aria-describedby="price-error"' : '' %> placeholder="Ví dụ: 125000"><%- include('../partials/field-error', {field: 'price'}) %></div><div class="field"><label for="category">Danh mục <span class="required">*</span></label><input id="category" name="category" value="<%= values.category %>" maxlength="80" required aria-invalid="<%= Boolean(errors.category) %>" <%- errors.category ? 'aria-describedby="category-error"' : '' %> placeholder="Ví dụ: Món chính"><%- include('../partials/field-error', {field: 'category'}) %></div></div>
+        <div class="field"><label for="available">Trạng thái phục vụ <span class="required">*</span></label><select id="available" name="available" aria-invalid="<%= Boolean(errors.available) %>" <%- errors.available ? 'aria-describedby="available-error"' : '' %>><% if(!['true','false'].includes(values.available)) { %><option value="<%= values.available %>" selected>Lựa chọn không hợp lệ: <%= values.available %></option><% } %><option value="true" <%- values.available === 'true' ? 'selected' : '' %>>Sẵn sàng phục vụ</option><option value="false" <%- values.available === 'false' ? 'selected' : '' %>>Tạm hết món</option></select><%- include('../partials/field-error', {field: 'available'}) %></div>
+      <% } else if(resource === 'chefs') { %>
+        <div class="field"><label for="specialty">Chuyên môn <span class="required">*</span></label><input id="specialty" name="specialty" value="<%= values.specialty %>" maxlength="200" required aria-invalid="<%= Boolean(errors.specialty) %>" <%- errors.specialty ? 'aria-describedby="specialty-error"' : '' %> placeholder="Ví dụ: Ẩm thực Việt & món nướng"><%- include('../partials/field-error', {field: 'specialty'}) %></div>
+      <% } else { %>
+        <div class="field"><label for="unit">Đơn vị tính <span class="required">*</span></label><input id="unit" name="unit" value="<%= values.unit %>" maxlength="40" required aria-invalid="<%= Boolean(errors.unit) %>" <%- errors.unit ? 'aria-describedby="unit-error"' : '' %> placeholder="Ví dụ: kg, gram, lít, quả"><%- include('../partials/field-error', {field: 'unit'}) %></div>
+      <% } %>
+    </div>
+    <% if(resource === 'dishes') { %>
+      <div class="form-panel relation-panel"><div class="panel-heading"><span class="eyebrow">02 / TỪ CĂN BẾP</span><p>Có thể chọn nhiều mục hoặc để trống.</p></div>
+        <% for(const group of [{key:'chefIds', title:'Đầu bếp biết nấu món này', items:chefs, hint:'Liên kết thể hiện khả năng nấu, không phải phân công.'}, {key:'ingredientIds', title:'Nguyên liệu của món', items:ingredients, hint:'Chọn các nguyên liệu tạo nên món ăn.'}]) { %>
+          <fieldset class="relation-fieldset" <%- errors[group.key] ? 'aria-describedby="' + group.key + '-error" aria-invalid="true"' : '' %>><legend><%= group.title %></legend><p class="field-hint"><%= group.hint %></p><div class="checkbox-list">
+          <% for(const item of group.items) { %><label class="checkbox-option"><input type="checkbox" name="<%= group.key %>" value="<%= item.id %>" <%- values[group.key].includes(String(item.id)) ? 'checked' : '' %>><span><%= item.name %><% if(item.unit) { %><small><%= item.unit %></small><% } %></span></label><% } %>
+          <% for(const stale of values[group.key].filter(id => !group.items.some(item => String(item.id) === id))) { %><label class="checkbox-option stale-option"><input type="checkbox" name="<%= group.key %>" value="<%= stale %>" checked><span>Lựa chọn không còn hợp lệ (#<%= stale %>)</span></label><% } %>
+          <% if(!group.items.length) { %><p class="muted">Chưa có dữ liệu. Bạn có thể thêm trong danh mục tương ứng.</p><% } %>
+          </div><%- include('../partials/field-error', {field: group.key}) %></fieldset>
+        <% } %>
+      </div>
+    <% } else { %>
+      <aside class="form-aside"><span class="large-star" aria-hidden="true">✳</span><h2><%= resource === 'chefs' ? 'Người giữ lửa, người giữ vị.' : 'Món ngon bắt đầu từ đây.' %></h2><p><%= resource === 'chefs' ? 'Sau khi lưu đầu bếp, bạn có thể chọn những món họ biết nấu trong form chỉnh sửa món ăn.' : 'Sau khi lưu, bạn có thể thêm nguyên liệu này vào món ăn. Nguyên liệu đang được dùng cần được gỡ khỏi các món trước khi xóa.' %></p></aside>
+    <% } %>
+    </div>
+    <div class="form-actions"><a class="button secondary" href="/admin/<%= resource %>">Hủy bỏ</a><button class="button" type="submit"><%= entity ? 'Lưu thay đổi' : 'Thêm ' + labels[resource].singular %> <span aria-hidden="true">↗</span></button></div>
+  </form>
+</section>
+<%- include('../partials/footer') %>

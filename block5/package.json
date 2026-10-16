@@ -1,0 +1,42 @@
+{
+  "name": "the-table-ssr",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "prisma generate && tsc",
+    "start": "node dist/src/server.js",
+    "db:inspect": "tsx scripts/db-inspect.ts",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "seed": "prisma db seed",
+    "test": "tsx --test test/app.test.ts",
+    "test:db": "tsx --test test/database.test.ts",
+    "test:browser": "tsx scripts/browser-check.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": { "node": ">=22.12.0" },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.0.0",
+    "@prisma/client": "^7.0.0",
+    "dotenv": "^17.0.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "method-override": "^3.0.0",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.0",
+    "@types/method-override": "^3.0.0",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.15.0",
+    "@types/supertest": "^6.0.0",
+    "playwright-core": "^1.56.0",
+    "prisma": "^7.0.0",
+    "supertest": "^7.1.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}

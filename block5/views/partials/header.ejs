@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f0e6">
+  <meta name="description" content="The Table — Một chút thân quen, một chút khám phá. Thực đơn Việt và quốc tế, được chăm chút từ những nguyên liệu giản dị.">
+  <title><%= pageTitle %> · The Table</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="<%= admin ? 'admin-page' : 'guest-page' %>">
+  <a class="skip-link" href="#main">Đến nội dung chính</a>
+  <header class="site-header">
+    <a href="/dishes" class="wordmark" aria-label="The Table — về thực đơn">the table<span class="brand-dot">.</span></a>
+    <span class="header-note">GÓI GHÉM NHỮNG ĐIỀU NGON</span>
+    <nav aria-label="Điều hướng chính" class="main-nav">
+      <a href="/dishes" <%- !admin ? 'aria-current="page"' : '' %>>Thực đơn</a>
+      <a href="/admin" class="admin-link" <%- admin ? 'aria-current="page"' : '' %>>Quản trị <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <% if (admin) { %>
+    <div class="admin-topbar"><div class="container admin-topbar-inner">
+      <span class="eyebrow">THE TABLE / QUẢN TRỊ</span>
+      <nav class="admin-nav" aria-label="Quản lý nhà hàng">
+        <% for (const item of ['dishes', 'chefs', 'ingredients']) { %>
+          <a href="/admin/<%= item %>" <%- resource === item ? 'aria-current="page"' : '' %>><%= labels[item].plural %></a>
+        <% } %>
+      </nav>
+    </div></div>
+  <% } %>
+  <main id="main">
