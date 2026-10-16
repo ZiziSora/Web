@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Block 5: The Table — quyết định kỹ thuật SSR, bảng URL/method, Prisma code-first và các luồng CRUD bằng form.">
+  <title>Block 5 · The Table: SSR và quyết định kỹ thuật</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script src="slides.js" defer></script>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"><div id="progress"></div></div>
+  <main class="stage" aria-label="Bài trình bày Block 5">
+    <div class="deck" id="deck">
+
+      <section class="slide cover active" id="slide-1" aria-labelledby="title-1">
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>Giới thiệu</span></div>
+        <p class="eyebrow">01 / Server-Side Rendering</p>
+        <div class="body cover-layout">
+          <div>
+            <h1 id="title-1">The Table:<br> nhà hàng<br> với <em>SSR</em></h1>
+            <p class="lead">Từ một request đến HTML hoàn chỉnh.<br>Giải thích lựa chọn công nghệ, URL/method và các luồng CRUD bằng form.</p>
+            <div class="tags"><span class="tag">Express + EJS</span><span class="tag">Prisma + Supabase</span><span class="tag">14 slide · 8–10 phút</span></div>
+          </div>
+          <div>
+            <div class="cover-mark" aria-hidden="true"><span class="letters">SSR</span><span class="mark-label">HTML ĐƯỢC TẠO TRÊN SERVER</span></div>
+            <div class="cover-scope">
+              <div class="box"><span class="label">Trang khách</span><p>Xem, tìm kiếm và xem chi tiết món ăn.</p></div>
+              <div class="box"><span class="label">Quản trị</span><p>CRUD món ăn, đầu bếp và nguyên liệu.</p></div>
+            </div>
+            <p class="cover-sub">Website beige, không ảnh món ăn; phần trình bày giữ phong cách của Block 4.</p>
+          </div>
+        </div>
+        <div class="footer"><span>Mục tiêu: hiểu quyết định và giải thích được luồng xử lý</span><span>01 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-2" aria-labelledby="title-2" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>Quyết định kỹ thuật</span></div>
+        <p class="eyebrow">02 / Lựa chọn có lý do</p>
+        <h2 id="title-2">Vì sao chọn cách triển khai này?</h2>
+        <p class="lead">Các lựa chọn xuất phát từ yêu cầu bài tập: SSR, CRUD qua form và lưu dữ liệu trên Supabase.</p>
+        <div class="body">
+          <table class="table decisions">
+            <thead><tr><th>Lựa chọn</th><th>Lý do và hệ quả</th></tr></thead>
+            <tbody>
+              <tr><td>SSR + EJS</td><td>Express ghép dữ liệu vào template rồi trả HTML có nội dung; không cần React để tạo giao diện.</td></tr>
+              <tr><td>Form HTML + override</td><td>Đáp ứng yêu cầu không dùng fetch/AJAX; sửa/xóa vẫn vào route PATCH/DELETE.</td></tr>
+              <tr><td>Prisma · code-first</td><td>Khai báo model trong code, tạo bảng từ schema; truy vấn và quan hệ qua Prisma Client.</td></tr>
+              <tr><td>Supabase PostgreSQL</td><td>Lưu dữ liệu bền vững trong database quan hệ; server kết nối bằng PostgreSQL adapter.</td></tr>
+              <tr><td>TypeScript ESM</td><td>Kiểm tra kiểu phía server trước khi chạy; build thành JavaScript. Đề bài không bắt buộc TS.</td></tr>
+            </tbody>
+          </table>
+          <div class="callout blue"><strong>Phạm vi hiện tại:</strong> trang quản trị truy cập trực tiếp, chưa có đăng nhập. TypeScript hỗ trợ lập trình; validation server vẫn kiểm tra dữ liệu form lúc chạy.</div>
+        </div>
+        <div class="footer"><span>Nguồn: package.json / src/server.ts / src/app.ts / src/db.ts</span><span>02 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-3" aria-labelledby="title-3" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>Kiến trúc</span></div>
+        <p class="eyebrow">03 / Phân chia trách nhiệm</p>
+        <h2 id="title-3">Request đi qua những phần nào?</h2>
+        <p class="lead">Browser nhận HTML. Truy vấn database và render EJS đều được thực hiện phía server.</p>
+        <div class="body">
+          <svg class="technical-diagram architecture" viewBox="0 0 1184 268" role="img" aria-labelledby="architecture-title architecture-desc">
+            <title id="architecture-title">Kiến trúc SSR của The Table</title>
+            <desc id="architecture-desc">Browser gửi HTTP đến Express. Express gọi store, store dùng Prisma Client truy vấn PostgreSQL trên Supabase. Kết quả quay về Express và EJS tạo HTML trả cho browser. Validation áp dụng dữ liệu ghi; store được dùng cả đọc và ghi.</desc>
+            <defs><marker id="arch-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#083b79"/></marker><marker id="arch-reply" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#0874bb"/></marker></defs>
+            <rect class="band" x="232" y="11" width="702" height="245" rx="5"/>
+            <text class="tiny" x="252" y="32">NODE.JS SERVER · TYPESCRIPT / JAVASCRIPT</text>
+            <rect class="node" x="0" y="62" width="174" height="83" rx="3"/><text class="name" x="87" y="96" text-anchor="middle">Browser</text><text class="sub" x="87" y="121" text-anchor="middle">HTML form</text>
+            <rect class="node" x="253" y="62" width="174" height="83" rx="3"/><text class="name" x="340" y="96" text-anchor="middle">Express</text><text class="sub" x="340" y="121" text-anchor="middle">Route + middleware</text>
+            <rect class="node" x="501" y="62" width="174" height="83" rx="3"/><text class="name" x="588" y="96" text-anchor="middle">Store</text><text class="sub" x="588" y="121" text-anchor="middle">Đọc / ghi dữ liệu</text>
+            <rect class="node" x="749" y="62" width="164" height="83" rx="3"/><text class="name" x="831" y="96" text-anchor="middle">Prisma</text><text class="sub" x="831" y="121" text-anchor="middle">Client + adapter</text>
+            <rect class="node" x="994" y="62" width="190" height="83" rx="3"/><text class="name" x="1089" y="96" text-anchor="middle">Supabase</text><text class="sub" x="1089" y="121" text-anchor="middle">PostgreSQL</text>
+            <path class="edge" d="M174 96H251 M427 96H499 M675 96H747 M913 96H992" marker-end="url(#arch-arrow)"/>
+            <text class="tiny" x="212" y="80" text-anchor="middle">HTTP</text><text class="tiny" x="953" y="80" text-anchor="middle">SQL</text>
+            <path class="reply" d="M1089 145V174H340V191" marker-end="url(#arch-reply)"/>
+            <text class="tiny" x="700" y="168" text-anchor="middle">KẾT QUẢ TRUY VẤN QUAY VỀ EXPRESS</text>
+            <rect class="node" x="253" y="192" width="174" height="47" rx="3"/><text class="name" x="340" y="222" text-anchor="middle">EJS → HTML</text>
+            <path class="reply" d="M253 215H87V147" marker-end="url(#arch-reply)"/>
+            <text class="sub" x="88" y="238" text-anchor="middle">HTML có nội dung</text>
+          </svg>
+          <div class="grid3 architecture-files">
+            <div class="box"><span class="label">Điều phối</span><h3><code>src/app.ts</code></h3><p class="small">Route, method override, status và render. Dữ liệu ghi đi qua validation.</p></div>
+            <div class="box"><span class="label">Nghiệp vụ / dữ liệu</span><h3><code>domain.ts · store.ts</code></h3><p class="small">Chuẩn hóa input, kiểm tra, truy vấn Prisma và quy tắc quan hệ.</p></div>
+            <div class="box"><span class="label">Hiển thị</span><h3><code>views/ · public/</code></h3><p class="small">EJS tạo HTML; browser tải thêm CSS và favicon cục bộ.</p></div>
+          </div>
+        </div>
+        <div class="footer"><span>Nguồn: src/server.ts → app.ts → store.ts / views</span><span>03 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-4" aria-labelledby="title-4" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>Model và quan hệ</span></div>
+        <p class="eyebrow">04 / Code-first</p>
+        <h2 id="title-4">Từ schema trong code đến bảng dữ liệu</h2>
+        <p class="lead">Ba model nghiệp vụ; Prisma tự quản lý hai bảng nối cho các quan hệ nhiều–nhiều.</p>
+        <div class="body">
+          <svg class="technical-diagram schema-diagram" viewBox="0 0 1184 248" role="img" aria-labelledby="schema-title schema-desc">
+            <title id="schema-title">Ba model và hai quan hệ nhiều nhiều</title><desc id="schema-desc">Chef có id, name, specialty. Dish có id, name, description, price Decimal, category, available. Ingredient có id, name, unit. Chef và Dish có quan hệ nhiều nhiều thể hiện khả năng nấu; Dish và Ingredient có quan hệ nhiều nhiều thể hiện thành phần, chưa có định lượng.</desc>
+            <rect class="node-wash" x="0" y="18" width="260" height="196" rx="3"/><text class="name" x="20" y="52">Chef</text><path d="M0 66H260" stroke="#c9d8e9"/><text class="mono" x="20" y="96">id: Int · PK</text><text class="mono" x="20" y="126">name: String</text><text class="mono" x="20" y="156">specialty: String</text><text class="sub" x="20" y="191">Đầu bếp biết nấu món</text>
+            <rect class="node-wash" x="433" y="0" width="318" height="240" rx="3"/><text class="name" x="453" y="34">Dish</text><path d="M433 48H751" stroke="#c9d8e9"/><text class="mono" x="453" y="76">id: Int · PK</text><text class="mono" x="453" y="105">name, description: String</text><text class="mono" x="453" y="134">price: Decimal(12,2)</text><text class="mono" x="453" y="163">category: String</text><text class="mono" x="453" y="192">available: Boolean</text><text class="tiny" x="453" y="223">ID CỦA CẢ BA MODEL TỰ TĂNG</text>
+            <rect class="node-wash" x="924" y="18" width="260" height="196" rx="3"/><text class="name" x="944" y="52">Ingredient</text><path d="M924 66H1184" stroke="#c9d8e9"/><text class="mono" x="944" y="96">id: Int · PK</text><text class="mono" x="944" y="126">name: String</text><text class="mono" x="944" y="156">unit: String</text><text class="sub" x="944" y="191">Chưa quản lý định lượng</text>
+            <path class="edge" d="M260 106H433 M751 106H924"/>
+            <text class="name" x="276" y="96">N</text><text class="name" x="405" y="96">N</text><text class="name" x="766" y="96">N</text><text class="name" x="895" y="96">N</text>
+            <text class="sub" x="346" y="143" text-anchor="middle">biết nấu</text><text class="tiny" x="346" y="166" text-anchor="middle">_ChefToDish</text><text class="sub" x="837" y="143" text-anchor="middle">gồm nguyên liệu</text><text class="tiny" x="837" y="166" text-anchor="middle">_DishToIngredient</text>
+          </svg>
+          <div class="step-strip">
+            <div class="step"><span class="label">01 · Khai báo</span><code>schema.prisma</code><p>Model và quan hệ trong code.</p></div>
+            <div class="step"><span class="label">02 · Sinh client</span><code>npm run db:generate</code><p>Tạo Prisma Client để truy vấn.</p></div>
+            <div class="step"><span class="label">03 · Đồng bộ bảng</span><code>npm run db:push</code><p>Áp dụng schema vào database.</p></div>
+            <div class="step"><span class="label">04 · Dữ liệu mẫu</span><code>npm run seed</code><p>12 món, 4 đầu bếp, 12 nguyên liệu.</p></div>
+          </div>
+          <p class="diagram-caption">Đây là quy trình thiết lập của project, không phải báo cáo đã kết nối hay kiểm thử database trong lần làm slide.</p>
+        </div>
+        <div class="footer"><span>Nguồn: prisma/schema.prisma / prisma.config.ts / prisma/seed.ts</span><span>04 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-5" aria-labelledby="title-5" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>URL / Method</span></div>
+        <p class="eyebrow">05 / Trang khách và điểm vào</p>
+        <h2 id="title-5">Các URL để xem và tìm món ăn</h2>
+        <p class="lead">Các route dưới đây dùng GET: đọc nội dung hoặc điều hướng, không sửa dữ liệu nghiệp vụ.</p>
+        <div class="body">
+          <table class="table">
+            <thead><tr><th>Method</th><th>URL</th><th>Hành vi</th><th>Response thành công</th></tr></thead>
+            <tbody>
+              <tr><td><span class="method">GET</span></td><td><code>/</code></td><td>Đi tới thực đơn</td><td><code>302 → /dishes</code></td></tr>
+              <tr><td><span class="method">GET</span></td><td><code>/dishes?q=...</code></td><td>Danh sách, tìm tên món qua <code>q</code></td><td><code>200 · HTML</code></td></tr>
+              <tr><td><span class="method">GET</span></td><td><code>/dishes/:id</code></td><td>Chi tiết món, đầu bếp và nguyên liệu</td><td><code>200 · HTML</code></td></tr>
+              <tr><td><span class="method">GET</span></td><td><code>/admin</code></td><td>Đi tới quản lý món ăn</td><td><code>302 → /admin/dishes</code></td></tr>
+            </tbody>
+          </table>
+          <div class="grid2" style="margin-top:20px">
+            <div class="box wash"><span class="label">Query và path parameter</span><p><code>q</code> là nội dung tìm kiếm; <code>:id</code> là ID bản ghi.<br>Không có <code>q</code> thì hiển thị toàn bộ danh sách.</p></div>
+            <div class="box blue"><span class="label">Trường hợp không tìm thấy</span><p>ID sai định dạng hoặc không có → <strong>404</strong>.<br>Tìm không có kết quả → <strong>200</strong>, danh sách rỗng.</p></div>
+          </div>
+        </div>
+        <div class="footer"><span>Nguồn: src/app.ts · redirect mặc định 302; thao tác ghi dùng 303</span><span>05 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-6" aria-labelledby="title-6" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>URL / Method</span></div>
+        <p class="eyebrow">06 / CRUD dùng chung</p>
+        <h2 id="title-6">Bảy route cho mỗi tài nguyên quản trị</h2>
+        <p class="lead">Một mẫu route được áp dụng cho món ăn, đầu bếp và nguyên liệu.</p>
+        <div class="body">
+          <div class="route-intro"><strong><code>{resource}</code> nhận:</strong><code>dishes</code><code>chefs</code><code>ingredients</code></div>
+          <table class="table tight">
+            <thead><tr><th>Method trên server</th><th>URL</th><th>Chức năng</th><th>Kết quả hợp lệ</th></tr></thead>
+            <tbody>
+              <tr><td><span class="method">GET</span></td><td><code>/admin/{resource}</code></td><td>Danh sách</td><td>200 HTML</td></tr>
+              <tr><td><span class="method">GET</span></td><td><code>/admin/{resource}/new</code></td><td>Form thêm</td><td>200 HTML</td></tr>
+              <tr><td><span class="method write">POST</span></td><td><code>/admin/{resource}</code></td><td>Tạo mới</td><td>303 → danh sách</td></tr>
+              <tr><td><span class="method">GET</span></td><td><code>/admin/{resource}/:id/edit</code></td><td>Form sửa</td><td>200 HTML</td></tr>
+              <tr><td><span class="method write">PATCH</span></td><td><code>/admin/{resource}/:id</code></td><td>Cập nhật</td><td>303 → danh sách</td></tr>
+              <tr><td><span class="method">GET</span></td><td><code>/admin/{resource}/:id/delete</code></td><td>Xác nhận xóa</td><td>200 HTML</td></tr>
+              <tr><td><span class="method write">DELETE</span></td><td><code>/admin/{resource}/:id</code></td><td>Xóa sau xác nhận</td><td>303 → danh sách</td></tr>
+            </tbody>
+          </table>
+          <div class="callout blue"><strong>Cột method là route Express xử lý.</strong> Browser gửi form POST kèm <code>_method</code> để thực hiện PATCH/DELETE. GET tới <code>/delete</code> chỉ mở trang xác nhận.</div>
+        </div>
+        <div class="footer"><span>Nguồn: src/app.ts · vòng lặp resources đăng ký route cụ thể</span><span>06 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-7" aria-labelledby="title-7" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>Luồng code</span></div>
+        <p class="eyebrow">07 / Method override</p>
+        <h2 id="title-7">Browser gửi POST, Express xử lý PATCH</h2>
+        <p class="lead">Form giữ hành vi submit mặc định; middleware chuyển method trước khi chọn route.</p>
+        <div class="body">
+          <div class="grid2">
+            <div class="stack">
+              <div class="codebox"><div class="code-title"><span>views/admin/form.ejs</span><span>Lược trích · HTML sau render, ID ví dụ</span></div><pre><code>&lt;form action=<span class="str">"/admin/dishes/1"</span>
+      method=<span class="str">"post"</span>&gt;
+  &lt;input type=<span class="str">"hidden"</span>
+         name=<span class="str">"_method"</span> value=<span class="str">"PATCH"</span>&gt;
+  <span class="comment">&lt;!-- Các input của món ăn --&gt;</span>
+  &lt;button type=<span class="str">"submit"</span>&gt;Lưu&lt;/button&gt;
+&lt;/form&gt;</code></pre></div>
+              <div class="box wash"><span class="label">Đối với xóa</span><p class="small">Form trên trang xác nhận dùng <code>_method=DELETE</code>, kèm chữ ký xác nhận và thời hạn.</p></div>
+            </div>
+            <div class="stack">
+              <div class="codebox compact"><div class="code-title"><span>src/app.ts</span><span>Lược trích · định dạng lại</span></div><pre><code>app.<span class="fn">use</span>(express.<span class="fn">urlencoded</span>({
+  extended: <span class="kw">false</span>, limit: <span class="str">'32kb'</span>,
+  parameterLimit: 500
+}));
+app.<span class="fn">use</span>(<span class="fn">methodOverride</span>(req =&gt; {
+  <span class="kw">if</span> (req.method === <span class="str">'POST'</span> &amp;&amp;
+      [<span class="str">'PATCH'</span>, <span class="str">'DELETE'</span>]
+        .<span class="fn">includes</span>(req.body?._method))
+    <span class="kw">return</span> req.body._method;
+}, { methods: [<span class="str">'POST'</span>] }));</code></pre></div>
+              <p class="small muted">Phải đọc body trước override. Không lấy method từ query string và không cho override GET.</p>
+            </div>
+          </div>
+          <div class="mini-flow" style="margin-top:18px;margin-bottom:0"><div class="flow-node">POST + _method=PATCH<small>Request thật trên Network</small></div><span class="arrow" aria-hidden="true">→</span><div class="flow-node">methodOverride<small>Thay req.method</small></div><span class="arrow" aria-hidden="true">→</span><div class="flow-node">app.patch(... )<small>Route cập nhật trên server</small></div></div>
+        </div>
+        <div class="footer"><span>Nguồn: views/admin/form.ejs / delete.ejs / src/app.ts</span><span>07 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-8" aria-labelledby="title-8" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>Luồng code</span></div>
+        <p class="eyebrow">08 / GET → dữ liệu → HTML</p>
+        <h2 id="title-8">Server đọc dữ liệu rồi render EJS</h2>
+        <p class="lead">Tìm kiếm tải một document mới; nội dung món ăn đã nằm trong HTML response.</p>
+        <div class="body grid2">
+          <div class="stack">
+            <div class="codebox"><div class="code-title"><span>src/app.ts</span><span>Lược trích · định dạng lại</span></div><pre><code>app.<span class="fn">get</span>(<span class="str">'/dishes'</span>, <span class="kw">async</span> (req, res) =&gt; {
+  <span class="kw">const</span> q = <span class="kw">typeof</span> req.query.q === <span class="str">'string'</span>
+    ? req.query.q.<span class="fn">trim</span>() : <span class="str">''</span>;
+  <span class="kw">const</span> dishes = <span class="kw">await</span> store.<span class="fn">list</span>(<span class="str">'dishes'</span>, q);
+  res.<span class="fn">render</span>(<span class="str">'dishes/index'</span>, {
+    pageTitle: <span class="str">'Thực đơn'</span>, dishes, q
+  });
+});</code></pre></div>
+            <div class="box blue"><span class="label">Trong Prisma store</span><p class="small"><code>findMany</code> tìm tên bằng <code>contains</code>, không phân biệt hoa/thường; tải cả quan hệ đầu bếp và nguyên liệu.</p></div>
+          </div>
+          <div class="stack">
+            <div class="codebox"><div class="code-title"><span>src/app.ts · load()</span><span>Lược trích · định dạng lại</span></div><pre><code><span class="kw">const</span> load = <span class="kw">async</span> (resource: Resource,
+                    raw: unknown) =&gt; {
+  <span class="kw">const</span> id = <span class="fn">parseId</span>(raw);
+  <span class="kw">if</span> (!id) <span class="kw">throw new</span> <span class="fn">NotFoundError</span>();
+  <span class="kw">const</span> entity = <span class="kw">await</span> store.<span class="fn">find</span>(resource, id);
+  <span class="kw">if</span> (!entity) <span class="kw">throw new</span> <span class="fn">NotFoundError</span>();
+  <span class="kw">return</span> entity;
+};</code></pre></div>
+            <div class="box wash"><span class="label">Chi tiết /dishes/:id</span><p class="small"><code>load()</code> kiểm tra ID và bản ghi. Có dữ liệu thì render <code>dishes/show</code>; lỗi được middleware chuyển thành trang <strong>404</strong>.</p></div>
+          </div>
+        </div>
+        <div class="footer"><span>Nguồn: src/app.ts / src/store.ts / views/dishes</span><span>08 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-9" aria-labelledby="title-9" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>Luồng code</span></div>
+        <p class="eyebrow">09 / Form và validation</p>
+        <h2 id="title-9">Thêm/sửa: kiểm tra trước khi ghi</h2>
+        <p class="lead">Input từ browser là dữ liệu chưa tin cậy; TypeScript không tự kiểm tra nội dung request.</p>
+        <div class="body">
+          <div class="mini-flow"><div class="flow-node">formValues<small>Lấy các trường cho phép</small></div><span class="arrow" aria-hidden="true">→</span><div class="flow-node">validate<small>Kiểm tra, trim, đổi kiểu</small></div><span class="arrow" aria-hidden="true">→</span><div class="flow-node">store<small>Kiểm tra ID liên kết</small></div><span class="arrow" aria-hidden="true">→</span><div class="flow-node">Prisma / database<small>Ghi trong transaction</small></div></div>
+          <div class="split">
+            <div class="codebox"><div class="code-title"><span>src/app.ts · POST tạo mới</span><span>Lược trích · nhánh lỗi khác được bỏ</span></div><pre><code><span class="kw">const</span> values = <span class="fn">formValues</span>(req.body);
+<span class="kw">try</span> {
+  <span class="kw">await</span> store.<span class="fn">create</span>(resource,
+    <span class="fn">validate</span>(resource, values));
+  <span class="kw">return</span> res.<span class="fn">redirect</span>(303, `${base}?status=created`);
+} <span class="kw">catch</span> (error) {
+  <span class="kw">if</span> (error <span class="kw">instanceof</span> InputError)
+    <span class="kw">return</span> <span class="fn">renderForm</span>(res, resource, undefined,
+      values, error.errors, 400);
+  <span class="comment">// Lỗi khác được ném tiếp tới error middleware.</span>
+}</code></pre></div>
+            <div class="stack">
+              <div class="box wash"><span class="label">Các điều kiện chính</span><ul class="bullets compact"><li>Văn bản bắt buộc và giới hạn độ dài.</li><li>Giá không âm; boolean chỉ nhận true/false.</li><li>ID đầu bếp/nguyên liệu đúng và tồn tại.</li></ul></div>
+              <div class="box red"><span class="label">Input sai → 400 HTML</span><p class="small">Render lại <strong>đúng form</strong> với <code>values</code> và <code>errors</code>. Giữ tên, giá, mô tả và các checkbox đã chọn.</p></div>
+              <p class="small muted">PATCH dùng cùng validation, nhưng tải bản ghi theo ID trước rồi gọi <code>store.update()</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div class="footer"><span>Nguồn: src/app.ts / src/domain.ts / src/store.ts / views/admin/form.ejs</span><span>09 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-10" aria-labelledby="title-10" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>Luồng HTTP</span></div>
+        <p class="eyebrow">10 / Post · Redirect · Get</p>
+        <h2 id="title-10">Vì sao ghi thành công phải redirect 303?</h2>
+        <p class="lead">Tách request ghi dữ liệu khỏi trang kết quả; browser tải lại trang đích bằng GET.</p>
+        <div class="body sequence-layout">
+          <div>
+            <svg class="technical-diagram sequence" viewBox="0 0 710 405" role="img" aria-labelledby="sequence-title sequence-desc">
+              <title id="sequence-title">Sequence thêm món thành công theo Post Redirect Get</title><desc id="sequence-desc">Browser gửi POST, Express validate rồi gọi store và Prisma ghi database. Database hoàn tất mới trả 303 Location về danh sách. Browser GET danh sách; Express truy vấn lại dữ liệu, render EJS và trả HTML 200. Reload trang đích chỉ gửi GET.</desc>
+              <defs><marker id="seq-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#083b79"/></marker><marker id="seq-reply" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#0874bb"/></marker></defs>
+              <rect class="node-wash" x="0" y="0" width="148" height="44"/><text class="name" x="74" y="29" text-anchor="middle">Browser</text>
+              <rect class="node-wash" x="265" y="0" width="184" height="44"/><text class="name" x="357" y="29" text-anchor="middle">Express + EJS</text>
+              <rect class="node-wash" x="560" y="0" width="150" height="44"/><text class="name" x="635" y="29" text-anchor="middle">Database</text>
+              <path class="lifeline" d="M74 44V399 M357 44V399 M635 44V399"/>
+              <rect x="350" y="86" width="14" height="151" fill="#d7e6f7" stroke="#9ab9da"/><rect x="350" y="274" width="14" height="109" fill="#d7e6f7" stroke="#9ab9da"/>
+              <path class="edge" d="M74 87H350" marker-end="url(#seq-arrow)"/><text class="mono" x="212" y="76" text-anchor="middle">POST /admin/dishes</text>
+              <text class="tiny" x="373" y="108">VALIDATE</text>
+              <path class="edge" d="M364 135H635" marker-end="url(#seq-arrow)"/><text class="sub" x="497" y="125" text-anchor="middle">store → Prisma → ghi</text>
+              <path class="reply" d="M635 180H364" marker-end="url(#seq-reply)"/><text class="sub" x="497" y="170" text-anchor="middle">Lưu hoàn tất</text>
+              <path class="reply" d="M350 225H74" marker-end="url(#seq-reply)"/><text class="mono" x="212" y="215" text-anchor="middle">303 + Location</text>
+              <path class="edge" d="M74 275H350" marker-end="url(#seq-arrow)"/><text class="mono" x="212" y="265" text-anchor="middle">GET /admin/dishes?status=created</text>
+              <path class="edge" d="M364 315H635" marker-end="url(#seq-arrow)"/><text class="sub" x="497" y="305" text-anchor="middle">Đọc danh sách mới</text>
+              <path class="reply" d="M635 346H364" marker-end="url(#seq-reply)"/><text class="sub" x="497" y="339" text-anchor="middle">Các bản ghi</text>
+              <path class="reply" d="M350 384H74" marker-end="url(#seq-reply)"/><text class="mono" x="212" y="374" text-anchor="middle">200 HTML · render EJS</text>
+            </svg>
+            <p class="diagram-caption">Đọc từ trên xuống. Mũi tên liền: request/lời gọi; nét đứt: response/kết quả. Database được truy cập qua store và Prisma.</p>
+          </div>
+          <div class="stack">
+            <div class="codebox"><div class="code-title"><span>src/app.ts</span><span>Lược trích · định dạng lại</span></div><pre><code><span class="kw">await</span> store.<span class="fn">create</span>(resource,
+  <span class="fn">validate</span>(resource, values));
+<span class="kw">return</span> res.<span class="fn">redirect</span>(303,
+  `${base}?status=created`);</code></pre></div>
+            <div class="box navy"><span class="label">Sau redirect</span><h3>Reload → GET danh sách</h3><p class="small">Không gửi lại request tạo mới. Thông báo thành công dựa vào query <code>status</code>.</p></div>
+            <div class="box wash"><span class="label">Giới hạn của cơ chế</span><p class="small">PRG tránh lặp khi reload trang đích; không phải cơ chế chống mọi trường hợp gửi trùng request.</p></div>
+            <p class="small muted">Cập nhật và xóa thành công cũng trả 303 về danh sách tương ứng.</p>
+          </div>
+        </div>
+        <div class="footer"><span>Nguồn: src/app.ts · tạo, cập nhật và xóa</span><span>10 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-11" aria-labelledby="title-11" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>Xóa và tính nhất quán</span></div>
+        <p class="eyebrow">11 / Xác nhận trước khi xóa</p>
+        <h2 id="title-11">Xóa đúng bản ghi, đúng quy tắc quan hệ</h2>
+        <p class="lead">GET hiển thị trang xác nhận; chỉ route DELETE mới gọi thao tác xóa trong store.</p>
+        <div class="body">
+          <div class="mini-flow"><div class="flow-node">GET /:id/delete<small>Đọc bản ghi, tạo xác nhận</small></div><span class="arrow" aria-hidden="true">→</span><div class="flow-node">POST + _method=DELETE<small>Form có token + expires</small></div><span class="arrow" aria-hidden="true">→</span><div class="flow-node">Kiểm tra → xóa → 303<small>Thất bại: 400 hoặc 404</small></div></div>
+          <div class="delete-layout">
+            <div class="stack">
+              <div class="box"><span class="label">Quy tắc theo tài nguyên</span>
+                <div class="policy-row"><strong>Món ăn</strong><span>Xóa món và liên kết; giữ đầu bếp, nguyên liệu.</span></div>
+                <div class="policy-row"><strong>Đầu bếp</strong><span>Xóa hồ sơ và liên kết biết nấu; giữ món ăn.</span></div>
+                <div class="policy-row"><strong>Nguyên liệu</strong><span>Còn được dùng → chặn xóa, liệt kê món cần gỡ liên kết.</span></div>
+              </div>
+              <p class="small muted">Chữ ký xác nhận gắn với tài nguyên/ID, có hạn 30 phút; thiếu hoặc sai xác nhận trả 400.</p>
+            </div>
+            <div class="stack">
+              <div class="codebox compact"><div class="code-title"><span>src/store.ts · nhánh ingredients</span><span>Lược trích · trong transaction</span></div><pre><code><span class="kw">const</span> ingredient = <span class="kw">await</span> tx.ingredient.<span class="fn">findUnique</span>({
+  where: { id }, include: dishLinks
+});
+<span class="kw">if</span> (!ingredient) <span class="kw">throw new</span> <span class="fn">NotFoundError</span>();
+<span class="kw">if</span> (ingredient.dishes.length)
+  <span class="kw">throw new</span> <span class="fn">IngredientInUseError</span>(ingredient.dishes);
+<span class="kw">await</span> tx.ingredient.<span class="fn">delete</span>({ where: { id } });</code></pre></div>
+              <div class="box red"><span class="label">Kiểm tra lại ở thời điểm ghi</span><p class="small">Không chỉ dựa vào trang xác nhận đã mở trước đó. Các thao tác ghi dùng transaction Serializable và có thử lại xung đột.</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="footer"><span>Nguồn: src/app.ts / src/store.ts / views/admin/delete.ejs</span><span>11 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-12" aria-labelledby="title-12" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>Dữ liệu và phản hồi</span></div>
+        <p class="eyebrow">12 / Những quyết định bảo vệ dữ liệu</p>
+        <h2 id="title-12">Kiểm soát input, dữ liệu và lỗi trả về</h2>
+        <p class="lead">Chọn dữ liệu được ghi, escape khi hiển thị và trả status theo tình huống cụ thể.</p>
+        <div class="body grid2">
+          <div class="stack">
+            <div class="box wash"><span class="label">Trước khi ghi</span><ul class="bullets compact"><li><strong>Allowlist:</strong> lấy trường đã định nghĩa; không truyền thẳng <code>req.body</code> cho Prisma.</li><li><strong>Giá:</strong> lưu <code>Decimal(12,2)</code>; không chuyển qua số thực khi ghi.</li><li><strong>Truy vấn:</strong> dùng Prisma; không nối input vào raw SQL.</li></ul></div>
+            <div class="box blue"><span class="label">Khi hiển thị và cấu hình</span><ul class="bullets compact"><li><code>&lt;%= value %&gt;</code> escape dữ liệu trong EJS.</li><li><code>DATABASE_URL</code> ở <code>.env</code>, được gitignore; log lỗi ứng dụng không in chuỗi kết nối.</li></ul></div>
+          </div>
+          <div class="stack">
+            <table class="table tight">
+              <thead><tr><th>Status</th><th>Khi nào?</th><th>Ứng xử</th></tr></thead>
+              <tbody>
+                <tr><td><span class="http-status">400</span></td><td>Input sai, xác nhận sai hoặc nguyên liệu đang dùng</td><td>Render lỗi; giữ input form</td></tr>
+                <tr><td><span class="http-status">404</span></td><td>ID sai, bản ghi hoặc URL không có</td><td>Trang không tìm thấy</td></tr>
+                <tr><td><span class="http-status">500</span></td><td>Lỗi hệ thống/database</td><td>Thông báo thân thiện</td></tr>
+              </tbody>
+            </table>
+            <div class="box navy"><span class="label">Phân biệt lỗi và thành công</span><p>Input sai không redirect sang trang thành công. Chỉ ghi hoàn tất mới trả <strong>303</strong>.</p></div>
+            <p class="small muted">400 ở form thêm/sửa giữ values; 400 ở luồng xóa hiển thị lại trang xác nhận hoặc lý do chặn.</p>
+          </div>
+        </div>
+        <div class="footer"><span>Nguồn: domain.ts / store.ts / app.ts / schema.prisma / EJS templates</span><span>12 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-13" aria-labelledby="title-13" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>Kiểm chứng HTTP</span></div>
+        <p class="eyebrow">13 / Dấu hiệu cần quan sát</p>
+        <h2 id="title-13">Nhận biết SSR và method override qua HTTP</h2>
+        <p class="lead"><span class="evidence-label">MINH HỌA TỪ CODE</span> — ID, nội dung và request dưới đây là ví dụ, không phải log chụp thực tế.</p>
+        <div class="body grid2">
+          <div class="stack">
+            <div class="codebox"><div class="code-title"><span>GET /dishes → 200 HTML</span><span>Mẫu HTML rút gọn</span></div><pre class="http-demo"><code><span class="comment">&lt;!-- Response đã có nội dung món --&gt;</span>
+&lt;article class=<span class="str">"dish-card"</span>&gt;
+  &lt;h3&gt;
+    &lt;a href=<span class="str">"/dishes/1"</span>&gt;Bò lúc lắc&lt;/a&gt;
+  &lt;/h3&gt;
+  <span class="comment">&lt;!-- Mô tả, giá và trạng thái --&gt;</span>
+&lt;/article&gt;</code></pre></div>
+            <div class="box blue"><span class="label">Điểm cần kiểm tra</span><p class="small">Network → document → <strong>Response</strong> có tên món, thay vì chỉ nhìn DOM trong Elements. Website không cần fetch/AJAX để tạo danh sách.</p></div>
+            <p class="small muted">JavaScript của bộ slide chỉ dùng điều hướng; nó không thuộc ứng dụng SSR.</p>
+          </div>
+          <div class="stack">
+            <div class="codebox"><div class="code-title"><span>Form sửa món → wire POST</span><span>Mẫu HTTP rút gọn</span></div><pre class="http-demo"><code><span class="kw">POST</span> /admin/dishes/1
+Content-Type: application/x-www-form-urlencoded
+
+_method=PATCH&amp;name=...&amp;price=165000&amp;...
+
+<span class="comment"># Express chọn route PATCH sau override</span>
+<span class="kw">303</span> See Other
+Location: /admin/dishes?status=updated</code></pre></div>
+            <div class="mini-flow proof-flow"><div class="flow-node">POST<small>Payload _method</small></div><span class="arrow" aria-hidden="true">→</span><div class="flow-node">303<small>Location</small></div><span class="arrow" aria-hidden="true">→</span><div class="flow-node">GET<small>200 HTML mới</small></div></div>
+            <p class="small muted">Giữ Network filter <strong>All</strong> và Preserve log để thấy cả POST, redirect và document GET sau đó.</p>
+          </div>
+        </div>
+        <div class="footer"><span>Đối chiếu: views/dishes/index.ejs / views/admin/form.ejs / src/app.ts</span><span>13 / 14</span></div>
+      </section>
+
+      <section class="slide" id="slide-14" aria-labelledby="title-14" hidden>
+        <div class="masthead"><span class="issue">Block 05 / The Table</span><span>Đối chiếu yêu cầu</span></div>
+        <p class="eyebrow">14 / Những điểm cần nhớ</p>
+        <h2 id="title-14">Từ yêu cầu đề bài đến cách triển khai</h2>
+        <p class="lead">Các tiêu chí dưới đây được đối chiếu với source; đây không phải báo cáo kiểm thử database.</p>
+        <div class="body">
+          <div class="checklist">
+            <div class="check-item"><span class="check" aria-hidden="true">01</span><div><strong>SSR và trang khách</strong><p>GET danh sách/tìm kiếm, chi tiết; EJS trả HTML có nội dung.</p></div></div>
+            <div class="check-item"><span class="check" aria-hidden="true">02</span><div><strong>Đủ CRUD ba tài nguyên</strong><p>Dish, Chef, Ingredient dùng chung mẫu route và form quản trị.</p></div></div>
+            <div class="check-item"><span class="check" aria-hidden="true">03</span><div><strong>Method đúng chức năng</strong><p>POST tạo, PATCH sửa, DELETE xóa; override từ form POST, không dùng AJAX.</p></div></div>
+            <div class="check-item"><span class="check" aria-hidden="true">04</span><div><strong>Phản hồi rõ ràng</strong><p>400 giữ input; 404 cho ID sai/không có; ghi thành công trả 303.</p></div></div>
+            <div class="check-item"><span class="check" aria-hidden="true">05</span><div><strong>Xác nhận và quan hệ</strong><p>GET xác nhận không xóa; chặn nguyên liệu đang dùng, giữ món khi xóa đầu bếp.</p></div></div>
+            <div class="check-item"><span class="check" aria-hidden="true">06</span><div><strong>Model và cấu hình</strong><p>Prisma code-first, seed ba model; bí mật ở .env, input được kiểm tra.</p></div></div>
+          </div>
+          <div class="box navy summary-box"><span class="label">Kết luận</span><h3>Server chịu trách nhiệm từ validation đến HTML.</h3><p class="small">Browser gửi form và theo redirect. Express điều phối, Prisma lưu dữ liệu, EJS tạo giao diện; HTTP giúp giải thích và kiểm chứng từng bước.</p></div>
+        </div>
+        <div class="footer"><span>Cảm ơn thầy/cô và các bạn · Sẵn sàng trao đổi về các quyết định kỹ thuật</span><span>14 / 14</span></div>
+      </section>
+
+    </div>
+  </main>
+  <nav class="nav" aria-label="Điều hướng slide">
+    <button id="previous" type="button" aria-label="Slide trước" disabled>← Trước</button>
+    <span class="counter" id="counter" role="status" aria-live="polite">01 / 14</span>
+    <button id="next" type="button" aria-label="Slide tiếp theo">Sau →</button>
+  </nav>
+  <noscript>Bật JavaScript để điều hướng bài trình bày. Khi in, toàn bộ 14 slide vẫn được hiển thị.</noscript>
+</body>
+</html>
