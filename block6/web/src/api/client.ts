@@ -1,6 +1,6 @@
 import { ApiError } from './errors';
 import { requestHeaders } from './headers';
-import { validateData } from './validation';
+import { responseData } from './validation';
 const base = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3006/api';
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
     let res: Response;
@@ -21,10 +21,5 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
     catch {
         throw new ApiError('Phản hồi máy chủ không hợp lệ.');
     }
-    if (body?.ok === false && typeof body.error?.code === 'string')
-        throw new ApiError(body.error.message, body.error.code, body.error.fields ?? {}, body.error.details?.dishes ?? []);
-    if (body?.ok !== true || !('data' in body))
-        throw new ApiError('Phản hồi máy chủ không hợp lệ.');
-    validateData(path, options.method, body.data);
-    return body.data;
+    return responseData(path, options.method, body) as T;
 }

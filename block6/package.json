@@ -18,7 +18,7 @@
     "db:generate": "npm run db:generate -w @table/api",
     "seed": "npm run seed -w @table/api",
     "test:preview": "tsx scripts/preview-check.ts",
-    "test:headers": "node --import tsx --test scripts/headers.test.ts"
+    "test:headers": "node --import tsx --test scripts/headers.test.ts scripts/response.test.ts"
   },
   "devDependencies": {
     "concurrently": "^9.0.0",
