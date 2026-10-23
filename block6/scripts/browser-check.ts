@@ -33,6 +33,11 @@ try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     const errors: string[] = [];
     page.on('pageerror', e => errors.push(e.message));
+    // React warnings are console errors, not uncaught page errors.
+    page.on('console', message => {
+      const text = message.text();
+      if (['error', 'warning'].includes(message.type()) && text.includes('key') && /spread|spreading/i.test(text)) errors.push(text);
+    });
     await page.goto(webOrigin + '/dishes');
     await page.getByRole('heading', { name: 'Bò lúc lắc', exact: true }).waitFor();
     await mkdir('artifacts', { recursive: true });
@@ -53,14 +58,15 @@ try {
         for (const path of routes) {
           await page.goto(webOrigin + path);
           await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'));
-          const selector = path === '/dishes' ? '.dish-card' : '.resource-table tbody tr';
+          const selector = path === '/dishes' ? '.book-content .dish-card' : '.resource-table tbody tr';
           assert.equal(await page.locator(selector).count(), Math.min(count,6));
           assert.equal(await page.getByRole('navigation',{name:'Phân trang'}).count(), count>6?1:0);
           if (count>6) {
-            await page.getByRole('link',{name:'Sau',exact:true}).focus();
+            await page.getByRole('link',{name:path==='/dishes'?'Trang sau':'Sau',exact:true}).focus();
             await page.keyboard.press('Enter');
             await page.locator(selector).filter({hasText:'Mục 7'}).first().waitFor();
             assert.equal(new URL(page.url()).searchParams.get('page'),'2');
+            await page.waitForFunction(()=>!document.querySelector('.menu-book[aria-busy="true"]'));
             assert.equal(await page.locator(selector).count(),Math.min(count-6,6));
             assert.ok(await page.locator(selector).first().innerText().then(x=>x.includes('Mục 7')));
             await page.locator('h1:focus, h2:focus').waitFor();
@@ -68,7 +74,7 @@ try {
             await page.reload();
             await page.locator(selector).first().waitFor();
             assert.ok((await page.locator(selector).first().innerText()).includes('Mục 7'));
-            await page.getByRole('link',{name:'Trước',exact:true}).click();
+            await page.getByRole('link',{name:path==='/dishes'?'Trang trước':'Trước',exact:true}).click();
             assert.equal(new URL(page.url()).searchParams.get('page'),null);
             await page.goBack();
             await page.waitForURL('**page=2');
@@ -105,6 +111,29 @@ try {
         await page.screenshot({path:'artifacts/pagination-'+path.replaceAll('/','-')+'-'+width+'.png',fullPage:true});
       }
     }
+    // Book-specific interactions: reduced motion, rapid input, resize and history cancellation.
+    await page.setViewportSize({width:1440,height:1000});
+    await page.goto(webOrigin+'/dishes');
+    await page.locator('.book-content .dish-card').first().waitFor();
+    await page.screenshot({path:'artifacts/book-desktop.png',fullPage:true});
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await page.getByRole('link',{name:'Trang sau',exact:true}).click();
+    await page.waitForURL('**page=2');
+    assert.equal(await page.locator('.book-turn').count(),0);
+    await page.emulateMedia({reducedMotion:'no-preference'});
+    await page.getByRole('link',{name:'Trang trước',exact:true}).click();
+    await page.goBack();
+    await page.waitForFunction(()=>!document.querySelector('.menu-book[aria-busy="true"]'));
+    assert.equal(new URL(page.url()).searchParams.get('page'),'2');
+    await page.getByRole('link',{name:'Trang sau',exact:true}).click();
+    await page.setViewportSize({width:390,height:900});
+    await page.waitForFunction(()=>!document.querySelector('.menu-book[aria-busy="true"]'));
+    await page.goto(webOrigin+'/dishes');
+    await page.locator('.book-content .dish-card').first().waitFor();
+    await page.screenshot({path:'artifacts/book-mobile.png',fullPage:true});
+    await page.getByRole('link',{name:'Trang sau',exact:true}).evaluate(el=>{(el as HTMLElement).click();(el as HTMLElement).click();});
+    await page.waitForFunction(()=>!document.querySelector('.menu-book[aria-busy="true"]'));
+    assert.equal(new URL(page.url()).searchParams.get('page'),'2');
     // A removed last page clamps to the new final page on reload.
     store.rows.ingredients=store.rows.ingredients.slice(0,6);
     await page.goto(webOrigin+'/admin/ingredients?page=3');

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 export const PAGE_SIZE = 6;
-export function usePagination(total?: number) {
+export function usePagination(total?: number, autoScroll = true) {
   const [params, setParams] = useSearchParams();
   const location = useLocation();
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -24,10 +24,10 @@ export function usePagination(total?: number) {
   useEffect(() => {
     const old = previous.current;
     previous.current = { page, q };
-    if (old.q === q && old.page !== page && total !== undefined) {
+    if (autoScroll && old.q === q && old.page !== page && total !== undefined) {
       headingRef.current?.focus({ preventScroll: true });
       headingRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
     }
-  }, [page, q, total]);
+  }, [page, q, total, autoScroll]);
   return { page, pages, start: (page - 1) * PAGE_SIZE, headingRef };
 }

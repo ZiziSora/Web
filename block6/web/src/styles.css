@@ -3346,3 +3346,248 @@ button:disabled {
     color: var(--muted);
   }
 }
+
+/* The guest menu is an open book. Management tables retain their pagination. */
+.menu-book {
+  margin: 32px 0 48px;
+}
+
+.book-binding {
+  position: relative;
+  perspective: 2200px;
+  border: 8px solid var(--forest);
+  border-radius: 5px;
+  background: var(--cream);
+  box-shadow: 0 8px 0 -3px #ded3bf, 0 12px 0 -5px #cfc0a6, 0 20px 36px #122c251a;
+}
+
+.book-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.book-leaf {
+  min-width: 0;
+  min-height: 760px;
+  padding: 28px 36px;
+  background: var(--cream);
+}
+
+.book-content>.book-leaf:first-child {
+  background: linear-gradient(90deg, var(--cream) 92%, #ded5c3);
+  border-right: 1px solid #c8baa1;
+}
+
+.book-content>.book-leaf:last-child {
+  background: linear-gradient(90deg, #e9e0cf, var(--cream) 8%);
+}
+
+.book-running-title {
+  color: var(--accent);
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding-bottom: 18px;
+  margin: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.menu-book .dish-grid {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.menu-book .dish-card {
+  min-height: 212px;
+  padding: 23px 0;
+}
+
+.menu-book .dish-card h3 {
+  font-size: 27px;
+}
+
+.menu-book .dish-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.menu-book .card-bottom>div {
+  gap: 8px 18px;
+}
+
+.menu-book .dish-price {
+  font-size: 22px;
+}
+
+.book-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 28px 0;
+}
+
+.book-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 13px;
+}
+
+.book-controls a,
+.book-controls>span[aria-disabled] {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  display: inline-flex;
+  align-items: center;
+}
+
+.book-controls a:hover {
+  background: var(--forest);
+  color: var(--cream);
+}
+
+.book-controls [aria-disabled=true] {
+  color: var(--muted);
+  cursor: default;
+}
+
+.book-turn {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  pointer-events: none;
+  transform-style: preserve-3d;
+}
+
+.turn-forward {
+  left: 50%;
+  transform-origin: left center;
+  animation: book-forward 450ms ease-in-out both;
+}
+
+.turn-back {
+  left: 0;
+  transform-origin: right center;
+  animation: book-back 450ms ease-in-out both;
+}
+
+.turn-front,
+.turn-reverse {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  background: var(--cream);
+  overflow: hidden;
+  box-shadow: 0 0 20px #122c2526;
+}
+
+.turn-reverse {
+  transform: rotateY(180deg);
+}
+
+@keyframes book-forward {
+  to {
+    transform: rotateY(-180deg);
+  }
+}
+
+@keyframes book-back {
+  to {
+    transform: rotateY(180deg);
+  }
+}
+
+@media(max-width:1023px) {
+  .book-content {
+    grid-template-columns: 1fr;
+  }
+
+  .book-leaf {
+    min-height: 0;
+    padding: 24px 28px;
+  }
+
+  .book-content>.book-leaf:first-child,
+  .book-content>.book-leaf:last-child {
+    background: var(--cream);
+    border: 0;
+  }
+
+  .book-content>.book-leaf:last-child {
+    padding-top: 0;
+  }
+
+  .book-content>.book-leaf:last-child>.book-running-title {
+    display: none;
+  }
+
+  .book-content>.book-leaf:last-child:not(:has(.dish-card)) {
+    display: none;
+  }
+
+  .book-turn {
+    width: 100%;
+    left: 0;
+    animation: book-mobile 250ms ease-out both;
+    transform-origin: left center;
+  }
+
+  .turn-reverse {
+    display: none;
+  }
+
+  @keyframes book-mobile {
+    to {
+      transform: rotateY(-12deg);
+      opacity: 0;
+    }
+  }
+}
+
+@media(max-width:640px) {
+  .book-binding {
+    border-width: 5px;
+  }
+
+  .book-leaf {
+    padding: 20px;
+  }
+
+  .menu-book .dish-card h3 {
+    font-size: 26px;
+  }
+
+  .menu-book .card-bottom>div {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .book-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .book-controls {
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .book-controls a,
+  .book-controls>span[aria-disabled] {
+    padding-inline: 10px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce) {
+  .book-turn {
+    display: none;
+    animation: none;
+  }
+}
