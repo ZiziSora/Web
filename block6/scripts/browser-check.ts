@@ -63,7 +63,7 @@ try {
             assert.equal(new URL(page.url()).searchParams.get('page'),'2');
             assert.equal(await page.locator(selector).count(),Math.min(count-6,6));
             assert.ok(await page.locator(selector).first().innerText().then(x=>x.includes('Mục 7')));
-            assert.equal(await page.locator('h1:focus, h2:focus').count(),1);
+            await page.locator('h1:focus, h2:focus').waitFor();
             if(path==='/dishes') assert.equal(await page.locator('.dish-number').first().innerText(),'07');
             await page.reload();
             await page.locator(selector).first().waitFor();
@@ -208,6 +208,40 @@ try {
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route + ' overflows');
         await page.screenshot({path: 'artifacts/' + name + '-' + width + '.png', fullPage:true});
       }
+    }
+    // Late mutation responses must not redirect away from the page selected by the user.
+    for (const operation of ['create', 'delete']) {
+      let release!: () => void;
+      const held = new Promise<void>(resolve => { release = resolve; });
+      const target = `http://localhost:${address.port}/api/chefs${operation==='delete'?'/44':''}`;
+      store.rows.chefs.push({id:44,name:'Late mutation',specialty:'Việt'});
+      await page.goto(webOrigin + (operation==='create'?'/admin/chefs/new':'/admin/chefs/44/delete'));
+      await page.route(target,async route=>{
+        if (['GET','OPTIONS'].includes(route.request().method())) { await route.continue(); return; }
+        await held;
+        await route.fulfill({status:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':webOrigin},body:JSON.stringify({ok:true,data:operation==='delete'?null:{id:44,name:'Late mutation',specialty:'Việt',dishes:[]}})});
+      });
+      if(operation==='create') {await page.getByLabel('Tên đầu bếp').fill('Late mutation');await page.getByLabel('Chuyên môn').fill('Việt');}
+      const pending=page.waitForRequest(request=>request.url()===target&&request.method()===(operation==='delete'?'DELETE':'POST'));
+      await page.getByRole('button',{name:operation==='delete'?'Xác nhận xóa':'Thêm đầu bếp',exact:true}).click();
+      await pending;
+      await page.locator('.main-nav').getByRole('link',{name:'Thực đơn',exact:true}).click();
+      await page.getByRole('heading',{name:'Thực đơn của chúng tôi.'}).waitFor();
+      const response=page.waitForResponse(res=>res.url()===target&&res.request().method()!=='OPTIONS');
+      release();await response;await page.waitForTimeout(150);
+      assert.equal(new URL(page.url()).pathname,'/dishes');
+      await page.unroute(target);
+      store.rows.chefs=store.rows.chefs.filter(c=>c.id!==44);
+    }
+    for(const body of [
+      {ok:true,data:{id:1,name:'Wrong list shape'}},
+      {ok:false,error:{code:'VALIDATION_FAILED',message:{invalid:true}}},
+      {ok:false,error:{code:'VALIDATION_FAILED',message:'Invalid',fields:{form:{invalid:true}}}},
+    ]) {
+      await page.route(`http://localhost:${address.port}/api/**`,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)}));
+      await page.goto(webOrigin+'/dishes');
+      await page.getByRole('heading',{name:'Chưa thể tải thông tin.'}).waitFor();
+      await page.unroute(`http://localhost:${address.port}/api/**`);
     }
     await page.route(`http://localhost:${address.port}/api/**`,route=>route.fulfill({status:500,body:'unavailable'}));await page.goto(webOrigin+'/dishes');await page.getByRole('heading',{name:'Chưa thể tải thông tin.'}).waitFor();await page.unroute(`http://localhost:${address.port}/api/**`);
     await page.route(`http://localhost:${address.port}/api/**`, route => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
