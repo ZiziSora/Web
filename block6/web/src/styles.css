@@ -1,4 +1,4 @@
-/* The Table — forest, ivory and brass. Local assets; no client-side scripts. */
+/* The Table — forest, ivory and brass. Local assets; React CSR. */
 :root {
   --paper: #f4ede0;
   --cream: #fcfaf5;
@@ -515,3 +515,45 @@ a.entity-name:hover { color: var(--accent); text-decoration: underline; text-und
   * { transition: none !important; }
 }
 button:disabled{opacity:.6;cursor:wait}.field-error{color:#a33120;font-size:.9rem}.admin-nav a.active{color:var(--terracotta);border-bottom:2px solid currentColor}.search-summary button{background:none;border:0;text-decoration:underline;cursor:pointer}.table-scroll{overflow-x:auto}fieldset{min-width:0}.notice{overflow-wrap:anywhere}
+
+/* Loading placeholders use the same ivory, forest and brass as the content. */
+.loading-view { --skeleton-base: #e5dccb; --skeleton-light: #f7f1e6; padding-block: 10px 30px; animation: loading-appear .35s ease .12s both; }
+.loading-caption { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; color: var(--accent); font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+.loading-mark { display: inline-flex; align-items: center; gap: 4px; height: 18px; }
+.loading-mark i { width: 3px; height: 10px; background: var(--bronze); border-radius: 2px; animation: loading-breathe 1.4s ease-in-out infinite; }
+.loading-mark i:nth-child(2) { animation-delay: .16s; }
+.loading-mark i:nth-child(3) { animation-delay: .32s; }
+.skeleton-line, .skeleton-input, .skeleton-circle { display: block; flex-shrink: 0; max-width: 100%; background: var(--skeleton-base); position: relative; overflow: hidden; }
+.skeleton-line::after, .skeleton-input::after, .skeleton-circle::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 15%, var(--skeleton-light) 50%, transparent 85%); transform: translateX(-100%); animation: loading-shimmer 2.2s ease-in-out infinite; }
+.skeleton-line { height: 10px; border-radius: 3px; }
+.skeleton-line--title { height: 28px; margin-top: 22px; border-radius: 3px; }
+.skeleton-copy { display: grid; gap: 13px; margin-block: 28px 36px; }
+.skeleton-card { min-height: 290px; pointer-events: none; }
+.skeleton-card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: auto; }
+.skeleton-card-bottom .skeleton-line { margin-top: 0; }
+.skeleton-circle { width: 42px; height: 42px; border-radius: 50%; }
+.skeleton-field { display: grid; gap: 13px; margin-top: 30px; }
+.skeleton-input { height: 49px; border-radius: 2px; }
+.skeleton-table { overflow: hidden; }
+.skeleton-table-row { display: grid; grid-template-columns: 2fr 1.3fr 1fr; align-items: center; gap: 24px; min-height: 86px; padding: 24px; border-bottom: 1px solid var(--line); }
+.skeleton-table-row:last-child { border: 0; }
+.skeleton-table-head { min-height: 60px; background: var(--cream); }
+.loading-back { margin-bottom: 35px; }
+.skeleton-detail { --skeleton-base: #315046; --skeleton-light: #456155; min-height: 490px; }
+.skeleton-detail .skeleton-line--title { height: 48px; }
+.skeleton-detail .skeleton-copy { margin-block: 48px 64px; }
+.skeleton-confirmation { display: flex; flex-direction: column; align-items: center; }
+.skeleton-confirmation .skeleton-copy { width: 100%; justify-items: center; }
+.skeleton-confirmation .skeleton-input { width: 180px; }
+@keyframes loading-shimmer { to { transform: translateX(100%); } }
+@keyframes loading-breathe { 0%, 100% { transform: scaleY(.6); opacity: .45; } 50% { transform: scaleY(1.2); opacity: 1; } }
+@keyframes loading-appear { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 600px) {
+  .loading-caption { font-size: 9px; letter-spacing: 1.5px; }
+  .skeleton-table-row { gap: 14px; padding: 18px; min-height: 74px; }
+  .skeleton-detail { min-height: 390px; }
+  .skeleton-detail .skeleton-line--title { height: 34px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-view, .loading-mark i, .skeleton-line::after, .skeleton-input::after, .skeleton-circle::after { animation: none; }
+}
