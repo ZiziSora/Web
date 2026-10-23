@@ -1,0 +1,30 @@
+{
+  "name": "the-table-csr",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -k \"npm run dev -w @table/api\" \"npm run dev -w @table/web\"",
+    "preview": "concurrently -k \"npm start -w @table/api\" \"npm run preview -w @table/web\"",
+    "build": "npm run build --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm test -w @table/api",
+    "test:browser": "tsx scripts/browser-check.ts",
+    "test:db": "npm run test:db -w @table/api",
+    "db:inspect": "npm run db:inspect -w @table/api",
+    "db:generate": "npm run db:generate -w @table/api",
+    "seed": "npm run seed -w @table/api",
+    "test:preview": "tsx scripts/preview-check.ts"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "tsx": "^4.20.0",
+    "playwright-core": "^1.56.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}
