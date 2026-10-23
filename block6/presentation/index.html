@@ -114,17 +114,17 @@
             <div class="step"><span class="label">03 · URL</span><strong>Router</strong><p><code>BrowserRouter</code> chọn component theo đường dẫn.</p></div>
             <div class="step"><span class="label">04 · Dữ liệu</span><strong><code>fetch</code></strong><p>Component gọi REST API, nhận JSON.</p></div>
             <div class="step"><span class="label">05 · Trạng thái</span><strong>State</strong><p>Hook lưu loading, data hoặc error.</p></div>
-            <div class="step"><span class="label">06 · Hiển thị</span><strong>DOM</strong><p>React render danh sách, chi tiết hoặc thông báo.</p></div>
+            <div class="step"><span class="label">06 · Hiển thị</span><strong>DOM</strong><p>React render skeleton, dữ liệu hoặc thông báo lỗi.</p></div>
           </div>
           <div class="state-grid">
-            <div class="box"><strong>Loading</strong><p class="small">“Đang chuẩn bị thông tin…”</p></div>
+            <div class="box"><strong>Loading</strong><p class="small">Skeleton bám theo bố cục của route hiện tại.</p></div>
             <div class="box"><strong>Success</strong><p class="small">Dữ liệu được render theo route.</p></div>
             <div class="box"><strong>Empty</strong><p class="small">Danh sách rỗng có thông điệp riêng.</p></div>
             <div class="box"><strong>Error / 404</strong><p class="small">Có thử lại hoặc đường về thực đơn.</p></div>
           </div>
           <div class="callout blue"><strong>JavaScript là điều kiện vận hành:</strong> tắt JavaScript thì <code>#root</code> không được React lấp nội dung.</div>
         </div>
-        <div class="footer"><span>Nguồn: web/index.html / web/src/main.tsx · createRoot, Layout, State</span><span>04 / 14</span></div>
+        <div class="footer"><span>Nguồn: web/index.html / web/src/main.tsx / web/src/components/Loading.tsx</span><span>04 / 14</span></div>
       </section>
 
       <section class="slide" id="slide-5" aria-labelledby="title-5" hidden>
@@ -213,9 +213,9 @@
 
       <section class="slide" id="slide-8" aria-labelledby="title-8" hidden>
         <div class="masthead"><span class="issue">Block 06 / The Table</span><span>Tải dữ liệu</span></div>
-        <p class="eyebrow">08 / Hook dùng chung</p>
-        <h2 id="title-8"><code>useLoad</code> quản lý loading, retry và request đã lỗi thời</h2>
-        <p class="lead">Khi route hoặc query đổi, effect mới bắt đầu và cleanup hủy request cũ bằng <code>AbortController</code>.</p>
+        <p class="eyebrow">08 / Hook và component dùng chung</p>
+        <h2 id="title-8"><code>useLoad</code> và skeleton luôn theo đúng route</h2>
+        <p class="lead">Hook quản lý request; <code>State</code> chuyển trạng thái loading cho <code>Loading</code> để dựng placeholder phù hợp với từng màn hình.</p>
         <div class="body sequence-layout">
           <div>
             <svg class="technical-diagram sequence-wide" viewBox="0 0 720 315" role="img" aria-labelledby="seq-title seq-desc">
@@ -238,19 +238,17 @@
             <p class="diagram-caption">Cleanup không làm server “quên” request đã nhận; nó ngăn response cũ ghi đè UI sau khi người dùng đã chuyển trạng thái.</p>
           </div>
           <div class="stack">
-            <div class="codebox compact"><div class="code-title"><span>useLoad</span><span>Lược trích</span></div><pre><code><span class="kw">const</span> c = <span class="kw">new</span> <span class="fn">AbortController</span>();
-<span class="fn">set</span>({ loading: <span class="kw">true</span> });
-<span class="fn">load</span>(c.signal)
-  .<span class="fn">then</span>(data => {
-    <span class="kw">if</span> (!c.signal.aborted)
-      <span class="fn">set</span>({ data, loading: <span class="kw">false</span> });
-  });
-<span class="kw">return</span> () => c.<span class="fn">abort</span>();</code></pre></div>
-            <div class="box blue"><span class="label">Không có global cache</span><p class="small">Mỗi trang tự tải và giữ state cục bộ; reload luôn đọc lại từ API.</p></div>
-            <div class="box wash"><span class="label">Retry</span><p class="small">Nút “Thử lại” tăng một biến nội bộ để chạy effect lần nữa.</p></div>
+            <div class="codebox compact"><div class="code-title"><span>State + Loading.tsx</span><span>Lược trích</span></div><pre><code><span class="kw">if</span> (loading) <span class="kw">return</span> &lt;<span class="fn">Loading</span> /&gt;;
+
+<span class="kw">const</span> { pathname } = <span class="fn">useLocation</span>();
+<span class="kw">const</span> detail = /^\/dishes\/[^/]+$/.<span class="fn">test</span>(pathname);
+<span class="kw">const</span> form = /\/(new|edit)$/.<span class="fn">test</span>(pathname);
+<span class="kw">const</span> confirmation = pathname.<span class="fn">endsWith</span>(<span class="str">'/delete'</span>);</code></pre></div>
+            <div class="box blue"><span class="label">Năm hình dạng skeleton</span><p class="small">Menu card, chi tiết món, bảng quản trị, form và trang xác nhận có placeholder riêng.</p></div>
+            <div class="box wash"><span class="label">Trạng thái có thể tiếp cận</span><p class="small"><code>role="status"</code>, <code>aria-live</code>, <code>aria-busy</code> và nội dung chỉ dành cho screen reader; animation tắt khi người dùng chọn reduced motion.</p></div>
           </div>
         </div>
-        <div class="footer"><span>Nguồn: web/src/main.tsx · useLoad / State</span><span>08 / 14</span></div>
+        <div class="footer"><span>Nguồn: web/src/main.tsx · useLoad / State · web/src/components/Loading.tsx</span><span>08 / 14</span></div>
       </section>
 
       <section class="slide" id="slide-9" aria-labelledby="title-9" hidden>
@@ -406,7 +404,7 @@ assert.<span class="fn">equal</span>(docs, <span class="kw">0</span>);</code></p
             <div class="check-item"><span class="check">01</span><div><strong>CSR thật sự</strong><p>HTML shell rỗng; React tải JSON và render nội dung ở client.</p></div></div>
             <div class="check-item"><span class="check">02</span><div><strong>Route có thể chia sẻ</strong><p>BrowserRouter giữ URL cho danh sách, chi tiết và toàn bộ luồng quản trị.</p></div></div>
             <div class="check-item"><span class="check">03</span><div><strong>REST API đủ CRUD</strong><p>GET, POST, PATCH, DELETE cho Dish, Chef và Ingredient; không method override.</p></div></div>
-            <div class="check-item"><span class="check">04</span><div><strong>Trạng thái UI đầy đủ</strong><p>Loading, retry, empty, not found; giữ input và khóa submit khi đang gửi.</p></div></div>
+            <div class="check-item"><span class="check">04</span><div><strong>Trạng thái UI đầy đủ</strong><p>Skeleton theo route, retry, empty, not found; giữ input và khóa submit khi đang gửi.</p></div></div>
             <div class="check-item"><span class="check">05</span><div><strong>Biên hệ thống được bảo vệ</strong><p>CORS đúng origin, validation backend, giới hạn JSON và bí mật chỉ ở server.</p></div></div>
             <div class="check-item"><span class="check">06</span><div><strong>Kiểm tra nhiều lớp</strong><p>Typecheck, HTTP test, build, browser QA và preview; integration DB chạy riêng khi có quyền.</p></div></div>
           </div>
