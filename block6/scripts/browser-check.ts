@@ -41,6 +41,44 @@ try {
     await page.goto(webOrigin + '/dishes');
     await page.getByRole('heading', { name: 'Bò lúc lắc', exact: true }).waitFor();
     await mkdir('artifacts', { recursive: true });
+    // Hero motion uses CSS timelines and pauses without restarting them.
+    const art = page.getByRole('img',{name:'Bàn ăn The Table'});
+    const running = () => page.waitForFunction(()=>document.querySelector('.table-illustration')?.getAttribute('data-motion')==='running');
+    await art.scrollIntoViewIfNeeded();
+    await running();
+    assert.equal(await page.locator('.hero-plate').evaluate(el=>getComputedStyle(el).animationDuration),'32s');
+    assert.equal(await page.locator('.hero-plate').evaluate(el=>getComputedStyle(el).transformOrigin),'260px 321px');
+    const before = await page.locator('.hero-plate').evaluate(el=>getComputedStyle(el).transform);
+    await page.waitForFunction(old=>getComputedStyle(document.querySelector('.hero-plate')!).transform!==old,before);
+    await page.getByRole('button',{name:'Tạm dừng chuyển động'}).focus();
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(()=>document.querySelector('.hero-motion-toggle')?.getAttribute('aria-pressed')==='true');
+    const paused = await page.locator('.hero-plate').evaluate(el=>getComputedStyle(el).transform);
+    await page.waitForTimeout(120);
+    assert.equal(await page.locator('.hero-plate').evaluate(el=>getComputedStyle(el).transform),paused);
+    await page.getByRole('button',{name:'Tiếp tục chuyển động'}).click();
+    await running();
+    await page.locator('footer').scrollIntoViewIfNeeded();
+    await page.waitForFunction(()=>document.querySelector('.table-illustration')?.getAttribute('data-motion')==='paused');
+    await art.scrollIntoViewIfNeeded(); await running();
+    await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
+    await page.waitForFunction(()=>document.querySelector('.table-illustration')?.getAttribute('data-motion')==='paused');
+    await page.evaluate(()=>{delete (document as unknown as {hidden?:boolean}).hidden;document.dispatchEvent(new Event('visibilitychange'));});
+    await running();
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await page.getByRole('button',{name:'Tạm dừng chuyển động'}).waitFor({state:'hidden'});
+    assert.equal(await page.locator('.hero-plate').evaluate(el=>getComputedStyle(el).animationName),'none');
+    await page.emulateMedia({reducedMotion:'no-preference'});
+    await running();
+    for(const width of [1440,390]) {
+      await page.setViewportSize({width,height:900});
+      await art.scrollIntoViewIfNeeded(); await running();
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+      const [svg,plate] = await Promise.all([art.boundingBox(),page.locator('.hero-plate').boundingBox()]);
+      assert.ok(svg && plate && plate.x>=svg.x && plate.y>=svg.y && plate.x+plate.width<=svg.x+svg.width && plate.y+plate.height<=svg.y+svg.height);
+      await page.locator('.menu-hero').screenshot({path:'artifacts/hero-motion-'+width+'.png'});
+    }
+    await page.setViewportSize({width:1440,height:1000});
     await page.screenshot({ path: 'artifacts/menu-desktop.png', fullPage: true });
     await page.getByRole('link',{name:'Xem chi tiết Bò lúc lắc'}).click();
     await page.locator('.detail-main h1').waitFor();

@@ -1,0 +1,55 @@
+import { useEffect, useRef, useState } from 'react';
+
+export function HeroTableIllustration() {
+  const illustration = useRef<SVGSVGElement>(null);
+  const [userPaused, setUserPaused] = useState(false);
+  const [inView, setInView] = useState(false);
+  const [hidden, setHidden] = useState(() => document.hidden);
+  const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
+  useEffect(() => {
+    const media = matchMedia('(prefers-reduced-motion: reduce)');
+    const motionChanged = () => setReduced(media.matches);
+    const visibilityChanged = () => setHidden(document.hidden);
+    media.addEventListener('change', motionChanged);
+    document.addEventListener('visibilitychange', visibilityChanged);
+    const observer = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(entries => {
+      setInView(entries.some(entry => entry.isIntersecting));
+    }) : undefined;
+    if (observer && illustration.current) observer.observe(illustration.current);
+    else setInView(true);
+    motionChanged(); visibilityChanged();
+    return () => {
+      observer?.disconnect();
+      media.removeEventListener('change', motionChanged);
+      document.removeEventListener('visibilitychange', visibilityChanged);
+    };
+  }, []);
+  const paused = userPaused || !inView || hidden || reduced;
+  return <>
+<svg ref={illustration} className="table-illustration" data-motion={paused ? "paused" : "running"} role="img" aria-label="Bàn ăn The Table" width="520" height="500" viewBox="0 0 520 500" fill="none">
+  <g stroke="#b48c55" strokeWidth="1.1">
+    <path d="M108 455V222a152 152 0 0 1 304 0v233" opacity=".38"/>
+    <path d="M120 455V224a140 140 0 0 1 280 0v231" opacity=".2"/>
+    <g strokeLinecap="round" strokeLinejoin="round">
+      <path d="M104 261v33m7-33v33m7-33v33M104 277h14v25c0 7-7 7-7 14v97M102 413h18"/>
+      <path d="M410 413V260c-11 7-15 24-15 57h15M401 413h18"/>
+      <path d="M448 270c-16-13-15-36-8-59h16c7 23 8 46-8 59Zm0 0v54m-15 0h30M438 235h20"/>
+    </g>
+    <g strokeLinecap="round" strokeLinejoin="round">
+<g className="hero-leaf hero-leaf-a">      <path d="M290 187c10-38 24-66 56-108M302 151c-17-6-23-22-21-36 17 4 23 17 21 36Zm7-19c21 1 35-12 40-28-20-1-34 8-40 28Zm14-22c-12-9-14-23-8-36 14 7 18 19 8 36Zm15-21c17 2 28-8 32-23-16 0-27 7-32 23ZM295 174c20 5 36-6 44-21-20-5-35 1-44 21Z"/></g>
+<g className="hero-leaf hero-leaf-b">      <path d="M301 201c-17-36-22-66-19-108m5 63c-17 1-28-10-32-24 17-1 28 8 32 24Zm-5-28c15-6 22-20 18-34-15 5-23 17-18 34Z" opacity=".6"/></g>
+    </g>
+<g className="hero-plate" strokeLinecap="round" strokeLinejoin="round">    <ellipse cx="260" cy="321" rx="112" ry="113" fill="#17382e"/>
+    <ellipse cx="260" cy="321" rx="98" ry="99" opacity=".65"/>
+    <ellipse cx="260" cy="321" rx="77" ry="78" opacity=".35"/>
+    <path d="M167 376a105 105 0 0 0 67 45M165 266a108 108 0 0 1 41-39" opacity=".6"/>
+      <path d="m197 294 91-36 42 91-91 36-42-91Z" fill="#17382e"/>
+      <path d="m210 300 71-28 34 71-72 29-33-72Zm-4 2 91 38m-9-82-49 127" opacity=".42"/></g>
+    <path d="M170 458h181M195 466h131" opacity=".45"/>
+  </g>
+  <g fill="#b48c55"><circle cx="150" cy="196" r="2"/><circle cx="385" cy="367" r="1.5"/><circle cx="344" cy="201" r="1.5"/></g>
+</svg>
+
+    {!reduced && <button type="button" className="hero-motion-toggle" aria-pressed={userPaused} onClick={() => setUserPaused(value => !value)}>{userPaused ? 'Tiếp tục chuyển động' : 'Tạm dừng chuyển động'}</button>}
+  </>;
+}
