@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { chromium } from 'playwright-core';
 import { createApp } from '../api/src/app.js';
 import { MemoryStore } from '../api/test/memory-store.js';
@@ -8,11 +10,13 @@ const webPort = 20000 + Math.floor(Math.random() * 20000);
 const webOrigin = `http://localhost:${webPort}`;
 const store = new MemoryStore();
 const server = createApp(store, { origin: webOrigin }).listen(0, 'localhost');
+const requests: {method:string;type:string|undefined}[]=[];
+server.on('request',req=>requests.push({method:req.method??'',type:req.headers['content-type']}));
 await new Promise<void>(r => server.once('listening', r));
 const address = server.address();
 if (!address || typeof address === 'string')
     throw new Error('No API port');
-const web = spawn('npm', ['run', 'dev', '-w', '@table/web', '--', '--port', String(webPort)], { env: { ...process.env, VITE_API_BASE_URL: `http://localhost:${address.port}/api` }, stdio: 'pipe', detached: true });
+const web = spawn(process.execPath, [resolve('node_modules/vite/bin/vite.js'), '--host', 'localhost', '--port', String(webPort), '--strictPort'], { cwd: resolve('web'), env: { ...process.env, VITE_API_BASE_URL: `http://localhost:${address.port}/api` }, stdio: 'pipe' });
 web.stdout.resume();
 web.stderr.resume();
 let browser;
@@ -25,7 +29,7 @@ try {
         catch { }
         await new Promise(r => setTimeout(r, 100));
     }
-    browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome', headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+    browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', '/usr/bin/google-chrome'].find(existsSync), headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     const errors: string[] = [];
     page.on('pageerror', e => errors.push(e.message));
@@ -33,6 +37,83 @@ try {
     await page.getByRole('heading', { name: 'Bò lúc lắc', exact: true }).waitFor();
     await mkdir('artifacts', { recursive: true });
     await page.screenshot({ path: 'artifacts/menu-desktop.png', fullPage: true });
+    await page.getByRole('link',{name:'Xem chi tiết Bò lúc lắc'}).click();
+    await page.locator('.detail-main h1').waitFor();
+    assert.ok(requests.some(r=>r.method==='GET'));
+    assert.ok(requests.filter(r=>r.method==='GET').every(r=>r.type===undefined));
+    assert.equal(requests.filter(r=>r.method==='OPTIONS').length,0,'GET must not preflight');
+    await page.getByRole('link',{name:'Trở lại thực đơn'}).click();
+    // Pagination operates on complete filtered lists; never on just the visible page.
+    const snapshot = structuredClone(store.rows);
+    for (const count of [0, 1, 6, 7, 13]) {
+      for (const resource of ['dishes', 'chefs', 'ingredients'] as const) {
+        const original = snapshot[resource][0];
+        store.rows[resource] = Array.from({length:count}, (_, i) => ({...structuredClone(original), id:i+1, name:'Mục ' + (i+1)}));
+        const routes = resource === 'dishes' ? ['/dishes','/admin/dishes'] : ['/admin/' + resource];
+        for (const path of routes) {
+          await page.goto(webOrigin + path);
+          await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'));
+          const selector = path === '/dishes' ? '.dish-card' : '.resource-table tbody tr';
+          assert.equal(await page.locator(selector).count(), Math.min(count,6));
+          assert.equal(await page.getByRole('navigation',{name:'Phân trang'}).count(), count>6?1:0);
+          if (count>6) {
+            await page.getByRole('link',{name:'Sau',exact:true}).focus();
+            await page.keyboard.press('Enter');
+            await page.locator(selector).filter({hasText:'Mục 7'}).first().waitFor();
+            assert.equal(new URL(page.url()).searchParams.get('page'),'2');
+            assert.equal(await page.locator(selector).count(),Math.min(count-6,6));
+            assert.ok(await page.locator(selector).first().innerText().then(x=>x.includes('Mục 7')));
+            await page.locator('h1:focus, h2:focus').waitFor();
+            if(path==='/dishes') assert.equal(await page.locator('.dish-number').first().innerText(),'07');
+            await page.reload();
+            await page.locator(selector).first().waitFor();
+            assert.ok((await page.locator(selector).first().innerText()).includes('Mục 7'));
+            await page.getByRole('link',{name:'Trước',exact:true}).click();
+            assert.equal(new URL(page.url()).searchParams.get('page'),null);
+            await page.goBack();
+            await page.waitForURL('**page=2');
+            await page.goForward();
+            await page.waitForURL(url=>!url.searchParams.has('page'));
+          }
+          for(const bad of ['0','-1','abc','1.5','9007199254740992','999']) {
+            await page.goto(webOrigin+path+'?page='+bad);
+            await page.waitForFunction(()=>!document.querySelector('[aria-busy="true"]'));
+            const expected = bad==='999' && count>6 ? String(Math.ceil(count/6)) : null;
+            await page.waitForURL(url=>url.searchParams.get('page')===expected);
+          }
+        }
+        store.rows[resource]=structuredClone(snapshot[resource]);
+      }
+    }
+    for(const resource of ['dishes','chefs','ingredients'] as const) {
+      store.rows[resource]=Array.from({length:13},(_,i)=>({...structuredClone(snapshot[resource][0]),id:i+1,name:'Mục '+(i+1)}));
+    }
+    for(const width of [1440,390]) {
+      await page.setViewportSize({width,height:900});
+      for(const path of ['/dishes','/admin/dishes','/admin/chefs','/admin/ingredients']) {
+        await page.goto(webOrigin+path+'?page=3');
+        await page.getByText('Hiển thị 13–13 trên 13 mục').waitFor();
+        await page.screenshot({path:'artifacts/paged-'+path.replaceAll('/','-')+'-'+width+'.png',fullPage:true});
+        assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+        await page.getByRole('searchbox').fill('Mục 13');
+        if(path==='/dishes') await page.getByRole('button',{name:'Tìm món'}).click();
+        await page.waitForURL(url=>!url.searchParams.has('page') && url.searchParams.get('q')==='Mục 13');
+        await page.getByText('Hiển thị 1–1 trên 1 mục').waitFor();
+        assert.equal(await page.getByRole('navigation',{name:'Phân trang'}).count(),0);
+        await page.reload();
+        await page.getByText('Hiển thị 1–1 trên 1 mục').waitFor();
+        await page.screenshot({path:'artifacts/pagination-'+path.replaceAll('/','-')+'-'+width+'.png',fullPage:true});
+      }
+    }
+    // A removed last page clamps to the new final page on reload.
+    store.rows.ingredients=store.rows.ingredients.slice(0,6);
+    await page.goto(webOrigin+'/admin/ingredients?page=3');
+    await page.waitForURL(url=>!url.searchParams.has('page'));
+    await page.getByText('Hiển thị 1–6 trên 6 mục').waitFor();
+    store.rows=structuredClone(snapshot);
+    await page.setViewportSize({width:1440,height:1000});
+    await page.goto(webOrigin+'/dishes');
+    await page.getByRole('heading',{name:'Bò lúc lắc',exact:true}).waitFor();
     let docs = 0;
     page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame())
         docs++; });
@@ -83,11 +164,95 @@ try {
       await page.goto(webOrigin+'/admin/'+resource+'/'+row.id+'/edit');await page.locator('#name').fill('Đã sửa');await page.locator('form .form-actions button').click();await page.locator('.notice.success').waitFor();assert.equal(store.rows[resource].at(-1)!.name,'Đã sửa');
       await page.goto(webOrigin+'/admin/'+resource+'/'+row.id+'/delete');await page.getByRole('button',{name:'Xác nhận xóa'}).click();await page.locator('.notice.success').waitFor();
     }
-    await page.route('**/api/**',route=>route.fulfill({status:500,body:'unavailable'}));await page.goto(webOrigin+'/dishes');await page.getByRole('heading',{name:'Chưa thể tải thông tin.'}).waitFor();await page.unroute('**/api/**');
-    await page.route('**/api/**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+    // Missing records return to their own list, including direct URLs and reloads.
+    for (const [route, heading, back] of [
+      ['/dishes/99', 'Không tìm thấy món ăn', '/dishes'],
+      ['/admin/dishes/99/edit', 'Không tìm thấy món ăn', '/admin/dishes'],
+      ['/admin/ingredients/99/edit', 'Không tìm thấy nguyên liệu', '/admin/ingredients'],
+      ['/admin/ingredients/99/delete', 'Không tìm thấy nguyên liệu', '/admin/ingredients'],
+      ['/admin/chefs/99/edit', 'Không tìm thấy đầu bếp', '/admin/chefs'],
+      ['/missing-page', 'Trang này không còn ở đây.', '/dishes'],
+    ]) {
+      await page.goto(webOrigin + route);
+      await page.getByRole('heading', {name: heading, exact: true}).waitFor();
+      await page.reload();
+      await page.getByRole('heading', {name: heading, exact: true}).waitFor();
+      await page.locator('.status-actions a').click();
+      assert.equal(new URL(page.url()).pathname, back);
+    }
+    await page.goto(webOrigin + '/admin/ingredients');
+    await page.getByRole('searchbox', {name: 'Tìm nguyên liệu'}).fill('hanh tay');
+    await page.getByRole('rowheader').filter({hasText:'Hành tây'}).waitFor();
+    await page.getByRole('searchbox').fill('không có');
+    await page.getByRole('heading', {name: 'Chưa có kết quả phù hợp.'}).waitFor();
+    await page.getByRole('button', {name:'Xóa bộ lọc'}).click();
+    await page.getByRole('rowheader').filter({hasText:'Hành tây'}).waitFor();
+    // A client-side transition between edit IDs must never initialize the new form with old data.
+    store.rows.dishes.push({...store.rows.dishes[0], id: 88, name:'Món thứ hai'});
+    await page.goto(webOrigin + '/admin/dishes/1/edit');
+    await page.getByLabel('Tên món ăn').waitFor();
+    await page.route('**/api/dishes/88', async route => { await new Promise(r => setTimeout(r, 250)); await route.continue(); });
+    await page.evaluate(() => {
+      history.pushState({}, '', '/admin/dishes/88/edit');
+      dispatchEvent(new PopStateEvent('popstate'));
+    });
+    await page.getByLabel('Tên món ăn').waitFor();
+    await page.waitForFunction(() => (document.querySelector('#name') as HTMLInputElement)?.value === 'Món thứ hai');
+    await page.unroute('**/api/dishes/88');
+    assert.equal(await page.getByLabel('Tên món ăn').inputValue(), 'Món thứ hai');
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({width, height:900});
+      for (const [name, route] of [['missing-dish','/dishes/99'], ['ingredients','/admin/ingredients'], ['detail','/dishes/1'], ['form','/admin/dishes/1/edit'], ['missing-ingredient','/admin/ingredients/99/edit']]) {
+        await page.goto(webOrigin + route);
+        await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'));
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route + ' overflows');
+        await page.screenshot({path: 'artifacts/' + name + '-' + width + '.png', fullPage:true});
+      }
+    }
+    // Late mutation responses must not redirect away from the page selected by the user.
+    for (const operation of ['create', 'delete']) {
+      let release!: () => void;
+      const held = new Promise<void>(resolve => { release = resolve; });
+      const target = `http://localhost:${address.port}/api/chefs${operation==='delete'?'/44':''}`;
+      store.rows.chefs.push({id:44,name:'Late mutation',specialty:'Việt'});
+      await page.goto(webOrigin + (operation==='create'?'/admin/chefs/new':'/admin/chefs/44/delete'));
+      await page.route(target,async route=>{
+        if (['GET','OPTIONS'].includes(route.request().method())) { await route.continue(); return; }
+        await held;
+        await route.fulfill({status:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':webOrigin},body:JSON.stringify({ok:true,data:operation==='delete'?null:{id:44,name:'Late mutation',specialty:'Việt',dishes:[]}})});
+      });
+      if(operation==='create') {await page.getByLabel('Tên đầu bếp').fill('Late mutation');await page.getByLabel('Chuyên môn').fill('Việt');}
+      const pending=page.waitForRequest(request=>request.url()===target&&request.method()===(operation==='delete'?'DELETE':'POST'));
+      await page.getByRole('button',{name:operation==='delete'?'Xác nhận xóa':'Thêm đầu bếp',exact:true}).click();
+      await pending;
+      await page.locator('.main-nav').getByRole('link',{name:'Thực đơn',exact:true}).click();
+      await page.getByRole('heading',{name:'Thực đơn của chúng tôi.'}).waitFor();
+      const response=page.waitForResponse(res=>res.url()===target&&res.request().method()!=='OPTIONS');
+      release();await response;await page.waitForTimeout(150);
+      assert.equal(new URL(page.url()).pathname,'/dishes');
+      await page.unroute(target);
+      store.rows.chefs=store.rows.chefs.filter(c=>c.id!==44);
+    }
+    for(const body of [
+      {ok:true,data:{id:1,name:'Wrong list shape'}},
+      {ok:false,error:{code:'VALIDATION_FAILED',message:{invalid:true}}},
+      {ok:false,error:{code:'VALIDATION_FAILED',message:'Invalid',fields:{form:{invalid:true}}}},
+    ]) {
+      await page.route(`http://localhost:${address.port}/api/**`,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)}));
+      await page.goto(webOrigin+'/dishes');
+      await page.getByRole('heading',{name:'Chưa thể tải thông tin.'}).waitFor();
+      await page.unroute(`http://localhost:${address.port}/api/**`);
+    }
+    await page.route(`http://localhost:${address.port}/api/**`,route=>route.fulfill({status:500,body:'unavailable'}));await page.goto(webOrigin+'/dishes');await page.getByRole('heading',{name:'Chưa thể tải thông tin.'}).waitFor();await page.unroute(`http://localhost:${address.port}/api/**`);
+    await page.route(`http://localhost:${address.port}/api/**`, route => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
     await page.goto(webOrigin + '/dishes');
     await page.getByRole('heading', { name: 'Chưa thể tải thông tin.' }).waitFor();
-    await page.unroute('**/api/**');
+    await page.unroute(`http://localhost:${address.port}/api/**`);
+    for(const method of ['POST','PATCH']) {
+      assert.ok(requests.some(r=>r.method===method&&r.type==='application/json'));
+    }
+    assert.ok(requests.some(r=>r.method==='OPTIONS'),'writes still preflight');
+    assert.ok(requests.some(r=>r.method==='DELETE'&&r.type===undefined));
     await new Promise<void>(r => server.close(() => r()));
     await page.goto(webOrigin + '/dishes');
     await page.getByRole('heading', { name: 'Chưa thể tải thông tin.' }).waitFor();
@@ -97,6 +262,6 @@ try {
 finally {
     await browser?.close();
     if (web.pid)
-        process.kill(-web.pid, 'SIGTERM');
+        web.kill('SIGTERM');
     server.close();
 }

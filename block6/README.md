@@ -39,7 +39,7 @@ npm run preview
 
 - `test`: Node test runner + Supertest, store memory cô lập, không đọc/ghi PostgreSQL.
 - `test:browser`: Playwright/Chrome bật JavaScript, khởi động hai server với port kiểm thử, store cô lập. Kiểm tra tìm kiếm, giữ input khi validation, CRUD ba tài nguyên, điều hướng không tải document, reload, xác nhận/chặn xóa, mobile, lỗi kỹ thuật. Ảnh trong `artifacts/` được gitignore.
-- `test:preview`: kiểm tra bản build SPA với API memory; cần port 3006 đang trống. Kiểm tra history fallback, asset 404, CORS và bundle không chứa dấu hiệu bí mật/backend.
+- `test:preview`: kiểm tra bản build SPA với API memory; dùng port API cô lập và chuyển các API fetch trong browser kiểm thử sang fixture, không cần dừng API đang chạy. Kiểm tra history fallback, asset 404, CORS và bundle không chứa dấu hiệu bí mật/backend.
 - Browser mặc định `/usr/bin/google-chrome`; đặt `CHROME_PATH` nếu cần.
 - `test:db`: cần DATABASE_URL và quyền tạo schema. Chỉ tạo/ghi/xóa schema `block6_test_<uuid>` của lượt chạy, không ghi bảng nghiệp vụ dùng chung. Kiểm tra seed hai lần, Decimal, quan hệ, PATCH và xung đột xóa nguyên liệu. Chạy tường minh khi có quyền truy cập database.
 - `db:inspect`: chỉ đọc cột/bảng của đúng schema đang kết nối, không in DATABASE_URL.
@@ -100,3 +100,22 @@ Xóa món giữ đầu bếp/nguyên liệu; xóa đầu bếp giữ món. Nguy�
 ## Trạng thái xác minh
 
 Typecheck, HTTP tests, build và browser QA đã chạy đạt trong quá trình triển khai. Kiểm tra database dùng chung và integration test Prisma **chưa chạy** vì lệnh truy cập database bị từ chối quyền thực thi. Không có thao tác seed/push/reset trên database dùng chung. `test:preview` được kiểm tra riêng sau khi bổ sung middleware trả 404 cho asset thiếu.
+
+## Cấu trúc frontend và request header
+
+`web/src/main.tsx` chỉ mount React, BrowserRouter và CSS. `App.tsx` khai báo route; `RecordPage.tsx` remount trang sửa/xóa theo resource và ID. Các phần còn lại:
+
+- `pages/`: thực đơn, chi tiết và các trang quản trị; mỗi trang tự tải dữ liệu.
+- `components/layout/`: layout, header, điều hướng quản trị và footer.
+- `components/dishes/`, `components/admin/`: lưới món, trạng thái phục vụ, bảng tài nguyên.
+- `components/forms/`: form quản lý giá trị/submit và các trường nhập, chọn quan hệ qua props/callback.
+- `components/State.tsx`: trạng thái loading/error/notFound đang sử dụng. Component skeleton cũ không được tự kích hoạt.
+- `hooks/useLoad.ts`: state cục bộ, hủy request cũ, retry và kiểm tra request key.
+- `api/`: request client, lỗi, validation response và dựng header. `api.ts` là facade export cho các consumer.
+- `types/`, `config/`, `utils/`: DTO/form types, nhãn/cấu hình trường, định dạng tiền và tìm kiếm.
+
+GET không body không tự gắn `Content-Type`, nên các GET hiện có không cần OPTIONS preflight. POST/PATCH gửi JSON vẫn có `Content-Type: application/json` và cần preflight; DELETE không body không gắn Content-Type nhưng vẫn cần preflight do method. Browser có thể dùng cache preflight nên không phải lần ghi nào cũng thấy OPTIONS.
+
+Header do caller truyền được giữ nguyên, hỗ trợ object/tuple/Headers và không phân biệt chữ hoa/thường. Body không phải chuỗi JSON (ví dụ FormData) để fetch tự đặt Content-Type phù hợp. Không thêm request Cache-Control hoặc custom header; CORS/security/cache response headers phía API giữ nguyên.
+
+`npm run test:headers` kiểm tra dựng header; `npm test` chạy cả HTTP tests và header tests. Browser tests quan sát request thực ở API server để xác nhận GET không preflight và JSON writes/DELETE vẫn hoạt động.
