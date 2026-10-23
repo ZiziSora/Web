@@ -43,6 +43,77 @@ try {
     assert.ok(requests.filter(r=>r.method==='GET').every(r=>r.type===undefined));
     assert.equal(requests.filter(r=>r.method==='OPTIONS').length,0,'GET must not preflight');
     await page.getByRole('link',{name:'Trở lại thực đơn'}).click();
+    // Pagination operates on complete filtered lists; never on just the visible page.
+    const snapshot = structuredClone(store.rows);
+    for (const count of [0, 1, 6, 7, 13]) {
+      for (const resource of ['dishes', 'chefs', 'ingredients'] as const) {
+        const original = snapshot[resource][0];
+        store.rows[resource] = Array.from({length:count}, (_, i) => ({...structuredClone(original), id:i+1, name:'Mục ' + (i+1)}));
+        const routes = resource === 'dishes' ? ['/dishes','/admin/dishes'] : ['/admin/' + resource];
+        for (const path of routes) {
+          await page.goto(webOrigin + path);
+          await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'));
+          const selector = path === '/dishes' ? '.dish-card' : '.resource-table tbody tr';
+          assert.equal(await page.locator(selector).count(), Math.min(count,6));
+          assert.equal(await page.getByRole('navigation',{name:'Phân trang'}).count(), count>6?1:0);
+          if (count>6) {
+            await page.getByRole('link',{name:'Sau',exact:true}).focus();
+            await page.keyboard.press('Enter');
+            await page.locator(selector).filter({hasText:'Mục 7'}).first().waitFor();
+            assert.equal(new URL(page.url()).searchParams.get('page'),'2');
+            assert.equal(await page.locator(selector).count(),Math.min(count-6,6));
+            assert.ok(await page.locator(selector).first().innerText().then(x=>x.includes('Mục 7')));
+            assert.equal(await page.locator('h1:focus, h2:focus').count(),1);
+            if(path==='/dishes') assert.equal(await page.locator('.dish-number').first().innerText(),'07');
+            await page.reload();
+            await page.locator(selector).first().waitFor();
+            assert.ok((await page.locator(selector).first().innerText()).includes('Mục 7'));
+            await page.getByRole('link',{name:'Trước',exact:true}).click();
+            assert.equal(new URL(page.url()).searchParams.get('page'),null);
+            await page.goBack();
+            await page.waitForURL('**page=2');
+            await page.goForward();
+            await page.waitForURL(url=>!url.searchParams.has('page'));
+          }
+          for(const bad of ['0','-1','abc','1.5','9007199254740992','999']) {
+            await page.goto(webOrigin+path+'?page='+bad);
+            await page.waitForFunction(()=>!document.querySelector('[aria-busy="true"]'));
+            const expected = bad==='999' && count>6 ? String(Math.ceil(count/6)) : null;
+            await page.waitForURL(url=>url.searchParams.get('page')===expected);
+          }
+        }
+        store.rows[resource]=structuredClone(snapshot[resource]);
+      }
+    }
+    for(const resource of ['dishes','chefs','ingredients'] as const) {
+      store.rows[resource]=Array.from({length:13},(_,i)=>({...structuredClone(snapshot[resource][0]),id:i+1,name:'Mục '+(i+1)}));
+    }
+    for(const width of [1440,390]) {
+      await page.setViewportSize({width,height:900});
+      for(const path of ['/dishes','/admin/dishes','/admin/chefs','/admin/ingredients']) {
+        await page.goto(webOrigin+path+'?page=3');
+        await page.getByText('Hiển thị 13–13 trên 13 mục').waitFor();
+        await page.screenshot({path:'artifacts/paged-'+path.replaceAll('/','-')+'-'+width+'.png',fullPage:true});
+        assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+        await page.getByRole('searchbox').fill('Mục 13');
+        if(path==='/dishes') await page.getByRole('button',{name:'Tìm món'}).click();
+        await page.waitForURL(url=>!url.searchParams.has('page') && url.searchParams.get('q')==='Mục 13');
+        await page.getByText('Hiển thị 1–1 trên 1 mục').waitFor();
+        assert.equal(await page.getByRole('navigation',{name:'Phân trang'}).count(),0);
+        await page.reload();
+        await page.getByText('Hiển thị 1–1 trên 1 mục').waitFor();
+        await page.screenshot({path:'artifacts/pagination-'+path.replaceAll('/','-')+'-'+width+'.png',fullPage:true});
+      }
+    }
+    // A removed last page clamps to the new final page on reload.
+    store.rows.ingredients=store.rows.ingredients.slice(0,6);
+    await page.goto(webOrigin+'/admin/ingredients?page=3');
+    await page.waitForURL(url=>!url.searchParams.has('page'));
+    await page.getByText('Hiển thị 1–6 trên 6 mục').waitFor();
+    store.rows=structuredClone(snapshot);
+    await page.setViewportSize({width:1440,height:1000});
+    await page.goto(webOrigin+'/dishes');
+    await page.getByRole('heading',{name:'Bò lúc lắc',exact:true}).waitFor();
     let docs = 0;
     page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame())
         docs++; });
