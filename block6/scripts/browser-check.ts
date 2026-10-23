@@ -10,6 +10,8 @@ const webPort = 20000 + Math.floor(Math.random() * 20000);
 const webOrigin = `http://localhost:${webPort}`;
 const store = new MemoryStore();
 const server = createApp(store, { origin: webOrigin }).listen(0, 'localhost');
+const requests: {method:string;type:string|undefined}[]=[];
+server.on('request',req=>requests.push({method:req.method??'',type:req.headers['content-type']}));
 await new Promise<void>(r => server.once('listening', r));
 const address = server.address();
 if (!address || typeof address === 'string')
@@ -35,6 +37,12 @@ try {
     await page.getByRole('heading', { name: 'Bò lúc lắc', exact: true }).waitFor();
     await mkdir('artifacts', { recursive: true });
     await page.screenshot({ path: 'artifacts/menu-desktop.png', fullPage: true });
+    await page.getByRole('link',{name:'Xem chi tiết Bò lúc lắc'}).click();
+    await page.locator('.detail-main h1').waitFor();
+    assert.ok(requests.some(r=>r.method==='GET'));
+    assert.ok(requests.filter(r=>r.method==='GET').every(r=>r.type===undefined));
+    assert.equal(requests.filter(r=>r.method==='OPTIONS').length,0,'GET must not preflight');
+    await page.getByRole('link',{name:'Trở lại thực đơn'}).click();
     let docs = 0;
     page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame())
         docs++; });
@@ -130,11 +138,16 @@ try {
         await page.screenshot({path: 'artifacts/' + name + '-' + width + '.png', fullPage:true});
       }
     }
-    await page.route('**/api/**',route=>route.fulfill({status:500,body:'unavailable'}));await page.goto(webOrigin+'/dishes');await page.getByRole('heading',{name:'Chưa thể tải thông tin.'}).waitFor();await page.unroute('**/api/**');
-    await page.route('**/api/**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+    await page.route(`http://localhost:${address.port}/api/**`,route=>route.fulfill({status:500,body:'unavailable'}));await page.goto(webOrigin+'/dishes');await page.getByRole('heading',{name:'Chưa thể tải thông tin.'}).waitFor();await page.unroute(`http://localhost:${address.port}/api/**`);
+    await page.route(`http://localhost:${address.port}/api/**`, route => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
     await page.goto(webOrigin + '/dishes');
     await page.getByRole('heading', { name: 'Chưa thể tải thông tin.' }).waitFor();
-    await page.unroute('**/api/**');
+    await page.unroute(`http://localhost:${address.port}/api/**`);
+    for(const method of ['POST','PATCH']) {
+      assert.ok(requests.some(r=>r.method===method&&r.type==='application/json'));
+    }
+    assert.ok(requests.some(r=>r.method==='OPTIONS'),'writes still preflight');
+    assert.ok(requests.some(r=>r.method==='DELETE'&&r.type===undefined));
     await new Promise<void>(r => server.close(() => r()));
     await page.goto(webOrigin + '/dishes');
     await page.getByRole('heading', { name: 'Chưa thể tải thông tin.' }).waitFor();
