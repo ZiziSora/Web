@@ -119,6 +119,31 @@ try {
             await page.goForward();
             await page.waitForURL(url=>!url.searchParams.has('page'));
           }
+          if (count === 7) {
+            await page.goto(webOrigin+path+'?q='+encodeURIComponent('Mục'));
+            await page.locator(selector).first().waitFor();
+            await page.getByRole('heading').first().click();
+            await page.keyboard.press('ArrowLeft');
+            assert.equal(new URL(page.url()).searchParams.get('page'),null);
+            await page.keyboard.press('ArrowRight');
+            await page.waitForURL('**page=2');
+            await page.waitForFunction(()=>!document.querySelector('.menu-book[aria-busy="true"]'));
+            assert.equal(new URL(page.url()).searchParams.get('q'),'Mục');
+            await page.keyboard.press('ArrowRight');
+            assert.equal(new URL(page.url()).searchParams.get('page'),'2');
+            await page.getByRole('searchbox').focus();
+            await page.keyboard.press('ArrowLeft');
+            assert.equal(new URL(page.url()).searchParams.get('page'),'2','editing must not change page');
+            await page.getByRole('heading').first().click();
+            await page.keyboard.press('Shift+ArrowLeft');
+            assert.equal(new URL(page.url()).searchParams.get('page'),'2','modifier must not change page');
+            await page.evaluate(()=>window.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',repeat:true})));
+            assert.equal(new URL(page.url()).searchParams.get('page'),'2','held keys must not repeat navigation');
+            await page.keyboard.press('ArrowLeft');
+            await page.waitForURL(url=>!url.searchParams.has('page'));
+            await page.waitForFunction(()=>!document.querySelector('.menu-book[aria-busy="true"]'));
+            assert.equal(new URL(page.url()).searchParams.get('q'),'Mục');
+          }
           for(const bad of ['0','-1','abc','1.5','9007199254740992','999']) {
             await page.goto(webOrigin+path+'?page='+bad);
             await page.waitForFunction(()=>!document.querySelector('[aria-busy="true"]'));

@@ -1,3 +1,4 @@
+import { usePageKeys } from '../../hooks/usePageKeys';
 import { useEffect, useRef, useState, type RefObject, type MouseEvent } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { type Entity } from '../../api';
@@ -5,6 +6,7 @@ import { DishGrid } from './DishGrid';
 
 type Flip = { from: number; target: number; dishes: Entity[] };
 export function MenuBook({ dishes, page, pages, total, headingRef }: { dishes: Entity[]; page: number; pages: number; total: number; headingRef: RefObject<HTMLHeadingElement | null> }) {
+  const { previousRef, nextRef } = usePageKeys();
   const [params] = useSearchParams();
   const location = useLocation();
   const [flip, setFlip] = useState<Flip | null>(null);
@@ -48,9 +50,9 @@ export function MenuBook({ dishes, page, pages, total, headingRef }: { dishes: E
     </div>
     <div className="book-footer"><p className="pagination-summary" aria-live="polite">Hiển thị {(page-1)*6+1}–{Math.min(page*6,total)} trên {total} mục</p>
     {pages > 1 && <nav className="book-controls" aria-label="Phân trang">
-      {page > 1 ? <Link to={href(page-1)} state={location.state} rel="prev" onClick={e=>turn(e,page-1)} aria-disabled={!!flip}>Trang trước</Link> : <span aria-disabled="true">Trang trước</span>}
+      {page > 1 ? <Link to={href(page-1)} state={location.state} rel="prev" ref={previousRef} aria-keyshortcuts="ArrowLeft" title="Trang trước (←)" onClick={e=>turn(e,page-1)} aria-disabled={!!flip}>Trang trước</Link> : <span aria-disabled="true">Trang trước</span>}
       <span aria-live="polite">Lượt {page}/{pages}</span>
-      {page < pages ? <Link to={href(page+1)} state={location.state} rel="next" onClick={e=>turn(e,page+1)} aria-disabled={!!flip}>Trang sau</Link> : <span aria-disabled="true">Trang sau</span>}
+      {page < pages ? <Link to={href(page+1)} state={location.state} rel="next" ref={nextRef} aria-keyshortcuts="ArrowRight" title="Trang sau (→)" onClick={e=>turn(e,page+1)} aria-disabled={!!flip}>Trang sau</Link> : <span aria-disabled="true">Trang sau</span>}
     </nav>}</div>
   </div>;
 }

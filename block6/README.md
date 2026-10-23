@@ -119,3 +119,7 @@ GET không body không tự gắn `Content-Type`, nên các GET hiện có khôn
 Header do caller truyền được giữ nguyên, hỗ trợ object/tuple/Headers và không phân biệt chữ hoa/thường. Body không phải chuỗi JSON (ví dụ FormData) để fetch tự đặt Content-Type phù hợp. Không thêm request Cache-Control hoặc custom header; CORS/security/cache response headers phía API giữ nguyên.
 
 `npm run test:headers` kiểm tra dựng header; `npm test` chạy cả HTTP tests và header tests. Browser tests quan sát request thực ở API server để xác nhận GET không preflight và JSON writes/DELETE vẫn hoạt động.
+
+### Chuyển trang bằng bàn phím
+
+Ở thực đơn và các danh sách quản trị, nhấn **←** để về trang trước, **→** để sang trang sau. Phím tắt dùng cùng link và hiệu ứng như khi bấm chuột, giữ query tìm kiếm và lịch sử URL. Không chuyển vượt trang đầu/cuối; không hoạt động trong ô nhập/chọn, nội dung đang chỉnh sửa hoặc khi giữ Alt/Ctrl/Meta/Shift. Không tự lặp trang khi giữ phím. Có thể dùng Tab và Enter trên các link phân trang như trước.
