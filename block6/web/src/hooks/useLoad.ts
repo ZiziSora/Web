@@ -14,5 +14,11 @@ export function useLoad<T>(key: string, load: (signal: AbortSignal) => Promise<T
     });
     return () => controller.abort();
   }, [key, attempt]);
-  return { ...(state.key === key ? state : { key, data: undefined, error: undefined, loading: true }), retry: () => bump(x => x + 1) };
+  const current = state.key === key;
+  return {
+    data: current ? state.data : undefined,
+    error: current ? state.error : undefined,
+    loading: current ? state.loading : true,
+    retry: () => bump(x => x + 1),
+  };
 }

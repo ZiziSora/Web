@@ -33,6 +33,11 @@ try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     const errors: string[] = [];
     page.on('pageerror', e => errors.push(e.message));
+    // React warnings are console errors, not uncaught page errors.
+    page.on('console', message => {
+      const text = message.text();
+      if (['error', 'warning'].includes(message.type()) && text.includes('key') && /spread|spreading/i.test(text)) errors.push(text);
+    });
     await page.goto(webOrigin + '/dishes');
     await page.getByRole('heading', { name: 'Bò lúc lắc', exact: true }).waitFor();
     await mkdir('artifacts', { recursive: true });
