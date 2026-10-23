@@ -1,3 +1,4 @@
+import { Play, Pause } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export function HeroTableIllustration() {
@@ -50,6 +51,6 @@ export function HeroTableIllustration() {
   <g fill="#b48c55"><circle cx="150" cy="196" r="2"/><circle cx="385" cy="367" r="1.5"/><circle cx="344" cy="201" r="1.5"/></g>
 </svg>
 
-    {!reduced && <button type="button" className="hero-motion-toggle" aria-pressed={userPaused} onClick={() => setUserPaused(value => !value)}>{userPaused ? 'Tiếp tục chuyển động' : 'Tạm dừng chuyển động'}</button>}
+    {!reduced && <button type="button" className="hero-motion-toggle" aria-pressed={userPaused} onClick={() => setUserPaused(value => !value)}>{userPaused ? <Play aria-hidden="true" focusable="false" /> : <Pause aria-hidden="true" focusable="false" />}{userPaused ? 'Tiếp tục chuyển động' : 'Tạm dừng chuyển động'}</button>}
   </>;
 }

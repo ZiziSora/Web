@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { usePageKeys } from '../../hooks/usePageKeys';
 import { useEffect, useRef, useState, type RefObject, type MouseEvent } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
@@ -50,9 +51,9 @@ export function MenuBook({ dishes, page, pages, total, headingRef }: { dishes: E
     </div>
     <div className="book-footer"><p className="pagination-summary" aria-live="polite">Hiển thị {(page-1)*6+1}–{Math.min(page*6,total)} trên {total} mục</p>
     {pages > 1 && <nav className="book-controls" aria-label="Phân trang">
-      {page > 1 ? <Link to={href(page-1)} state={location.state} rel="prev" ref={previousRef} aria-keyshortcuts="ArrowLeft" title="Trang trước (←)" onClick={e=>turn(e,page-1)} aria-disabled={!!flip}>Trang trước</Link> : <span aria-disabled="true">Trang trước</span>}
+      {page > 1 ? <Link to={href(page-1)} state={location.state} rel="prev" ref={previousRef} aria-keyshortcuts="ArrowLeft" title="Trang trước (←)" onClick={e=>turn(e,page-1)} aria-disabled={!!flip}><ChevronLeft aria-hidden="true" focusable="false" /> Trang trước</Link> : <span aria-disabled="true"><ChevronLeft aria-hidden="true" focusable="false" /> Trang trước</span>}
       <span aria-live="polite">Lượt {page}/{pages}</span>
-      {page < pages ? <Link to={href(page+1)} state={location.state} rel="next" ref={nextRef} aria-keyshortcuts="ArrowRight" title="Trang sau (→)" onClick={e=>turn(e,page+1)} aria-disabled={!!flip}>Trang sau</Link> : <span aria-disabled="true">Trang sau</span>}
+      {page < pages ? <Link to={href(page+1)} state={location.state} rel="next" ref={nextRef} aria-keyshortcuts="ArrowRight" title="Trang sau (→)" onClick={e=>turn(e,page+1)} aria-disabled={!!flip}>Trang sau <ChevronRight aria-hidden="true" focusable="false" /></Link> : <span aria-disabled="true">Trang sau <ChevronRight aria-hidden="true" focusable="false" /></span>}
     </nav>}</div>
   </div>;
 }

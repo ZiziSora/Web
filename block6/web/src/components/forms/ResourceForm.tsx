@@ -1,3 +1,4 @@
+import { X, LoaderCircle, Save, Plus } from 'lucide-react';
 import { useActive } from '../../hooks/useActive';
 import React,{ useEffect,useRef,useState } from 'react';
 import { Link,useNavigate } from 'react-router-dom';
@@ -35,6 +36,6 @@ export function Form({ resource: r, entity, chefs, ingredients }: { resource: Re
     <fieldset className="form-controls" disabled={busy}><legend className="sr-only">Thông tin {labels[r]}</legend><div className={'form-layout ' + (r !== 'dishes' ? 'compact-form' : '')}><div className="form-panel"><div className="panel-heading"><p>Thông tin cơ bản <span className="muted">· Dấu * là bắt buộc</span></p></div>
       {fields.map(k => <FormField key={k} k={k} title={titles[k]} placeholder={placeholders[k]} value={String(values[k])} error={error?.fields[k]} onChange={value=>set({...values,[k]:value})} />)}
     </div>{r === 'dishes' && <div className="form-panel relation-panel">{[{ key: 'chefIds', title: 'Đầu bếp biết nấu món này', items: chefs, resource: 'chefs' }, { key: 'ingredientIds', title: 'Nguyên liệu của món', items: ingredients, resource: 'ingredients' }].map(g => <RelationField key={g.key} g={g} selected={values[g.key] as number[]} error={error?.fields[g.key]} onChange={ids=>set({...values,[g.key]:ids})} />)}</div>}</div>
-    <div className="form-actions"><Link className="button secondary" to={'/admin/' + r}>Hủy bỏ</Link><button type="submit" className="button" disabled={busy || error?.code === 'NOT_FOUND'}>{busy ? 'Đang lưu…' : entity ? 'Lưu thay đổi' : 'Thêm ' + labels[r]}</button></div></fieldset>
+    <div className="form-actions"><Link className="button secondary" to={'/admin/' + r}><X aria-hidden="true" focusable="false" /> Hủy bỏ</Link><button type="submit" className="button" disabled={busy || error?.code === 'NOT_FOUND'}>{busy ? <LoaderCircle className="icon-spin" aria-hidden="true" focusable="false" /> : entity ? <Save aria-hidden="true" focusable="false" /> : <Plus aria-hidden="true" focusable="false" />}{busy ? 'Đang lưu…' : entity ? 'Lưu thay đổi' : 'Thêm ' + labels[r]}</button></div></fieldset>
   </form>;
 }

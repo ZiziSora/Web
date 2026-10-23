@@ -1,3 +1,4 @@
+import { RotateCcw, ArrowLeft } from 'lucide-react';
 import { Link,useLocation } from 'react-router-dom';
 import { ApiError,labels,type Resource } from '../api';
 
@@ -14,7 +15,7 @@ export function State({ loading, error, retry }: { loading: boolean; error?: Api
     <div className="status-copy"><p className="eyebrow">THE TABLE</p>
       <h1>{loading ? 'Đang chuẩn bị thông tin…' : missing ? label ? 'Không tìm thấy ' + label : 'Trang này không còn ở đây.' : 'Chưa thể tải thông tin.'}</h1>
       <p>{loading ? 'Chờ một chút, thông tin sẽ sẵn sàng ngay.' : missing ? label ? 'Thông tin bạn tìm có thể đã được xóa hoặc đường dẫn chưa đúng. Hãy quay lại danh sách để chọn nội dung hiện có.' : 'Đường dẫn có thể chưa đúng. Hãy trở về thực đơn để tiếp tục khám phá.' : error?.message}</p>
-      {!loading && <div className="status-actions">{!missing && <button className="button" onClick={retry}>Thử lại</button>}<Link className={'button ' + (!missing ? 'secondary' : '')} to={back}>{backLabel} <span aria-hidden="true">↗</span></Link></div>}
+      {!loading && <div className="status-actions">{!missing && <button className="button" onClick={retry}><RotateCcw aria-hidden="true" focusable="false" /> Thử lại</button>}<Link className={'button ' + (!missing ? 'secondary' : '')} to={back}><ArrowLeft aria-hidden="true" focusable="false" /> {backLabel}</Link></div>}
     </div>
   </section>;
 }

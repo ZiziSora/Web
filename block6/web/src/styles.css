@@ -3606,3 +3606,16 @@ button:disabled {
     animation: none;
   }
 }
+
+/* Lucide action icons share one size and stroke; labels remain accessible. */
+.lucide { width:18px; height:18px; flex:0 0 auto; stroke-width:1.75; vertical-align:middle; }
+.button { gap:10px; }
+.back-link,.row-actions a,.blocking-dishes a,.hero-motion-toggle,.search-summary button,.search-form button { display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+.back-link,.blocking-dishes a { justify-content:flex-start; }
+.main-nav .admin-link { gap:10px; }
+.pagination a,.pagination > span[aria-disabled],.book-controls a,.book-controls > span[aria-disabled] { gap:6px; }
+.circle-link .lucide { width:20px; height:20px; }
+.search-form button { white-space:nowrap; }
+.icon-spin { animation:action-spin 1s linear infinite; }
+@keyframes action-spin { to { transform:rotate(360deg); } }
+@media(prefers-reduced-motion:reduce) { .icon-spin { animation:none; } }

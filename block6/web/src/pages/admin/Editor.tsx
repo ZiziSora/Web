@@ -1,3 +1,4 @@
+import { ArrowLeft } from 'lucide-react';
 import { Link,useParams } from 'react-router-dom';
 import { api,labels,type Entity,type Resource } from '../../api';
 import { State } from '../../components/State';
@@ -11,5 +12,5 @@ export function Editor({ resource: r }: { resource: Resource }) {
     return { entity, chefs, ingredients };
   });
   if (!s.data) return <State {...s} />;
-  return <section className="container admin-content form-page"><Link className="back-link" to={'/admin/' + r}>← Danh sách {labels[r]}</Link><div className="section-heading"><div><h1>{id ? 'Chỉnh sửa' : 'Thêm'} {labels[r]}<span className="accent">.</span></h1><p className="muted">{id ? 'Cập nhật thông tin và lưu khi bạn đã sẵn sàng.' : 'Điền các mục bắt buộc để thêm vào căn bếp.'}</p></div></div><Form key={r + id} resource={r} {...s.data} /></section>;
+  return <section className="container admin-content form-page"><Link className="back-link" to={'/admin/' + r}><ArrowLeft aria-hidden="true" focusable="false" /> Danh sách {labels[r]}</Link><div className="section-heading"><div><h1>{id ? 'Chỉnh sửa' : 'Thêm'} {labels[r]}<span className="accent">.</span></h1><p className="muted">{id ? 'Cập nhật thông tin và lưu khi bạn đã sẵn sàng.' : 'Điền các mục bắt buộc để thêm vào căn bếp.'}</p></div></div><Form key={r + id} resource={r} {...s.data} /></section>;
 }
