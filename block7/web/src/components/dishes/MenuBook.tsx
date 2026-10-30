@@ -72,13 +72,13 @@ export function MenuBook({ dishes, page, pages, total, headingRef, onRetry, load
   }
   const leaf = (items: Entity[], offset: number) => <div className="book-leaf"><p className="book-running-title" aria-hidden="true">THE TABLE · THỰC ĐƠN</p><DishGrid dishes={items} startIndex={offset} /></div>;
   const forward = flip ? flip.target > flip.from : true;
-  const left = flip?.desktop && forward ? { items: flip.dishes.slice(0,3), page: flip.from } : { items: dishes.slice(0,3), page };
+  const left = flip?.desktop && forward ? { items: flip.dishes.slice(0, 3), page: flip.from } : { items: dishes.slice(0, 3), page };
   const right = flip?.desktop && !forward ? { items: flip.dishes.slice(3), page: flip.from } : { items: dishes.slice(3), page };
   return <div className={'menu-book' + (loading ? ' loading-view' : '')} aria-busy={!!flip || loading}>
-    <div className="book-binding"><div className="book-content">{loading ? <BookSkeletonLeaves /> : <>{leaf(left.items, (left.page-1)*6)}{leaf(right.items, (right.page-1)*6+3)}</>}</div>
-      {flip && !loading && <div className={'book-turn ' + (forward ? 'turn-forward' : 'turn-back')} style={{ '--book-turn-duration': flip.duration + 'ms' } as CSSProperties} data-distance={Math.abs(flip.target-flip.from)} onAnimationEnd={event => { if (event.target === event.currentTarget) finish(); }} aria-hidden="true" inert>
-        <div className="turn-front">{flip.desktop ? leaf(forward ? flip.dishes.slice(3) : flip.dishes.slice(0,3), (flip.from-1)*6+(forward?3:0)) : <>{leaf(flip.dishes.slice(0,3),(flip.from-1)*6)}{leaf(flip.dishes.slice(3),(flip.from-1)*6+3)}</>}</div>
-        <div className="turn-reverse">{leaf(forward ? dishes.slice(0,3) : dishes.slice(3), (page-1)*6+(forward?0:3))}</div>
+    <div className="book-binding"><div className="book-content">{loading ? <BookSkeletonLeaves /> : <>{leaf(left.items, (left.page - 1) * 6)}{leaf(right.items, (right.page - 1) * 6 + 3)}</>}</div>
+      {flip && !loading && <div className={'book-turn ' + (forward ? 'turn-forward' : 'turn-back')} style={{ '--book-turn-duration': flip.duration + 'ms' } as CSSProperties} data-distance={Math.abs(flip.target - flip.from)} onAnimationEnd={event => { if (event.target === event.currentTarget) finish(); }} aria-hidden="true" inert>
+        <div className="turn-front">{flip.desktop ? leaf(forward ? flip.dishes.slice(3) : flip.dishes.slice(0, 3), (flip.from - 1) * 6 + (forward ? 3 : 0)) : <>{leaf(flip.dishes.slice(0, 3), (flip.from - 1) * 6)}{leaf(flip.dishes.slice(3), (flip.from - 1) * 6 + 3)}</>}</div>
+        <div className="turn-reverse">{leaf(forward ? dishes.slice(0, 3) : dishes.slice(3), (page - 1) * 6 + (forward ? 0 : 3))}</div>
       </div>}
     </div>
     <div className="book-footer">
