@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { PrismaClient } from '../src/generated/prisma/client.js';
+import { Prisma, type PrismaClient } from '../src/generated/prisma/client.js';
+import { quoteIdentifier } from '../src/search-setup.js';
 import { createDatabase } from '../src/db.js';
 
 export const sampleChefs = [
@@ -8,6 +9,22 @@ export const sampleChefs = [
   { name: 'Trần Thảo Linh', specialty: 'Ẩm thực Âu & pasta' },
   { name: 'Lê Hoàng Nam', specialty: 'Hải sản & hương vị châu Á' },
   { name: 'Phạm Ngọc Mai', specialty: 'Món chay & món khai vị' },
+  { name: 'Đặng Quốc Bảo', specialty: 'Món Việt & các món kho' },
+  { name: 'Võ Thanh Hà', specialty: 'Ẩm thực miền Trung' },
+  { name: 'Bùi Đức Huy', specialty: 'Món nướng & sốt tiêu' },
+  { name: 'Đỗ Thu Hương', specialty: 'Salad & món ăn thanh nhẹ' },
+  { name: 'Hoàng Gia Khánh', specialty: 'Hải sản & món hấp' },
+  { name: 'Phan Bảo Ngọc', specialty: 'Món chay & rau củ' },
+  { name: 'Vũ Minh Quân', specialty: 'Ẩm thực Ý & pasta' },
+  { name: 'Trịnh Hải Yến', specialty: 'Súp & món khai vị' },
+  { name: 'Ngô Anh Dũng', specialty: 'Ẩm thực miền Bắc' },
+  { name: 'Dương Thùy Chi', specialty: 'Món cuốn & nước chấm' },
+  { name: 'Lý Thành Đạt', specialty: 'Cơm & các món chiên' },
+  { name: 'Mai Phương Linh', specialty: 'Ẩm thực Âu & sốt kem' },
+  { name: 'Tạ Hoàng Long', specialty: 'Thịt bò & món áp chảo' },
+  { name: 'Đinh Ngọc Ánh', specialty: 'Ẩm thực miền Nam' },
+  { name: 'Hồ Tuấn Kiệt', specialty: 'Món gà & thảo mộc' },
+  { name: 'Cao Diệu Trang', specialty: 'Món gia đình & thực đơn theo mùa' },
 ];
 export const sampleIngredients = [
   { name: 'Thịt bò', unit: 'kg' }, { name: 'Thịt gà', unit: 'kg' },
@@ -16,6 +33,10 @@ export const sampleIngredients = [
   { name: 'Nấm', unit: 'gram' }, { name: 'Hành tây', unit: 'kg' },
   { name: 'Cà chua', unit: 'kg' }, { name: 'Mì pasta', unit: 'gram' },
   { name: 'Phô mai', unit: 'gram' }, { name: 'Bơ', unit: 'gram' },
+  { name: 'Tỏi', unit: 'gram' }, { name: 'Gừng', unit: 'gram' },
+  { name: 'Sả', unit: 'cây' }, { name: 'Chanh vàng', unit: 'quả' },
+  { name: 'Tiêu xanh', unit: 'gram' }, { name: 'Mè rang', unit: 'gram' },
+  { name: 'Húng quế', unit: 'gram' }, { name: 'Ớt', unit: 'quả' },
 ];
 const sampleDishes = [
   { name: 'Bò lúc lắc', description: 'Thịt bò áp chảo vừa chín tới, quyện sốt đậm đà cùng hành tây giòn ngọt. Một hương vị thân quen, luôn đáng để quay lại.', price: '165000', category: 'Hương vị Việt', available: true, chefs: [0, 2], ingredients: [0, 7, 8, 11] },
@@ -32,33 +53,82 @@ const sampleDishes = [
   { name: 'Súp nấm ấm', description: 'Nấm được nấu chậm, xay mịn cùng chút bơ béo nhẹ. Một bát súp ấm là lời chào thân tình từ căn bếp của chúng tôi.', price: '65000', category: 'Khởi đầu nhẹ nhàng', available: false, chefs: [1, 3], ingredients: [6, 7, 11] },
 ];
 
+export const SEED_DISH_COUNT = 1000;
+
+/** Stable, synthetic menu variants for paging/search demonstrations. */
+export function buildSeedDishes() {
+  const flavors = ['tiêu xanh', 'tỏi thơm', 'gừng ấm', 'sả chanh', 'mè rang', 'húng quế', 'ớt dịu', 'chanh vàng', 'thảo mộc', 'vị truyền thống'];
+  const portions = ['phần nhỏ', 'phần vừa', 'phần lớn', 'phần đôi', 'phần gia đình', 'bữa trưa', 'bữa tối', 'bữa nhẹ', 'tiệc sẻ chia'];
+  return [
+    ...sampleDishes,
+    ...Array.from({ length: SEED_DISH_COUNT - sampleDishes.length }, (_, index) => {
+      const base = sampleDishes[index % sampleDishes.length];
+      const variant = Math.floor(index / sampleDishes.length);
+      const flavor = flavors[variant % flavors.length];
+      const portion = portions[Math.floor(variant / flavors.length)];
+      return {
+        ...base,
+        name: `${base.name} · ${flavor} · ${portion}`,
+        description: `${base.description} Phiên bản ${flavor}, phục vụ ${portion}. Dữ liệu thực đơn mẫu dùng để khám phá và kiểm thử tìm kiếm.`,
+        price: String(Number(base.price) + (variant % 9) * 5000),
+        available: index % 7 !== 0,
+      };
+    }),
+  ];
+}
+
 export async function seedRestaurant(db: PrismaClient, schema = 'public') {
-  await db.$transaction(async tx => {
-    // Serialize seed runs without touching any existing business records.
+  const catalog = buildSeedDishes();
+  return db.$transaction(async tx => {
+    // Same lock as earlier seeds in public; test schemas have independent locks.
     if (schema === 'public') await tx.$queryRaw`SELECT pg_advisory_xact_lock(9050101)::text`;
     else await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${schema}), 9050101)::text`;
-    const chefs: { id: number }[] = [];
-    for (const data of sampleChefs) chefs.push(await tx.chef.findFirst({ where: { name: data.name } }) ?? await tx.chef.create({ data }));
-    const ingredients: { id: number }[] = [];
-    for (const data of sampleIngredients) ingredients.push(await tx.ingredient.findFirst({ where: { name: data.name } }) ?? await tx.ingredient.create({ data }));
-    for (const { chefs: chefIndexes, ingredients: ingredientIndexes, ...data } of sampleDishes) {
-      if (await tx.dish.findFirst({ where: { name: data.name } })) continue;
-      await tx.dish.create({ data: {
-        ...data, chefs: { connect: chefIndexes.map(i => ({ id: chefs[i].id })) },
-        ingredients: { connect: ingredientIndexes.map(i => ({ id: ingredients[i].id })) },
-      } });
+    const chefNames = sampleChefs.map(row => row.name);
+    const ingredientNames = sampleIngredients.map(row => row.name);
+    const existingChefs = await tx.chef.findMany({ select: { name: true } });
+    const existingIngredients = await tx.ingredient.findMany({ select: { name: true } });
+    // User-created rows count toward the target; never delete them to make room.
+    const chefSlots = Math.max(0, sampleChefs.length - existingChefs.length);
+    const ingredientSlots = Math.max(0, sampleIngredients.length - existingIngredients.length);
+    const createdChefs = await tx.chef.createMany({ data: sampleChefs.filter(row => !existingChefs.some(existing => existing.name === row.name)).slice(0, chefSlots) });
+    const createdIngredients = await tx.ingredient.createMany({ data: sampleIngredients.filter(row => !existingIngredients.some(existing => existing.name === row.name)).slice(0, ingredientSlots) });
+    const chefs = await tx.chef.findMany({ select: { id: true, name: true }, orderBy: { id: 'asc' } });
+    const ingredients = await tx.ingredient.findMany({ select: { id: true, name: true }, orderBy: { id: 'asc' } });
+    const existing = await tx.dish.findMany({ where: { name: { in: catalog.map(row => row.name) } }, select: { name: true } });
+    const names = new Set(existing.map(row => row.name));
+    const missing = catalog.filter(row => !names.has(row.name));
+    const chefTable = Prisma.raw(quoteIdentifier(schema) + '."_ChefToDish"');
+    const ingredientTable = Prisma.raw(quoteIdentifier(schema) + '."_DishToIngredient"');
+    // Bulk rows and links keep 1,000 dishes practical over a remote connection.
+    for (let start = 0; start < missing.length; start += 200) {
+      const batch = missing.slice(start, start + 200);
+      const inserted = await tx.dish.createManyAndReturn({
+        data: batch.map(({ chefs: _chefs, ingredients: _ingredients, ...data }) => data),
+        select: { id: true, name: true },
+      });
+      const ids = new Map(inserted.map(row => [row.name, row.id]));
+      const chefLinks = batch.flatMap(row => [...new Set(row.chefs.map(index => (chefs.find(chef => chef.name === chefNames[index]) ?? chefs[index % chefs.length]).id))].map(id => Prisma.sql`(${id}, ${ids.get(row.name)!})`));
+      const ingredientLinks = batch.flatMap(row => [...new Set(row.ingredients.map(index => (ingredients.find(ingredient => ingredient.name === ingredientNames[index]) ?? ingredients[index % ingredients.length]).id))].map(id => Prisma.sql`(${ids.get(row.name)!}, ${id})`));
+      if (chefLinks.length) await tx.$executeRaw(Prisma.sql`INSERT INTO ${chefTable} ("A", "B") VALUES ${Prisma.join(chefLinks)} ON CONFLICT DO NOTHING`);
+      if (ingredientLinks.length) await tx.$executeRaw(Prisma.sql`INSERT INTO ${ingredientTable} ("A", "B") VALUES ${Prisma.join(ingredientLinks)} ON CONFLICT DO NOTHING`);
     }
+    // Existing rows and their user-edited relationships are deliberately preserved.
+    return {
+      created: missing.length, total: await tx.dish.count(), catalogSize: catalog.length,
+      createdChefs: createdChefs.count, createdIngredients: createdIngredients.count,
+      totalChefs: await tx.chef.count(), totalIngredients: await tx.ingredient.count(),
+    };
   }, { timeout: 120000, maxWait: 30000 });
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-const db = createDatabase();
-try {
-  const schema = new URL(process.env.DATABASE_URL!).searchParams.get('schema') ?? 'public';
-  await seedRestaurant(db, schema);
-  console.log('Seed hoàn tất: 12 món, 4 đầu bếp, 12 nguyên liệu mẫu. Không ghi đè bản ghi đã có.');
-} catch {
-  console.error('Không thể seed dữ liệu. Kiểm tra kết nối và chạy db:push trước.');
-  process.exitCode = 1;
-} finally { await db.$disconnect(); }
+  const db = createDatabase();
+  try {
+    const schema = new URL(process.env.DATABASE_URL!).searchParams.get('schema') ?? 'public';
+    const result = await seedRestaurant(db, schema);
+    console.log(`Seed hoàn tất: thêm ${result.created} món, ${result.createdChefs} đầu bếp, ${result.createdIngredients} nguyên liệu. Database hiện có ${result.total} món, ${result.totalChefs} đầu bếp, ${result.totalIngredients} nguyên liệu. Không ghi đè bản ghi đã có.`);
+  } catch {
+    console.error('Không thể seed dữ liệu. Kiểm tra kết nối và tạo bảng trước khi chạy seed.');
+    process.exitCode = 1;
+  } finally { await db.$disconnect(); }
 }
