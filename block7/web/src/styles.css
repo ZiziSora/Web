@@ -2635,7 +2635,8 @@ fieldset {
   --skeleton-base: #e5dccb;
   --skeleton-light: #f7f1e6;
   padding-block: 10px 30px;
-  animation: loading-appear .35s ease .12s both;
+  /* Show the skeleton on the first paint; shimmer provides loading feedback. */
+  animation: none;
 }
 
 .loading-caption {
@@ -3469,13 +3470,13 @@ button:disabled {
 .turn-forward {
   left: 50%;
   transform-origin: left center;
-  animation: book-forward 450ms ease-in-out both;
+  animation: book-forward var(--book-turn-duration, 520ms) cubic-bezier(.32,.02,.24,1) both;
 }
 
 .turn-back {
   left: 0;
   transform-origin: right center;
-  animation: book-back 450ms ease-in-out both;
+  animation: book-back var(--book-turn-duration, 520ms) cubic-bezier(.32,.02,.24,1) both;
 }
 
 .turn-front,
@@ -3535,7 +3536,7 @@ button:disabled {
   .book-turn {
     width: 100%;
     left: 0;
-    animation: book-mobile 250ms ease-out both;
+    animation: book-mobile var(--book-turn-duration, 300ms) cubic-bezier(.22,.61,.36,1) both;
     transform-origin: left center;
   }
 
@@ -3744,3 +3745,21 @@ button:disabled {
 .chef-dishes-scroll a { display:block; min-height:44px; padding:10px 4px; line-height:1.6; overflow-wrap:anywhere; border-bottom:1px solid var(--line); }
 .chef-dishes-scroll a:hover { background:var(--paper); text-decoration:underline; }
 @media(max-width:767px) { .chef-dishes { max-width:none; } .chef-dishes-preview a { white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:1; } }
+
+/* Menu skeletons follow the same two leaves and six entries as the real menu. */
+.menu-skeleton { padding:0; }
+.book-skeleton-entry { display:flex; flex-direction:column; gap:14px; min-height:212px; padding:26px 0; border-bottom:1px solid var(--line); }
+.book-skeleton-entry .skeleton-line:nth-child(1) { width:24%; }
+.book-skeleton-entry .skeleton-line:nth-child(2) { width:65%; margin:0; height:28px; }
+.book-skeleton-entry .skeleton-line:nth-child(3) { width:90%; }
+.book-skeleton-entry .skeleton-line:nth-child(4) { width:75%; }
+.book-skeleton-entry .skeleton-line:nth-child(5) { width:35%; margin-top:10px; height:20px; }
+.book-running-title > .skeleton-line { width:45%; }
+.book-turn { will-change:transform; }
+@media(max-width:1023px) {
+  .book-content > .book-leaf:last-child:has(.book-skeleton-entry) { display:block; }
+  .book-turn.turn-back { animation-name:book-mobile-back; transform-origin:right center; }
+  .book-turn .book-leaf + .book-leaf { padding-top:0; }
+  .book-turn .book-leaf + .book-leaf .book-running-title { display:none; }
+}
+@keyframes book-mobile-back { to { transform:rotateY(12deg); opacity:0; } }

@@ -50,6 +50,8 @@ Nút **Tìm kiếm** và phím Enter gửi ngay điều kiện hợp lệ đang 
 
 Quản trị đầu bếp hiển thị tổng số món và tối đa hai món xem trước. Với nhiều hơn hai món, nút **Xem tất cả** mở danh sách có khung cuộn giới hạn 220 px và ô tìm tên không phân biệt dấu. Danh sách đầy đủ chỉ được dựng khi mở; các liên kết vẫn dẫn tới trang chỉnh sửa món ăn.
 
+Quản trị nguyên liệu dùng cùng danh sách món thu gọn. Menu tải bằng skeleton hai lá sách, gồm sáu vị trí món, cả khi mở trang và chuyển trang. Khi nhảy xa, chỉ tải trang đích rồi thực hiện một lượt lật theo đúng hướng; thời lượng tăng nhẹ theo khoảng cách và giới hạn 845 ms trên desktop. Lá chưa lật giữ nội dung cũ cho đến khi lượt lật hoàn tất; chế độ giảm chuyển động đổi trang trực tiếp.
+
 Picker tìm kiếm debounce 300 ms (Enter áp dụng ngay, không submit form món); đổi từ khóa hủy request cũ và tải từ cursor đầu. Lựa chọn giữ riêng bằng ID, có chip để xem/bỏ chọn cả mục nằm ngoài kết quả đang xem. Append giữ vị trí cuộn, loại trùng ID, khóa request đồng thời; lỗi giữ dữ liệu và lựa chọn. Infinite scroll dùng IntersectionObserver có root là khung nguyên liệu; lỗi không tự retry liên tục.
 
 **Mở lại form/reload:** tải lại từ lô đầu; chỉ khôi phục liên kết đã lưu của món. Không khôi phục số lô đã cuộn hay nội dung form chưa lưu.

@@ -1,11 +1,12 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { usePageKeys } from '../../hooks/usePageKeys';
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject, type MouseEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject, type MouseEvent } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { type Entity } from '../../api';
 import { DishGrid } from './DishGrid';
+import { BookSkeletonLeaves } from './MenuSkeleton';
 
-type Flip = { from: number; target: number; dishes: Entity[] };
+type Flip = { from: number; target: number; dishes: Entity[]; duration: number; desktop: boolean };
 export function MenuBook({ dishes, page, pages, total, headingRef, loading = false }: { dishes: Entity[]; page: number; pages: number; total: number; headingRef: RefObject<HTMLHeadingElement | null>; loading?: boolean }) {
   const { previousRef, nextRef } = usePageKeys();
   const [params] = useSearchParams();
@@ -19,16 +20,22 @@ export function MenuBook({ dishes, page, pages, total, headingRef, loading = fal
     if (old.page !== page) {
       if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
         locked.current = true;
-        setFlip({ from: old.page, target: page, dishes: old.dishes });
+        const distance = Math.min(Math.abs(page - old.page) - 1, 5);
+        const desktop = matchMedia('(min-width: 1024px)').matches;
+        const duration = desktop ? 520 + distance * 65 : 300 + distance * 35;
+        setFlip({ from: old.page, target: page, dishes: old.dishes, duration, desktop });
       } else focus();
     }
     previous.current = { page, dishes };
   }, [page, dishes]);
+  const finish = () => { locked.current = false; setFlip(null); focus(); };
+  useEffect(() => {
+    if (!loading && !flip) locked.current = false;
+  }, [loading, flip]);
   useEffect(() => {
     if (!flip) return;
-    const finish = () => { locked.current = false; setFlip(null); focus(); };
     const media = matchMedia('(prefers-reduced-motion: reduce)');
-    const timer = window.setTimeout(finish, matchMedia('(min-width: 1024px)').matches ? 450 : 250);
+    const timer = window.setTimeout(finish, flip.duration + 100);
     window.addEventListener('resize', finish);
     window.addEventListener('popstate', finish);
     media.addEventListener('change', finish);
@@ -41,14 +48,19 @@ export function MenuBook({ dishes, page, pages, total, headingRef, loading = fal
   };
   function turn(event: MouseEvent<HTMLAnchorElement>) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    if (locked.current || loading) event.preventDefault();
+    const target = Number(new URL(event.currentTarget.href).searchParams.get('page') ?? 1);
+    if (locked.current || loading || target === page) { event.preventDefault(); return; }
+    locked.current = true;
   }
   const leaf = (items: Entity[], offset: number) => <div className="book-leaf"><p className="book-running-title" aria-hidden="true">THE TABLE · THỰC ĐƠN</p><DishGrid dishes={items} startIndex={offset} /></div>;
   const forward = flip ? flip.target > flip.from : true;
-  return <div className="menu-book" aria-busy={!!flip || loading}>
-    <div className="book-binding"><div className="book-content">{leaf(dishes.slice(0,3), (page-1)*6)}{leaf(dishes.slice(3), (page-1)*6+3)}</div>
-      {flip && <div className={'book-turn ' + (forward ? 'turn-forward' : 'turn-back')} aria-hidden="true" inert>
-        <div className="turn-front">{leaf(forward ? flip.dishes.slice(3) : flip.dishes.slice(0,3), (flip.from-1)*6+(forward?3:0))}</div>
+  const left = flip?.desktop && forward ? { items: flip.dishes.slice(0,3), page: flip.from } : { items: dishes.slice(0,3), page };
+  const right = flip?.desktop && !forward ? { items: flip.dishes.slice(3), page: flip.from } : { items: dishes.slice(3), page };
+  return <div className={'menu-book' + (loading ? ' loading-view' : '')} aria-busy={!!flip || loading}>
+    {loading && <span className="sr-only" role="status">Đang tải trang thực đơn…</span>}
+    <div className="book-binding"><div className="book-content">{loading ? <BookSkeletonLeaves /> : <>{leaf(left.items, (left.page-1)*6)}{leaf(right.items, (right.page-1)*6+3)}</>}</div>
+      {flip && !loading && <div className={'book-turn ' + (forward ? 'turn-forward' : 'turn-back')} style={{ '--book-turn-duration': flip.duration + 'ms' } as CSSProperties} data-distance={Math.abs(flip.target-flip.from)} onAnimationEnd={event => { if (event.target === event.currentTarget) finish(); }} aria-hidden="true" inert>
+        <div className="turn-front">{flip.desktop ? leaf(forward ? flip.dishes.slice(3) : flip.dishes.slice(0,3), (flip.from-1)*6+(forward?3:0)) : <>{leaf(flip.dishes.slice(0,3),(flip.from-1)*6)}{leaf(flip.dishes.slice(3),(flip.from-1)*6+3)}</>}</div>
         <div className="turn-reverse">{leaf(forward ? dishes.slice(0,3) : dishes.slice(3), (page-1)*6+(forward?0:3))}</div>
       </div>}
     </div>
