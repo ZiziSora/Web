@@ -99,3 +99,16 @@ test('options use bounded cursors and facets use their own route', async () => {
     assert.equal((await request(app).get('/api/ingredients/options?after=abc')).body.error.code, 'VALIDATION_FAILED');
     assert.deepEqual((await request(app).get('/api/dishes/facets')).body.data, { categories: ['Món Việt'] });
 });
+test('client paging endpoints return the whole small collection and lean options', async () => {
+    for (const resource of ['chefs', 'ingredients'] as const) {
+        store.rows[resource] = Array.from({ length: 20 }, (_, i) => ({ id: i + 1, name: 'Mục ' + (i + 1), ...(resource === 'chefs' ? { specialty: 'Việt' } : { unit: 'kg' }) }));
+        const list = (await request(app).get(`/api/${resource}/all`).expect(200)).body.data;
+        assert.ok(Array.isArray(list));
+        assert.equal(list.length, 20);
+        assert.ok(list.every((row: { dishes: unknown }) => Array.isArray(row.dishes)));
+        const options = (await request(app).get(`/api/${resource}/options/all`).expect(200)).body.data;
+        assert.equal(options.length, 20);
+        assert.ok(options.every((row: object) => !('dishes' in row)));
+    }
+    await request(app).get('/api/dishes/all').expect(200).expect(res => assert.equal(res.body.error.code, 'NOT_FOUND'));
+});

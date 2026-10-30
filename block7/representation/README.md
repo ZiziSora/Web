@@ -12,3 +12,5 @@ Mở trực tiếp `index.html` trong trình duyệt, không cần build hoặc 
 - Chỉ tạo tài liệu HTML/CSS/JS; không chạy test trong lượt này.
 
 Nội dung: quyết định ba kiểu UI → code số trang → code cursor/Tải thêm → observer và chống response cũ → filter/sort/search PostgreSQL → DevTools paging → DevTools full-text/fuzzy → lỗi và cách chứng minh.
+
+Cập nhật: món dùng server paging; bảng và picker đầu bếp/nguyên liệu dùng client paging. Slide 3 trích useClientPagedList/useOptions; slide 6 hướng dẫn đối chiếu response toàn bộ khoảng 20 mục và không có fetch mới khi đổi trang/Tải thêm/cuộn tiếp.

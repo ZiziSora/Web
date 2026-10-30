@@ -1,4 +1,4 @@
-import type { ListQuery, Page, OptionsQuery, OptionsPage } from './list-query.js';
+import type { ListQuery, Page, OptionsQuery, OptionsPage, Option } from './list-query.js';
 export const resources = ['dishes', 'chefs', 'ingredients'] as const;
 export type Resource = typeof resources[number];
 export interface Related {
@@ -49,6 +49,8 @@ export class IngredientInUseError extends Error {
     constructor(public dishes: Related[]) { super('Ingredient in use'); }
 }
 export interface RestaurantStore {
+    all(resource: 'chefs' | 'ingredients'): Promise<Entity[]>;
+    allOptions(resource: 'chefs' | 'ingredients'): Promise<Option[]>;
     list(resource: Resource, query: ListQuery): Promise<Page<Entity>>;
     options(resource: 'chefs' | 'ingredients', query: OptionsQuery): Promise<OptionsPage>;
     facets(): Promise<{ categories: string[] }>;

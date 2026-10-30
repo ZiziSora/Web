@@ -27,7 +27,11 @@ export function createApp(store: RestaurantStore, options: {
             throw new NotFoundError(); return id; };
         app.get(base, async (req, res) => res.json({ ok: true, data: await store.list(resource, parseListQuery(resource, req.query)) }));
         if (resource === 'dishes') app.get(`${base}/facets`, async (_req, res) => res.json({ ok: true, data: await store.facets() }));
-        else app.get(`${base}/options`, async (req, res) => res.json({ ok: true, data: await store.options(resource, parseOptionsQuery(req.query)) }));
+        else {
+            app.get(`${base}/all`, async (_req, res) => res.json({ ok: true, data: await store.all(resource) }));
+            app.get(`${base}/options/all`, async (_req, res) => res.json({ ok: true, data: await store.allOptions(resource) }));
+            app.get(`${base}/options`, async (req, res) => res.json({ ok: true, data: await store.options(resource, parseOptionsQuery(req.query)) }));
+        }
         app.get(`${base}/:id`, async (req, res) => { const data = await store.find(resource, idOf(req)); if (!data)
             throw new NotFoundError(); res.json({ ok: true, data }); });
         app.post(base, async (req, res) => res.json({ ok: true, data: await store.create(resource, jsonInput(resource, req.body) as Parameters<RestaurantStore['create']>[1]) }));

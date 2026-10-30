@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { api, ApiError, type Entity, type Resource } from '../api';
+import { api, ApiError, type Entity } from '../api';
 import { PAGE_SIZE } from '../config/pagination';
 import type { Page } from '../types/api';
 
-export function usePagedList(resource: Resource, guest = false) {
+export function usePagedList(resource: 'dishes', guest = false) {
   const [params, setParams] = useSearchParams();
   const location = useLocation();
   const request = new URLSearchParams();

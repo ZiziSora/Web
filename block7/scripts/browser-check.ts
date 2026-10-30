@@ -10,8 +10,8 @@ const webPort = 20000 + Math.floor(Math.random() * 20000);
 const webOrigin = `http://localhost:${webPort}`;
 const store = new MemoryStore();
 const server = createApp(store, { origin: webOrigin }).listen(0, 'localhost');
-const requests: {method:string;type:string|undefined}[]=[];
-server.on('request',req=>requests.push({method:req.method??'',type:req.headers['content-type']}));
+const requests: {method:string;type:string|undefined;url:string}[]=[];
+server.on('request',req=>requests.push({method:req.method??'',type:req.headers['content-type'],url:req.url??''}));
 await new Promise<void>(r => server.once('listening', r));
 const address = server.address();
 if (!address || typeof address === 'string')
@@ -35,7 +35,7 @@ try {
     const batches: {url:string;count:number}[]=[];
     page.on('response', async response => {
       if (!response.url().includes('/api/') || response.request().method()!=='GET' || response.status()!==200) return;
-      try { const body=await response.json(); if(Array.isArray(body.data?.items)) batches.push({url:response.url(),count:body.data.items.length}); } catch {}
+      try { const body=await response.json(); if(Array.isArray(body.data?.items)) batches.push({url:response.url(),count:body.data.items.length}); else if(Array.isArray(body.data)) batches.push({url:response.url(),count:body.data.length}); } catch {}
     });
     page.on('pageerror', e => errors.push(e.message));
     // React warnings are console errors, not uncaught page errors.
@@ -162,6 +162,20 @@ try {
     }
     for(const resource of ['dishes','chefs','ingredients'] as const) {
       store.rows[resource]=Array.from({length:13},(_,i)=>({...structuredClone(snapshot[resource][0]),id:i+1,name:'Mục '+(i+1)}));
+    }
+    // Lookup lists fetch once; changing page, search or sort stays in the browser.
+    for (const resource of ['chefs','ingredients']) {
+      await page.goto(webOrigin+'/admin/'+resource);
+      await page.getByText('Hiển thị 1–6 trên 13 mục').waitFor();
+      const countGets=()=>requests.filter(r=>r.method==='GET'&&r.url==='/api/'+resource+'/all').length;
+      const loaded=countGets();assert.ok(loaded>0);
+      await page.getByRole('link',{name:'Sau',exact:true}).click();
+      await page.getByText('Hiển thị 7–12 trên 13 mục').waitFor();
+      await page.getByRole('searchbox').fill('muc 13');
+      await page.getByRole('searchbox').press('Enter');
+      await page.getByText('Hiển thị 1–1 trên 1 mục').waitFor();
+      await page.getByLabel('Sắp xếp',{exact:true}).selectOption('name-desc');
+      assert.equal(countGets(),loaded,'client lookup interactions must not refetch');
     }
     for(const width of [1440,390]) {
       await page.setViewportSize({width,height:900});
@@ -325,41 +339,35 @@ try {
     await page.goto(webOrigin+'/admin/dishes/1/edit');
     const chefs=page.locator('.relation-fieldset').filter({has:page.locator('legend', {hasText:'Đầu bếp biết nấu món này'})});
     const ingredients=page.locator('.relation-fieldset').filter({has:page.locator('legend', {hasText:'Nguyên liệu của món'})});
-    await chefs.getByText('Đã tải 6 mục',{exact:true}).waitFor();
+    await chefs.getByText('Hiển thị 6 / 13 mục',{exact:true}).waitFor();
     await chefs.getByRole('button',{name:'Tải thêm',exact:true}).click();
-    await chefs.getByText('Đã tải 12 mục',{exact:true}).waitFor();
+    await chefs.getByText('Hiển thị 12 / 13 mục',{exact:true}).waitFor();
     await chefs.getByLabel('Mục 7',{exact:true}).check();
     await chefs.getByRole('searchbox').fill('muc 13');
     await chefs.getByRole('searchbox').press('Enter');
     assert.equal(new URL(page.url()).pathname,'/admin/dishes/1/edit','search Enter must not save the form');
-    await chefs.getByText('Đã tải 1 mục · Đã hết danh sách',{exact:true}).waitFor();
+    await chefs.getByText('Hiển thị 1 / 1 mục · Đã hết danh sách',{exact:true}).waitFor();
     await chefs.getByRole('button',{name:'Bỏ chọn Mục 7',exact:true}).waitFor();
     await chefs.getByLabel('Mục 13',{exact:true}).check();
     await chefs.getByRole('searchbox').fill('');
-    await chefs.getByText('Đã tải 6 mục',{exact:true}).waitFor();
+    await chefs.getByText('Hiển thị 6 / 13 mục',{exact:true}).waitFor();
     await chefs.getByRole('button',{name:'Bỏ chọn Mục 13',exact:true}).waitFor();
     await ingredients.locator('.options-scroll').scrollIntoViewIfNeeded();
     await ingredients.locator('.options-scroll').evaluate(el=>{el.scrollTop=el.scrollHeight;});
-    await ingredients.getByText('Đã tải 12 mục',{exact:true}).waitFor();
+    await ingredients.getByText('Hiển thị 12 / 13 mục',{exact:true}).waitFor();
     const beforeScroll=await ingredients.locator('.options-scroll').evaluate(el=>el.scrollTop);
     assert.ok(beforeScroll>0,'append retains scroll position');
     await ingredients.getByRole('searchbox').fill('không có');
     await ingredients.getByText('Không tìm thấy tên phù hợp.').waitFor();
     assert.equal(await ingredients.getByRole('checkbox').count(),0);
     await ingredients.getByRole('searchbox').fill('');
-    await ingredients.getByText('Đã tải 6 mục',{exact:true}).waitFor();
-    // A failed next batch keeps inputs, checkboxes and loaded rows intact.
-    await page.route('**/api/chefs/options?**', async route=>{
-      if(new URL(route.request().url()).searchParams.has('after')) await route.fulfill({status:500,body:'offline'});
-      else await route.continue();
-    });
+    await ingredients.getByText('Hiển thị 6 / 13 mục',{exact:true}).waitFor();
+    // Reveal/search only slice the already fetched options; no next-batch request exists.
+    const optionGets=()=>requests.filter(r=>r.method==='GET'&&r.url==='/api/chefs/options/all').length;
+    const optionsLoaded=optionGets();
     await chefs.getByRole('button',{name:'Tải thêm',exact:true}).click();
-    await chefs.getByRole('alert').waitFor();
-    assert.equal(await chefs.getByRole('checkbox').count(),6);
-    await chefs.getByRole('button',{name:'Bỏ chọn Mục 7',exact:true}).waitFor();
-    await page.unroute('**/api/chefs/options?**');
-    await chefs.getByRole('button',{name:'Thử lại',exact:true}).click();
-    await chefs.getByText('Đã tải 12 mục',{exact:true}).waitFor();
+    await chefs.getByText('Hiển thị 12 / 13 mục',{exact:true}).waitFor();
+    assert.equal(optionGets(),optionsLoaded);
     assert.ok(await chefs.getByLabel('Mục 7',{exact:true}).isChecked());
     await page.screenshot({path:'artifacts/relationship-paging-1440.png',fullPage:true});
     await page.setViewportSize({width:390,height:900});
@@ -554,7 +562,7 @@ try {
       await page.setViewportSize({width,height:1000});
       let releaseList!:()=>void;
       const listGate=new Promise<void>(resolve=>{releaseList=resolve;});
-      await page.route('**/api/chefs?**',async route=>{await listGate;await route.continue();});
+      await page.route('**/api/chefs/all*',async route=>{await listGate;await route.continue();});
       await page.goto(webOrigin+'/admin/chefs');
       await page.locator('.list-placeholder-table .skeleton-line').first().waitFor();
       assert.notEqual(await page.locator('.list-placeholder .skeleton-line').first().evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
@@ -563,7 +571,7 @@ try {
       releaseList();
       const row=page.getByRole('row').filter({has:page.getByRole('rowheader',{name:'Đầu bếp nhiều món #901'})});
       await row.waitFor();
-      await page.unroute('**/api/chefs?**');
+      await page.unroute('**/api/chefs/all*');
       assert.equal(await row.locator('.chef-dishes-preview a').count(),2);
       assert.ok((await row.boundingBox())!.height < (width===390?420:220),'collapsed chef row stays compact');
       assert.equal(await page.getByRole('row').filter({hasText:'Đầu bếp một món'}).locator('.chef-dishes-preview a').count(),1);
@@ -777,10 +785,11 @@ try {
     await page.goto(webOrigin + '/dishes');
     await page.getByRole('heading', { name: 'Chưa thể tải thông tin.' }).waitFor();
     assert.ok(batches.length>0);
-    assert.ok(batches.every(batch=>batch.count<=6),'all network list batches are bounded to six');
+    assert.ok(batches.filter(batch=>!new URL(batch.url).pathname.endsWith('/all')).every(batch=>batch.count<=6),'server pages remain bounded to six');
+    assert.ok(batches.some(batch=>new URL(batch.url).pathname.endsWith('/all')&&batch.count===13),'client paging loads the complete lookup collection');
     await import('node:fs/promises').then(fs=>fs.writeFile('artifacts/network-batches.json',JSON.stringify(batches,null,2)));
     assert.deepEqual(errors, []);
-    console.log('Browser PASS: three pagination UIs, bounded network batches, filter/sort/reload, query races, selected relations, retry, keyboard, book/reduced motion, CRUD, mobile, malformed response and API offline.');
+    console.log('Browser PASS: three pagination UIs, server dish pages and client lookup collections, filter/sort/reload, query races, selected relations, retry, keyboard, book/reduced motion, CRUD, mobile, malformed response and API offline.');
 }
 finally {
     await browser?.close();

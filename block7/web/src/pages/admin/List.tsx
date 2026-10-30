@@ -9,9 +9,20 @@ import { ListPlaceholder } from '../../components/ListPlaceholder';
 import { ResourceTable } from '../../components/admin/ResourceTable';
 import { intros } from '../../config/resources';
 import { usePagedList } from '../../hooks/usePagedList';
+import { useClientPagedList } from '../../hooks/useClientPagedList';
 
-export function List({ resource: r }: { resource: Resource }) {
-  const s = usePagedList(r);
+export function List({ resource }: { resource: Resource }) {
+  return resource === 'dishes' ? <DishList /> : <ClientList resource={resource} />;
+}
+function DishList() {
+  const s = usePagedList('dishes');
+  return <ListContent resource="dishes" s={s} />;
+}
+function ClientList({ resource }: { resource: 'chefs' | 'ingredients' }) {
+  const s = useClientPagedList(resource);
+  return <ListContent resource={resource} s={s} />;
+}
+function ListContent({ resource: r, s }: { resource: Resource; s: ReturnType<typeof usePagedList> }) {
   const loc = useLocation();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const previous = useRef<{ page: number; signature: string } | undefined>(undefined);

@@ -7,6 +7,12 @@ export class MemoryStore implements RestaurantStore {
         chefs: [{ id: 1, name: 'An', specialty: 'Món Việt' }],
         ingredients: [{ id: 1, name: 'Hành tây', unit: 'kg' }],
     };
+    async all(resource: 'chefs' | 'ingredients') {
+        return [...this.rows[resource]].sort((a, b) => a.id - b.id).map(row => this.hydrate(resource, row));
+    }
+    async allOptions(resource: 'chefs' | 'ingredients') {
+        return [...this.rows[resource]].sort((a, b) => a.id - b.id).map(({ id, name, unit, specialty }) => ({ id, name, ...(unit === undefined ? {} : { unit }), ...(specialty === undefined ? {} : { specialty }) }));
+    }
     // Fixture behavior only; full-text ranking/trigrams are verified against PostgreSQL.
     async list(resource: Resource, query: ListQuery): Promise<Page<Entity>> {
         const norm = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();

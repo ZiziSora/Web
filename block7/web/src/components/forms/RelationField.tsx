@@ -34,7 +34,7 @@ export function RelationField({ g, selected, error, onChange }: { g: { key: stri
       <div ref={sentinel} className="options-sentinel" aria-hidden="true" />
       {s.loading && <p role="status" className="field-hint">Đang tải…</p>}
     </div>
-    <div className="options-footer"><p className="field-hint" aria-live="polite">Đã tải {s.items.length} mục{!s.hasMore && !s.loading && !s.error && s.items.length > 0 ? ' · Đã hết danh sách' : ''}</p>
+    <div className="options-footer"><p className="field-hint" aria-live="polite">Hiển thị {s.items.length} / {s.total} mục{!s.hasMore && !s.loading && !s.error && s.items.length > 0 ? ' · Đã hết danh sách' : ''}</p>
       {s.error && <p role="alert" className="field-error">{s.error.message}</p>}
       {(s.hasMore || s.error) && <button type="button" className="button secondary" disabled={s.loading || search.trim() !== q} onClick={s.loadMore}>{s.error ? 'Thử lại' : s.loading ? 'Đang tải…' : 'Tải thêm'}</button>}
     </div>

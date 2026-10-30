@@ -9,6 +9,17 @@ const normalize = (row: Record<string, unknown>): Entity => ({
 }) as unknown as Entity;
 export class PrismaRestaurantStore implements RestaurantStore {
     constructor(private db: PrismaClient, private schema = new URL(process.env.DATABASE_URL ?? 'postgresql://localhost/table').searchParams.get('schema') ?? 'public') { }
+    async all(resource: 'chefs' | 'ingredients'): Promise<Entity[]> {
+        const rows = resource === 'chefs'
+            ? await this.db.chef.findMany({ include: dishLinks, orderBy: { id: 'asc' } })
+            : await this.db.ingredient.findMany({ include: dishLinks, orderBy: { id: 'asc' } });
+        return rows.map(normalize);
+    }
+    async allOptions(resource: 'chefs' | 'ingredients'): Promise<Option[]> {
+        return resource === 'chefs'
+            ? this.db.chef.findMany({ select: { id: true, name: true, specialty: true }, orderBy: { id: 'asc' } })
+            : this.db.ingredient.findMany({ select: { id: true, name: true, unit: true }, orderBy: { id: 'asc' } });
+    }
     private table(resource: Resource) {
         return Prisma.raw(quoteIdentifier(this.schema) + '.' + quoteIdentifier({ dishes: 'Dish', chefs: 'Chef', ingredients: 'Ingredient' }[resource]));
     }

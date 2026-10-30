@@ -22,6 +22,13 @@ export function validateData(path: string, method: string | undefined, data: unk
       && Array.isArray(value.dishes) && value.dishes.every(link)
       && typeof value[parts[0] === 'chefs' ? 'specialty' : 'unit'] === 'string';
   };
+  if (verb === 'GET' && ['chefs', 'ingredients'].includes(parts[0])) {
+    const option = (value: unknown) => link(value) && typeof value[parts[0] === 'chefs' ? 'specialty' : 'unit'] === 'string';
+    if ((parts.length === 2 && parts[1] === 'all') || (parts.length === 3 && parts[1] === 'options' && parts[2] === 'all')) {
+      if (!Array.isArray(data) || !data.every(parts.length === 2 ? entity : option)) throw malformed();
+      return;
+    }
+  }
   if (verb === 'GET' && parts[1] === 'facets') {
     if (!object(data) || !Array.isArray(data.categories) || !data.categories.every(c => typeof c === 'string')) throw malformed();
     return;
