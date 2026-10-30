@@ -104,6 +104,7 @@ try {
           const selector = path === '/dishes' ? '.book-content .dish-card' : '.resource-table tbody tr';
           assert.equal(await page.locator(selector).count(), Math.min(count,6));
           assert.equal(await page.getByRole('navigation',{name:'Phân trang'}).count(), count>6?1:0);
+          if(path==='/dishes') assert.equal(await page.getByRole('form',{name:'Đi tới trang thực đơn'}).count(),count>6?1:0);
           if (count>6) {
             await page.getByRole('link',{name:path==='/dishes'?'Trang sau':'Sau',exact:true}).focus();
             await page.keyboard.press('Enter');
@@ -228,6 +229,7 @@ try {
     assert.deepEqual(queryRequests, ['Mục 13','Mục 12']);
     await page.getByRole('button', {name:'Xóa từ khóa',exact:true}).click();
     await page.waitForURL(url => !url.searchParams.has('q'));
+    await page.getByText('Hiển thị 1–6 trên 13 mục').waitFor();
     await search.dispatchEvent('compositionstart');
     await search.fill('Mục 12');
     await page.waitForTimeout(400);
@@ -627,18 +629,22 @@ try {
       requestedPages.push(new URL(route.request().url()).searchParams.get('page')!);
       await jumpGate;await route.continue();
     });
-    await page.getByRole('link',{name:'Trang 20',exact:true}).evaluate(el=>{(el as HTMLElement).click();(el as HTMLElement).click();});
+    await page.getByRole('textbox',{name:'Đi tới trang',exact:true}).fill('20');
+    await page.getByRole('button',{name:'Đi tới',exact:true}).evaluate(el=>{(el as HTMLElement).click();(el as HTMLElement).click();});
     await page.locator('.menu-book .book-skeleton-entry').first().waitFor();
     assert.equal(await page.getByRole('link',{name:'Trang 20',exact:true}).getAttribute('aria-current'),'page','selected page updates before the response');
     assert.equal(await page.getByRole('link',{name:'Trang 1',exact:true}).getAttribute('aria-current'),null);
     await page.getByText('Đang tải trang 20…',{exact:true}).waitFor();
     await page.setViewportSize({width:390,height:1000});
-    assert.equal(await page.locator('.book-page-mobile').innerText(),'Trang 20/20');
+    assert.equal(await page.getByRole('textbox',{name:'Đi tới trang',exact:true}).inputValue(),'20');
+    assert.ok(await page.getByRole('textbox',{name:'Đi tới trang',exact:true}).isDisabled());
+    assert.ok(await page.getByRole('button',{name:'Đi tới',exact:true}).isDisabled());
     await page.setViewportSize({width:1440,height:1000});
     await page.locator('.menu-book').screenshot({path:'artifacts/menu-page-loading.png'});
     releaseJump();
     const jump=page.locator('.book-turn[data-distance="19"]');
     await jump.waitFor();
+    assert.ok(await page.getByRole('textbox',{name:'Đi tới trang',exact:true}).isDisabled(),'jump input is locked during the flip');
     await page.getByRole('link',{name:'Trang 1',exact:true}).evaluate(el=>(el as HTMLElement).click());
     assert.equal(new URL(page.url()).searchParams.get('page'),'20','navigation remains locked during the turn');
     assert.equal(await jump.evaluate(el=>getComputedStyle(el).animationDuration),'0.845s');
@@ -649,7 +655,8 @@ try {
     await page.locator('.book-content').getByRole('heading',{name:'Món gà · biến thể 115',exact:true}).waitFor();
     assert.deepEqual(requestedPages,['20'],'distant jumps request only the destination, once');
     await page.unroute('**/api/dishes?**');
-    await page.getByRole('link',{name:'Trang 1',exact:true}).click();
+    await page.getByRole('textbox',{name:'Đi tới trang',exact:true}).fill('1');
+    await page.getByRole('textbox',{name:'Đi tới trang',exact:true}).press('Enter');
     await page.locator('.book-turn.turn-back[data-distance="19"]').waitFor();
     await page.waitForFunction(()=>!document.querySelector('.book-turn'));
     await page.emulateMedia({reducedMotion:'reduce'});
@@ -695,6 +702,7 @@ try {
     assert.equal(await page.getByRole('link',{name:'Trang 17',exact:true}).count(),1,'page window follows the pending selection');
     releaseFailure();
     await page.locator('.notice.error').waitFor();
+    assert.equal(await page.getByRole('textbox',{name:'Đi tới trang',exact:true}).inputValue(),'20');
     assert.equal(await page.getByRole('link',{name:'Trang 20',exact:true}).getAttribute('aria-current'),'page','failure restores the loaded page');
     assert.equal(new URL(page.url()).searchParams.get('page'),'19','retry keeps the failed destination');
     failPage=false;
@@ -702,11 +710,67 @@ try {
     await page.locator('.book-content').getByRole('heading',{name:'Món gà · biến thể 109',exact:true}).waitFor();
     assert.equal(await page.getByRole('link',{name:'Trang 19',exact:true}).getAttribute('aria-current'),'page');
     await page.unroute('**/api/dishes?**');
+    // Jump validation is local; typing and editing keys never navigate on their own.
+    const jumpConditions=new URLSearchParams({q:'Món',category:'Món Việt',available:'true',minPrice:'0',maxPrice:'200000',sort:'price-asc'});
+    await page.goto(webOrigin+'/dishes?'+jumpConditions);
+    await page.locator('.book-content .dish-card').first().waitFor();
+    const jumpInput=page.getByRole('textbox',{name:'Đi tới trang',exact:true});
+    const jumpRequests:string[]=[];
+    const recordJump=(request:import('playwright-core').Request)=>{
+      const url=new URL(request.url());
+      if(url.pathname==='/api/dishes') jumpRequests.push(url.searchParams.get('page')!);
+    };
+    page.on('request',recordJump);
+    await jumpInput.focus();
+    assert.equal(await jumpInput.evaluate(el=>(el as HTMLInputElement).selectionStart),0);
+    assert.equal(await jumpInput.evaluate(el=>(el as HTMLInputElement).selectionEnd),1);
+    for(const invalid of ['', '0', '-2', '1.5', 'abc', '21', '999999999999999999999999']) {
+      await jumpInput.fill(invalid);
+      await jumpInput.press('Enter');
+      await page.getByRole('alert').filter({hasText:'Nhập số nguyên từ 1 đến 20.'}).waitFor();
+      assert.equal(new URL(page.url()).searchParams.has('page'),false);
+    }
+    await jumpInput.fill('1');
+    await page.getByRole('button',{name:'Đi tới',exact:true}).click();
+    await jumpInput.fill('7');
+    await jumpInput.press('ArrowRight');
+    await jumpInput.press('ArrowLeft');
+    await page.waitForTimeout(350);
+    assert.deepEqual(jumpRequests,[],'same page, invalid values and typing issue no requests');
+    await page.getByRole('button',{name:'Đi tới',exact:true}).click();
+    await page.waitForURL(url=>url.searchParams.get('page')==='7');
+    await page.waitForFunction(()=>!document.querySelector('.menu-book[aria-busy="true"]'));
+    assert.equal(await jumpInput.inputValue(),'7');
+    for(const [key,value] of jumpConditions) assert.equal(new URL(page.url()).searchParams.get(key),value);
+    await page.goBack();
+    await page.waitForURL(url=>!url.searchParams.has('page'));
+    await page.waitForFunction(()=>!document.querySelector('.menu-book[aria-busy="true"]'));
+    assert.equal(await jumpInput.inputValue(),'1');
+    await page.goForward();
+    await page.waitForURL(url=>url.searchParams.get('page')==='7');
+    await page.waitForFunction(()=>!document.querySelector('.menu-book[aria-busy="true"]'));
+    assert.equal(await jumpInput.inputValue(),'7');
+    for(const width of [1440,768,390,320]) {
+      await page.setViewportSize({width,height:1000});
+      await page.locator('.book-footer').screenshot({path:'artifacts/menu-jump-'+width+'.png'});
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'jump footer fits '+width);
+      const inputBounds=(await jumpInput.boundingBox())!;
+      const nextBounds=(await page.getByRole('link',{name:'Trang sau',exact:true}).boundingBox())!;
+      assert.ok(Math.abs(inputBounds.y+inputBounds.height/2-nextBounds.y-nextBounds.height/2)<3,'jump stays in the pagination row at '+width);
+    }
+    await jumpInput.fill('1');
+    await jumpInput.press('Enter');
+    await page.waitForURL(url=>!url.searchParams.has('page'));
+    await page.waitForFunction(()=>!document.querySelector('.menu-book[aria-busy="true"]'));
+    assert.equal(await jumpInput.inputValue(),'1');
+    page.off('request',recordJump);
+    await page.setViewportSize({width:1440,height:1000});
     store.rows.dishes=store.rows.dishes.slice(0,12);
     await page.getByRole('link',{name:'Trang 20',exact:true}).click();
     await page.waitForURL(url=>url.searchParams.get('page')==='2');
     await page.locator('.book-content').getByRole('heading',{name:'Món gà · biến thể 7',exact:true}).waitFor();
     assert.equal(await page.getByRole('link',{name:'Trang 2',exact:true}).getAttribute('aria-current'),'page','server-clamped page owns the final selection');
+    assert.equal(await jumpInput.inputValue(),'2');
     await page.emulateMedia({reducedMotion:'no-preference'});
     store.rows=savedRows;
     await new Promise<void>(r => server.close(() => r()));
