@@ -1,4 +1,5 @@
 import express, { type Request, type Response, type NextFunction } from 'express';
+import { parseListQuery, parseOptionsQuery } from './list-query.js';
 import { resources, parseId, jsonInput, InputError, NotFoundError, IngredientInUseError, type RestaurantStore } from './domain.js';
 export function createApp(store: RestaurantStore, options: {
     origin?: string;
@@ -24,7 +25,9 @@ export function createApp(store: RestaurantStore, options: {
         const base = `/api/${resource}`;
         const idOf = (req: Request) => { const id = parseId(req.params.id); if (!id)
             throw new NotFoundError(); return id; };
-        app.get(base, async (req, res) => res.json({ ok: true, data: await store.list(resource, typeof req.query.q === 'string' ? req.query.q.trim() : '') }));
+        app.get(base, async (req, res) => res.json({ ok: true, data: await store.list(resource, parseListQuery(resource, req.query)) }));
+        if (resource === 'dishes') app.get(`${base}/facets`, async (_req, res) => res.json({ ok: true, data: await store.facets() }));
+        else app.get(`${base}/options`, async (req, res) => res.json({ ok: true, data: await store.options(resource, parseOptionsQuery(req.query)) }));
         app.get(`${base}/:id`, async (req, res) => { const data = await store.find(resource, idOf(req)); if (!data)
             throw new NotFoundError(); res.json({ ok: true, data }); });
         app.post(base, async (req, res) => res.json({ ok: true, data: await store.create(resource, jsonInput(resource, req.body) as Parameters<RestaurantStore['create']>[1]) }));

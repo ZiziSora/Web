@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test, beforeEach } from 'node:test';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
+import type { OptionsPage } from '../src/list-query.js';
 import { MemoryStore } from './memory-store.js';
 let store: MemoryStore;
 let app: ReturnType<typeof createApp>;
@@ -12,7 +13,7 @@ for (const r of ['dishes', 'chefs', 'ingredients'] as const)
         const base = '/api/' + r;
         const list = await request(app).get(base).expect(200);
         assert.equal(list.body.ok, true);
-        assert.ok(Array.isArray(list.body.data));
+        assert.ok(Array.isArray(list.body.data.items));
         const made = await request(app).post(base).send({ ...inputs[r], id: 999, admin: true }).expect(200);
         assert.equal(made.body.ok, true);
         const id = made.body.data.id;
@@ -56,8 +57,8 @@ test('GET never writes, search and relation/deletion rules', async () => {
     const before = structuredClone(store.rows);
     await request(app).get('/api/ingredients/1');
     assert.deepEqual(store.rows, before);
-    assert.equal((await request(app).get('/api/dishes?q=BÒ')).body.data.length, 1);
-    assert.equal((await request(app).get('/api/dishes?q=unknown')).body.data.length, 0);
+    assert.equal((await request(app).get('/api/dishes?q=BÒ')).body.data.items.length, 1);
+    assert.equal((await request(app).get('/api/dishes?q=unknown')).body.data.items.length, 0);
     const blocked = await request(app).delete('/api/ingredients/1').expect(200);
     assert.equal(blocked.body.error.code, 'VALIDATION_FAILED');
     assert.equal(blocked.body.error.details.dishes[0].id, 1);
@@ -65,4 +66,36 @@ test('GET never writes, search and relation/deletion rules', async () => {
     assert.deepEqual(clear.body.data.ingredients, []);
     assert.deepEqual(clear.body.data.chefs, []);
     assert.equal((await request(app).delete('/api/ingredients/1')).body.ok, true);
+});
+test('paged lists: boundaries, AND filters, stable sorts and validation', async () => {
+    for (const count of [0, 1, 6, 7, 13]) {
+        store.rows.dishes = Array.from({ length: count }, (_, i) => ({ id: i + 1, name: 'Món ' + i, description: 'bí đỏ', price: String(i * 100), category: i % 2 ? 'B' : 'A', available: i % 2 === 0, chefs: [], ingredients: [] }));
+        const data = (await request(app).get('/api/dishes?page=999')).body.data;
+        assert.equal(data.meta.total, count);
+        assert.equal(data.meta.page, Math.max(1, Math.ceil(count / 6)));
+        assert.equal(data.items.length, count ? count % 6 || 6 : 0);
+    }
+    const filtered = (await request(app).get('/api/dishes?mode=advanced&q=mon&category=A&available=true&minPrice=200&maxPrice=800&sort=price-desc')).body.data;
+    assert.deepEqual(filtered.items.map((row: { id: number }) => row.id), [9, 7, 5, 3]);
+    for (const query of ['page=0', 'pageSize=51', 'q[]=a', 'mode=unknown', 'sort=price;DROP', 'minPrice=-1', 'minPrice=2&maxPrice=1', 'available=yes', 'page=1&page=2']) {
+        assert.equal((await request(app).get('/api/dishes?' + query)).body.error.code, 'VALIDATION_FAILED', query);
+    }
+    for (const query of ['mode=fuzzy', 'mode=fulltext', 'sort=price-asc', 'available=true']) {
+        assert.equal((await request(app).get('/api/chefs?' + query)).body.error.code, 'VALIDATION_FAILED');
+    }
+});
+test('options use bounded cursors and facets use their own route', async () => {
+    store.rows.ingredients = Array.from({ length: 13 }, (_, i) => ({ id: i + 1, name: 'Hành ' + i, unit: 'kg' }));
+    const ids: number[] = [];
+    let after: number | null = null;
+    do {
+        const data: OptionsPage = (await request(app).get('/api/ingredients/options?q=hanh' + (after ? '&after=' + after : ''))).body.data;
+        assert.ok(data.items.length <= 6);
+        ids.push(...data.items.map((row: { id: number }) => row.id));
+        after = data.nextCursor;
+        assert.equal(data.hasMore, after !== null);
+    } while (after);
+    assert.deepEqual(ids, Array.from({ length: 13 }, (_, i) => i + 1));
+    assert.equal((await request(app).get('/api/ingredients/options?after=abc')).body.error.code, 'VALIDATION_FAILED');
+    assert.deepEqual((await request(app).get('/api/dishes/facets')).body.data, { categories: ['Món Việt'] });
 });

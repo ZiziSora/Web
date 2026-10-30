@@ -1,3 +1,6 @@
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { PrismaClient } from '../src/generated/prisma/client.js';
 import { createDatabase } from '../src/db.js';
 
 export const sampleChefs = [
@@ -29,11 +32,11 @@ const sampleDishes = [
   { name: 'Súp nấm ấm', description: 'Nấm được nấu chậm, xay mịn cùng chút bơ béo nhẹ. Một bát súp ấm là lời chào thân tình từ căn bếp của chúng tôi.', price: '65000', category: 'Khởi đầu nhẹ nhàng', available: false, chefs: [1, 3], ingredients: [6, 7, 11] },
 ];
 
-const db = createDatabase();
-try {
+export async function seedRestaurant(db: PrismaClient, schema = 'public') {
   await db.$transaction(async tx => {
     // Serialize seed runs without touching any existing business records.
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(9050101)::text`;
+    if (schema === 'public') await tx.$queryRaw`SELECT pg_advisory_xact_lock(9050101)::text`;
+    else await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${schema}), 9050101)::text`;
     const chefs: { id: number }[] = [];
     for (const data of sampleChefs) chefs.push(await tx.chef.findFirst({ where: { name: data.name } }) ?? await tx.chef.create({ data }));
     const ingredients: { id: number }[] = [];
@@ -45,9 +48,17 @@ try {
         ingredients: { connect: ingredientIndexes.map(i => ({ id: ingredients[i].id })) },
       } });
     }
-  }, { timeout: 60000, maxWait: 15000 });
+  }, { timeout: 120000, maxWait: 30000 });
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+const db = createDatabase();
+try {
+  const schema = new URL(process.env.DATABASE_URL!).searchParams.get('schema') ?? 'public';
+  await seedRestaurant(db, schema);
   console.log('Seed hoàn tất: 12 món, 4 đầu bếp, 12 nguyên liệu mẫu. Không ghi đè bản ghi đã có.');
 } catch {
   console.error('Không thể seed dữ liệu. Kiểm tra kết nối và chạy db:push trước.');
   process.exitCode = 1;
 } finally { await db.$disconnect(); }
+}

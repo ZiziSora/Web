@@ -1,31 +1,34 @@
-import { Plus, X } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Plus } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { labels, type Resource } from '../../api';
 import { Pagination } from '../../components/Pagination';
-import { PAGE_SIZE, usePagination } from '../../hooks/usePagination';
-import { Link,useLocation,useSearchParams } from 'react-router-dom';
-import { api,labels,type Entity,type Resource } from '../../api';
+import { ListControls } from '../../components/ListControls';
 import { State } from '../../components/State';
 import { ResourceTable } from '../../components/admin/ResourceTable';
 import { intros } from '../../config/resources';
-import { useLoad } from '../../hooks/useLoad';
-import { normalizeSearch } from '../../utils/search';
+import { usePagedList } from '../../hooks/usePagedList';
 
 export function List({ resource: r }: { resource: Resource }) {
-  const s = useLoad(r, signal => api<Entity[]>('/' + r, { signal }));
-  const [params, setParams] = useSearchParams();
-  const query = params.get('q') ?? '';
-  const setQuery = (q: string) => {
-    const next = new URLSearchParams(params);
-    next.delete('page');
-    if (q) next.set('q', q); else next.delete('q');
-    setParams(next, { state: loc.state });
-  };
+  const s = usePagedList(r);
   const loc = useLocation();
-  const rows = s.data?.filter(d => normalizeSearch(d.name).includes(normalizeSearch(query.trim())));
-  const paging = usePagination(rows?.length);
-  return <section className="container admin-content"><div className="section-heading"><div><h1 ref={paging.headingRef} tabIndex={-1}>Quản lý {labels[r]}<span className="accent">.</span></h1><p className="muted">{intros[r]}</p></div><Link className="button" to={'/admin/' + r + '/new'}><Plus aria-hidden="true" focusable="false" /> Thêm {labels[r]}</Link></div>
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const previous = useRef<number | undefined>(undefined);
+  const page = s.data?.meta.page;
+  useEffect(() => {
+    if (page && previous.current && previous.current !== page) {
+      headingRef.current?.focus({ preventScroll: true });
+      headingRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    }
+    if (page) previous.current = page;
+  }, [page]);
+  const data = s.data;
+  return <section className="container admin-content"><div className="section-heading"><div><h1 ref={headingRef} tabIndex={-1}>Quản lý {labels[r]}<span className="accent">.</span></h1><p className="muted">{intros[r]}</p></div><Link className="button" to={'/admin/' + r + '/new'}><Plus aria-hidden="true" /> Thêm {labels[r]}</Link></div>
     {loc.state?.message && <div className="notice success" role="status">{loc.state.message}</div>}
-    {!s.data ? <State {...s} /> : <><div className="list-toolbar"><p className="result-count" aria-live="polite"><span>{rows?.length}</span> {labels[r]}</p><label className="list-search"><span className="sr-only">Tìm {labels[r]}</span><input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder={'Tìm ' + labels[r] + ' theo tên…'} /></label></div>
-      {!rows?.length ? <div className="empty-state"><h2>{query ? 'Chưa có kết quả phù hợp.' : 'Chưa có ' + labels[r] + '.'}</h2><p>{query ? 'Thử một tên khác hoặc xóa bộ lọc để xem tất cả.' : 'Thêm thông tin đầu tiên để bắt đầu quản lý.'}</p>{query ? <button className="button secondary" onClick={() => setQuery('')}><X aria-hidden="true" focusable="false" /> Xóa bộ lọc</button> : <Link className="button" to={'/admin/' + r + '/new'}><Plus aria-hidden="true" focusable="false" /> Thêm {labels[r]}</Link>}</div> : <><ResourceTable resource={r} rows={rows.slice(paging.start, paging.start + PAGE_SIZE)} total={rows.length} /><Pagination page={paging.page} pages={paging.pages} total={rows.length} /></>}
+    <ListControls resource={r} />
+    {!data ? <State {...s} /> : <><p className="result-count" aria-live="polite"><span>{data.meta.total}</span> {labels[r]}{s.loading && ' · Đang tải trang…'}</p>
+      {s.error && <div className="notice error" role="alert">{s.error.message} <button className="button secondary" onClick={s.retry}>Thử lại</button></div>}
+      {!data.items.length ? <div className="empty-state"><h2>Chưa có kết quả phù hợp.</h2><p>Thử một tên khác hoặc xóa điều kiện để xem tất cả.</p></div> : <div aria-busy={s.loading}><ResourceTable resource={r} rows={data.items} total={data.meta.total} /><Pagination page={data.meta.page} pages={data.meta.pages} total={data.meta.total} loading={s.loading} /></div>}
     </>}
   </section>;
 }

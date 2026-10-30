@@ -1,3 +1,4 @@
+import type { ListQuery, OptionsQuery, OptionsPage, Page } from '../src/list-query.js';
 import { IngredientInUseError, InputError, NotFoundError, type Entity, type EntityInput, type Resource, type RestaurantStore } from '../src/domain.js';
 /** HTTP tests use an isolated store; database tests verify the real Prisma implementation. */
 export class MemoryStore implements RestaurantStore {
@@ -6,9 +7,37 @@ export class MemoryStore implements RestaurantStore {
         chefs: [{ id: 1, name: 'An', specialty: 'Món Việt' }],
         ingredients: [{ id: 1, name: 'Hành tây', unit: 'kg' }],
     };
-    async list(resource: Resource, q = '') {
-        return this.rows[resource].filter(e => e.name.toLocaleLowerCase('vi').includes(q.toLocaleLowerCase('vi'))).map(e => this.hydrate(resource, e));
+    // Fixture behavior only; full-text ranking/trigrams are verified against PostgreSQL.
+    async list(resource: Resource, query: ListQuery): Promise<Page<Entity>> {
+        const norm = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+        let effectiveMode = query.mode;
+        let rows = this.rows[resource].filter(row => {
+            const document = query.mode === 'fulltext' ? row.name + ' ' + (row.description ?? '') : row.name;
+            const matches = query.mode === 'fuzzy' ? false : query.mode === 'fulltext' ? norm(query.q).split(/\s+/).every(token => norm(document).includes(token)) : norm(document).includes(norm(query.q));
+            return (!query.q || matches) && (!query.category || row.category === query.category)
+              && (query.minPrice === undefined || Number(row.price) >= Number(query.minPrice))
+              && (query.maxPrice === undefined || Number(row.price) <= Number(query.maxPrice))
+              && (query.available === undefined || row.available === query.available);
+        });
+        if (!rows.length && query.q && query.mode === 'fulltext' && query.fallback) effectiveMode = 'fuzzy';
+        rows = rows.sort((a, b) => {
+            let order = 0;
+            if (query.sort.startsWith('name')) order = norm(a.name).localeCompare(norm(b.name));
+            if (query.sort.startsWith('price')) order = Number(a.price) - Number(b.price);
+            if (query.sort.endsWith('desc')) order = -order;
+            return order || a.id - b.id;
+        });
+        const total = rows.length, pages = Math.max(1, Math.ceil(total / query.pageSize)), page = Math.min(query.page, pages);
+        return { items: rows.slice((page - 1) * query.pageSize, page * query.pageSize).map(row => this.hydrate(resource, row)), meta: { page, pageSize: query.pageSize, pages, total, effectiveMode } };
     }
+    async options(resource: 'chefs' | 'ingredients', query: OptionsQuery): Promise<OptionsPage> {
+        const norm = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+        const rows = this.rows[resource].filter(row => row.id > query.after && norm(row.name).includes(norm(query.q))).sort((a, b) => a.id - b.id);
+        const items = rows.slice(0, query.limit).map(({ id, name, unit, specialty }) => ({ id, name, ...(unit === undefined ? {} : { unit }), ...(specialty === undefined ? {} : { specialty }) }));
+        const hasMore = rows.length > query.limit;
+        return { items, hasMore, nextCursor: hasMore ? items.at(-1)!.id : null };
+    }
+    async facets() { return { categories: [...new Set(this.rows.dishes.map(row => row.category!))].sort() }; }
     private hydrate(resource: Resource, row: Entity): Entity {
         const entity = structuredClone(row);
         if(resource==='dishes') {

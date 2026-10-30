@@ -1,23 +1,29 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { usePageKeys } from '../../hooks/usePageKeys';
-import { useEffect, useRef, useState, type RefObject, type MouseEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject, type MouseEvent } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { type Entity } from '../../api';
 import { DishGrid } from './DishGrid';
 
 type Flip = { from: number; target: number; dishes: Entity[] };
-export function MenuBook({ dishes, page, pages, total, headingRef }: { dishes: Entity[]; page: number; pages: number; total: number; headingRef: RefObject<HTMLHeadingElement | null> }) {
+export function MenuBook({ dishes, page, pages, total, headingRef, loading = false }: { dishes: Entity[]; page: number; pages: number; total: number; headingRef: RefObject<HTMLHeadingElement | null>; loading?: boolean }) {
   const { previousRef, nextRef } = usePageKeys();
   const [params] = useSearchParams();
   const location = useLocation();
   const [flip, setFlip] = useState<Flip | null>(null);
   const locked = useRef(false);
-  const previous = useRef(page);
+  const previous = useRef({ page, dishes });
   const focus = () => headingRef.current?.focus({ preventScroll: true });
-  useEffect(() => {
-    if (previous.current !== page && !locked.current) focus();
-    previous.current = page;
-  }, [page]);
+  useLayoutEffect(() => {
+    const old = previous.current;
+    if (old.page !== page) {
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        locked.current = true;
+        setFlip({ from: old.page, target: page, dishes: old.dishes });
+      } else focus();
+    }
+    previous.current = { page, dishes };
+  }, [page, dishes]);
   useEffect(() => {
     if (!flip) return;
     const finish = () => { locked.current = false; setFlip(null); focus(); };
@@ -33,16 +39,13 @@ export function MenuBook({ dishes, page, pages, total, headingRef }: { dishes: E
     if (target > 1) next.set('page', String(target));
     return { pathname: location.pathname, search: next.toString() ? '?' + next.toString() : '' };
   };
-  function turn(event: MouseEvent<HTMLAnchorElement>, target: number) {
+  function turn(event: MouseEvent<HTMLAnchorElement>) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    if (locked.current) { event.preventDefault(); return; }
-    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      locked.current = true; setFlip({ from: page, target, dishes });
-    }
+    if (locked.current || loading) event.preventDefault();
   }
   const leaf = (items: Entity[], offset: number) => <div className="book-leaf"><p className="book-running-title" aria-hidden="true">THE TABLE · THỰC ĐƠN</p><DishGrid dishes={items} startIndex={offset} /></div>;
   const forward = flip ? flip.target > flip.from : true;
-  return <div className="menu-book" aria-busy={!!flip}>
+  return <div className="menu-book" aria-busy={!!flip || loading}>
     <div className="book-binding"><div className="book-content">{leaf(dishes.slice(0,3), (page-1)*6)}{leaf(dishes.slice(3), (page-1)*6+3)}</div>
       {flip && <div className={'book-turn ' + (forward ? 'turn-forward' : 'turn-back')} aria-hidden="true" inert>
         <div className="turn-front">{leaf(forward ? flip.dishes.slice(3) : flip.dishes.slice(0,3), (flip.from-1)*6+(forward?3:0))}</div>
@@ -51,9 +54,9 @@ export function MenuBook({ dishes, page, pages, total, headingRef }: { dishes: E
     </div>
     <div className="book-footer"><p className="pagination-summary" aria-live="polite">Hiển thị {(page-1)*6+1}–{Math.min(page*6,total)} trên {total} mục</p>
     {pages > 1 && <nav className="book-controls" aria-label="Phân trang">
-      {page > 1 ? <Link to={href(page-1)} state={location.state} rel="prev" ref={previousRef} aria-keyshortcuts="ArrowLeft" title="Trang trước (←)" onClick={e=>turn(e,page-1)} aria-disabled={!!flip}><ChevronLeft aria-hidden="true" focusable="false" /> Trang trước</Link> : <span aria-disabled="true"><ChevronLeft aria-hidden="true" focusable="false" /> Trang trước</span>}
-      <span aria-live="polite">Lượt {page}/{pages}</span>
-      {page < pages ? <Link to={href(page+1)} state={location.state} rel="next" ref={nextRef} aria-keyshortcuts="ArrowRight" title="Trang sau (→)" onClick={e=>turn(e,page+1)} aria-disabled={!!flip}>Trang sau <ChevronRight aria-hidden="true" focusable="false" /></Link> : <span aria-disabled="true">Trang sau <ChevronRight aria-hidden="true" focusable="false" /></span>}
+      {page > 1 ? <Link to={href(page-1)} state={location.state} rel="prev" ref={previousRef} aria-keyshortcuts="ArrowLeft" title="Trang trước (←)" onClick={e=>turn(e)} aria-disabled={!!flip || loading}><ChevronLeft aria-hidden="true" focusable="false" /> Trang trước</Link> : <span aria-disabled="true"><ChevronLeft aria-hidden="true" focusable="false" /> Trang trước</span>}
+      <span className="book-page-numbers">{[...new Set([1, ...Array.from({ length: Math.min(5, pages) }, (_, i) => Math.max(1, Math.min(page - 2, pages - 4)) + i), pages])].map((n, i, all) => <span key={n}>{i > 0 && n > all[i - 1] + 1 && <span aria-hidden="true">…</span>}<Link to={href(n)} state={location.state} aria-label={'Trang ' + n} aria-current={n === page ? 'page' : undefined} onClick={e => turn(e)} aria-disabled={!!flip || loading}>{n}</Link></span>)}</span><span className="book-page-mobile">Trang {page}/{pages}</span>
+      {page < pages ? <Link to={href(page+1)} state={location.state} rel="next" ref={nextRef} aria-keyshortcuts="ArrowRight" title="Trang sau (→)" onClick={e=>turn(e)} aria-disabled={!!flip || loading}>Trang sau <ChevronRight aria-hidden="true" focusable="false" /></Link> : <span aria-disabled="true">Trang sau <ChevronRight aria-hidden="true" focusable="false" /></span>}
     </nav>}</div>
   </div>;
 }

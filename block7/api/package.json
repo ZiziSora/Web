@@ -12,7 +12,8 @@
     "db:generate": "prisma generate",
     "db:inspect": "tsx scripts/db-inspect.ts",
     "seed": "prisma db seed",
-    "test:db": "tsx --test integration/database.ts"
+    "test:db": "tsx --test integration/database.ts",
+    "db:search:setup": "tsx scripts/search-setup.ts"
   },
   "engines": {
     "node": ">=22.12.0"

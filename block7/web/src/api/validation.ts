@@ -22,8 +22,27 @@ export function validateData(path: string, method: string | undefined, data: unk
       && Array.isArray(value.dishes) && value.dishes.every(link)
       && typeof value[parts[0] === 'chefs' ? 'specialty' : 'unit'] === 'string';
   };
+  if (verb === 'GET' && parts[1] === 'facets') {
+    if (!object(data) || !Array.isArray(data.categories) || !data.categories.every(c => typeof c === 'string')) throw malformed();
+    return;
+  }
+  if (verb === 'GET' && parts[1] === 'options') {
+    if (!object(data) || !Array.isArray(data.items) || !data.items.every(value => link(value) && typeof value[parts[0] === 'chefs' ? 'specialty' : 'unit'] === 'string')
+      || typeof data.hasMore !== 'boolean' || !(data.nextCursor === null || (Number.isInteger(data.nextCursor) && Number(data.nextCursor) > 0))
+      || data.hasMore !== (data.nextCursor !== null) || (data.hasMore && (!data.items.length || (data.items.at(-1) as JsonObject).id !== data.nextCursor))) throw malformed();
+    return;
+  }
+  const page = (value: unknown) => {
+    if (!object(value) || !Array.isArray(value.items) || !value.items.every(entity) || !object(value.meta)) return false;
+    const m = value.meta;
+    return ['page', 'pageSize', 'pages'].every(k => Number.isSafeInteger(m[k]) && Number(m[k]) > 0)
+      && Number(m.pageSize) <= 50 && Number.isSafeInteger(m.total) && Number(m.total) >= 0
+      && m.pages === Math.max(1, Math.ceil(Number(m.total) / Number(m.pageSize))) && Number(m.page) <= Number(m.pages)
+      && value.items.length === Math.min(Number(m.pageSize), Math.max(0, Number(m.total) - (Number(m.page) - 1) * Number(m.pageSize)))
+      && ['basic', 'advanced', 'fulltext', 'fuzzy'].includes(String(m.effectiveMode));
+  };
   const valid = verb === 'DELETE' ? data === null
-    : verb === 'GET' && parts.length === 1 ? Array.isArray(data) && data.every(entity)
+    : verb === 'GET' && parts.length === 1 ? page(data)
     : entity(data);
   if (!valid) throw malformed();
 }

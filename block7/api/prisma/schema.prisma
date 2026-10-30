@@ -9,6 +9,8 @@ datasource db {
 }
 
 model Dish {
+  searchName  String @default("") @ignore
+  searchVector Unsupported("tsvector") @default(dbgenerated("''::tsvector"))
   id          Int          @id @default(autoincrement())
   name        String       @db.VarChar(120)
   description String       @db.VarChar(2000)
@@ -20,6 +22,7 @@ model Dish {
 }
 
 model Chef {
+  searchName String @default("") @ignore
   id        Int    @id @default(autoincrement())
   name      String @db.VarChar(120)
   specialty String @db.VarChar(200)
@@ -27,6 +30,7 @@ model Chef {
 }
 
 model Ingredient {
+  searchName String @default("") @ignore
   id     Int    @id @default(autoincrement())
   name   String @db.VarChar(120)
   unit   String @db.VarChar(40)

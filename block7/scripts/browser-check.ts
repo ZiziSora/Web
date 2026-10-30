@@ -32,6 +32,11 @@ try {
     browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', '/usr/bin/google-chrome'].find(existsSync), headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     const errors: string[] = [];
+    const batches: {url:string;count:number}[]=[];
+    page.on('response', async response => {
+      if (!response.url().includes('/api/') || response.request().method()!=='GET' || response.status()!==200) return;
+      try { const body=await response.json(); if(Array.isArray(body.data?.items)) batches.push({url:response.url(),count:body.data.items.length}); } catch {}
+    });
     page.on('pageerror', e => errors.push(e.message));
     // React warnings are console errors, not uncaught page errors.
     page.on('console', message => {
@@ -165,7 +170,7 @@ try {
         await page.screenshot({path:'artifacts/paged-'+path.replaceAll('/','-')+'-'+width+'.png',fullPage:true});
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
         await page.getByRole('searchbox').fill('Mục 13');
-        if(path==='/dishes') await page.getByRole('button',{name:'Tìm món'}).click();
+        await page.getByRole('button',{name:'Áp dụng',exact:true}).click();
         await page.waitForURL(url=>!url.searchParams.has('page') && url.searchParams.get('q')==='Mục 13');
         await page.getByText('Hiển thị 1–1 trên 1 mục').waitFor();
         assert.equal(await page.getByRole('navigation',{name:'Phân trang'}).count(),0);
@@ -174,6 +179,27 @@ try {
         await page.screenshot({path:'artifacts/pagination-'+path.replaceAll('/','-')+'-'+width+'.png',fullPage:true});
       }
     }
+    // Filters/sort affect the whole result before server pagination and survive reload.
+    const beforeFilter=structuredClone(store.rows.dishes);
+    store.rows.dishes=store.rows.dishes.map((row,i)=>({...row,price:String(i*100),category:i%2?'B':'A',available:i%2===0}));
+    await page.goto(webOrigin+'/admin/dishes?page=3');
+    await page.getByText('Hiển thị 13–13 trên 13 mục').waitFor();
+    if(!await page.locator('.query-filters').getAttribute('open').then(v=>v!==null)) await page.locator('.query-filters summary').click();
+    await page.getByRole('searchbox').fill('Muc');
+    await page.getByLabel('Danh mục',{exact:true}).selectOption('A');
+    await page.getByLabel('Giá từ (VNĐ)',{exact:true}).fill('200');
+    await page.getByLabel('Giá đến (VNĐ)',{exact:true}).fill('800');
+    await page.getByLabel('Phục vụ',{exact:true}).selectOption('true');
+    await page.getByLabel('Sắp xếp',{exact:true}).selectOption('price-desc');
+    await page.getByRole('button',{name:'Áp dụng',exact:true}).click();
+    await page.getByText('Hiển thị 1–4 trên 4 mục').waitFor();
+    assert.ok((await page.getByRole('rowheader').first().innerText()).includes('Mục 9'));
+    assert.equal(new URL(page.url()).searchParams.has('page'),false);
+    await page.reload();await page.getByText('Hiển thị 1–4 trên 4 mục').waitFor();
+    assert.equal(await page.getByLabel('Sắp xếp',{exact:true}).inputValue(),'price-desc');
+    await page.getByRole('button',{name:'Xóa điều kiện',exact:true}).click();
+    await page.getByText('Hiển thị 1–6 trên 13 mục').waitFor();
+    store.rows.dishes=beforeFilter;
     // Book-specific interactions: reduced motion, rapid input, resize and history cancellation.
     await page.setViewportSize({width:1440,height:1000});
     await page.goto(webOrigin+'/dishes');
@@ -182,6 +208,7 @@ try {
     await page.emulateMedia({reducedMotion:'reduce'});
     await page.getByRole('link',{name:'Trang sau',exact:true}).click();
     await page.waitForURL('**page=2');
+    await page.locator('.book-content .dish-card').filter({hasText:'Mục 7'}).waitFor();
     assert.equal(await page.locator('.book-turn').count(),0);
     await page.emulateMedia({reducedMotion:'no-preference'});
     await page.getByRole('link',{name:'Trang trước',exact:true}).click();
@@ -197,6 +224,80 @@ try {
     await page.getByRole('link',{name:'Trang sau',exact:true}).evaluate(el=>{(el as HTMLElement).click();(el as HTMLElement).click();});
     await page.waitForFunction(()=>!document.querySelector('.menu-book[aria-busy="true"]'));
     assert.equal(new URL(page.url()).searchParams.get('page'),'2');
+    // All three pagination UIs are exercised with fixtures beyond one batch.
+    await page.setViewportSize({width:1440,height:1000});
+    await page.goto(webOrigin+'/admin/dishes/1/edit');
+    const chefs=page.locator('.relation-fieldset').filter({has:page.locator('legend', {hasText:'Đầu bếp biết nấu món này'})});
+    const ingredients=page.locator('.relation-fieldset').filter({has:page.locator('legend', {hasText:'Nguyên liệu của món'})});
+    await chefs.getByText('Đã tải 6 mục',{exact:true}).waitFor();
+    await chefs.getByRole('button',{name:'Tải thêm',exact:true}).click();
+    await chefs.getByText('Đã tải 12 mục',{exact:true}).waitFor();
+    await chefs.getByLabel('Mục 7',{exact:true}).check();
+    await chefs.getByRole('searchbox').fill('muc 13');
+    await chefs.getByRole('searchbox').press('Enter');
+    assert.equal(new URL(page.url()).pathname,'/admin/dishes/1/edit','search Enter must not save the form');
+    await chefs.getByText('Đã tải 1 mục · Đã hết danh sách',{exact:true}).waitFor();
+    await chefs.getByRole('button',{name:'Bỏ chọn Mục 7',exact:true}).waitFor();
+    await chefs.getByLabel('Mục 13',{exact:true}).check();
+    await chefs.getByRole('searchbox').fill('');
+    await chefs.getByText('Đã tải 6 mục',{exact:true}).waitFor();
+    await chefs.getByRole('button',{name:'Bỏ chọn Mục 13',exact:true}).waitFor();
+    await ingredients.locator('.options-scroll').scrollIntoViewIfNeeded();
+    await ingredients.locator('.options-scroll').evaluate(el=>{el.scrollTop=el.scrollHeight;});
+    await ingredients.getByText('Đã tải 12 mục',{exact:true}).waitFor();
+    const beforeScroll=await ingredients.locator('.options-scroll').evaluate(el=>el.scrollTop);
+    assert.ok(beforeScroll>0,'append retains scroll position');
+    await ingredients.getByRole('searchbox').fill('không có');
+    await ingredients.getByText('Không tìm thấy tên phù hợp.').waitFor();
+    assert.equal(await ingredients.getByRole('checkbox').count(),0);
+    await ingredients.getByRole('searchbox').fill('');
+    await ingredients.getByText('Đã tải 6 mục',{exact:true}).waitFor();
+    // A failed next batch keeps inputs, checkboxes and loaded rows intact.
+    await page.route('**/api/chefs/options?**', async route=>{
+      if(new URL(route.request().url()).searchParams.has('after')) await route.fulfill({status:500,body:'offline'});
+      else await route.continue();
+    });
+    await chefs.getByRole('button',{name:'Tải thêm',exact:true}).click();
+    await chefs.getByRole('alert').waitFor();
+    assert.equal(await chefs.getByRole('checkbox').count(),6);
+    await chefs.getByRole('button',{name:'Bỏ chọn Mục 7',exact:true}).waitFor();
+    await page.unroute('**/api/chefs/options?**');
+    await chefs.getByRole('button',{name:'Thử lại',exact:true}).click();
+    await chefs.getByText('Đã tải 12 mục',{exact:true}).waitFor();
+    assert.ok(await chefs.getByLabel('Mục 7',{exact:true}).isChecked());
+    await page.screenshot({path:'artifacts/relationship-paging-1440.png',fullPage:true});
+    await page.setViewportSize({width:390,height:900});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    await page.screenshot({path:'artifacts/relationship-paging-390.png',fullPage:true});
+    // Late responses from one condition must never replace a different query.
+    await page.goto(webOrigin+'/admin/dishes');
+    await page.getByRole('rowheader').first().waitFor();
+    let releaseOld!:()=>void;
+    const heldOld=new Promise<void>(resolve=>{releaseOld=resolve;});
+    await page.route('**/api/dishes?**',async route=>{
+      if(new URL(route.request().url()).searchParams.get('q')==='Mục 1') {
+        const response=await route.fetch();await heldOld;
+        try {await route.fulfill({response});} catch {}
+      } else await route.continue();
+    });
+    await page.getByRole('searchbox').fill('Mục 1');
+    const requested=page.waitForRequest(req=>new URL(req.url()).searchParams.get('q')==='Mục 1');
+    await page.getByRole('button',{name:'Áp dụng',exact:true}).click();await requested;
+    await page.getByRole('searchbox').fill('Mục 13');
+    await page.getByRole('button',{name:'Áp dụng',exact:true}).click();
+    await page.getByText('Hiển thị 1–1 trên 1 mục').waitFor();
+    releaseOld();await page.waitForTimeout(150);
+    assert.equal(await page.getByRole('rowheader').count(),1);
+    assert.ok((await page.getByRole('rowheader').innerText()).includes('Mục 13'));
+    await page.unroute('**/api/dishes?**');
+    // Fuzzy presentation uses a controlled server response; ranking is tested on real PG.
+    await page.route('**/api/dishes?**',async route=>{
+      const data=await store.list('dishes',{page:1,pageSize:6,q:'',sort:'id',mode:'fuzzy',fallback:false});
+      await route.fulfill({status:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':webOrigin},body:JSON.stringify({ok:true,data})});
+    });
+    await page.goto(webOrigin+'/dishes?q=monn');
+    await page.locator('.search-summary').filter({hasText:'Các món có tên gần giống'}).waitFor();
+    await page.unroute('**/api/dishes?**');
     // A removed last page clamps to the new final page on reload.
     store.rows.ingredients=store.rows.ingredients.slice(0,6);
     await page.goto(webOrigin+'/admin/ingredients?page=3');
@@ -210,8 +311,8 @@ try {
     page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame())
         docs++; });
     await page.getByRole('searchbox').fill('unknown');
-    await page.getByRole('button', { name: 'Tìm món' }).click();
-    await page.getByText('Chưa tìm thấy món bạn muốn.').waitFor();
+    await page.getByRole('button', { name: 'Áp dụng', exact: true }).click();
+    await page.getByText('Chưa có món phù hợp.').waitFor();
     assert.equal(new URL(page.url()).searchParams.get('q'), 'unknown');
     assert.equal(docs, 0);
     await page.goto(webOrigin + '/admin/chefs/new');
@@ -274,10 +375,12 @@ try {
     }
     await page.goto(webOrigin + '/admin/ingredients');
     await page.getByRole('searchbox', {name: 'Tìm nguyên liệu'}).fill('hanh tay');
+    await page.getByRole('button',{name:'Áp dụng',exact:true}).click();
     await page.getByRole('rowheader').filter({hasText:'Hành tây'}).waitFor();
     await page.getByRole('searchbox').fill('không có');
+    await page.getByRole('button',{name:'Áp dụng',exact:true}).click();
     await page.getByRole('heading', {name: 'Chưa có kết quả phù hợp.'}).waitFor();
-    await page.getByRole('button', {name:'Xóa bộ lọc'}).click();
+    await page.getByRole('button', {name:'Xóa điều kiện',exact:true}).click();
     await page.getByRole('rowheader').filter({hasText:'Hành tây'}).waitFor();
     // A client-side transition between edit IDs must never initialize the new form with old data.
     store.rows.dishes.push({...store.rows.dishes[0], id: 88, name:'Món thứ hai'});
@@ -348,8 +451,11 @@ try {
     await new Promise<void>(r => server.close(() => r()));
     await page.goto(webOrigin + '/dishes');
     await page.getByRole('heading', { name: 'Chưa thể tải thông tin.' }).waitFor();
+    assert.ok(batches.length>0);
+    assert.ok(batches.every(batch=>batch.count<=6),'all network list batches are bounded to six');
+    await import('node:fs/promises').then(fs=>fs.writeFile('artifacts/network-batches.json',JSON.stringify(batches,null,2)));
     assert.deepEqual(errors, []);
-    console.log('Browser PASS: CORS, CSR navigation, validation, CRUD, direct URLs, mobile, malformed response, API offline.');
+    console.log('Browser PASS: three pagination UIs, bounded network batches, filter/sort/reload, query races, selected relations, retry, keyboard, book/reduced motion, CRUD, mobile, malformed response and API offline.');
 }
 finally {
     await browser?.close();
