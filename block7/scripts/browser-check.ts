@@ -170,7 +170,7 @@ try {
         await page.screenshot({path:'artifacts/paged-'+path.replaceAll('/','-')+'-'+width+'.png',fullPage:true});
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
         await page.getByRole('searchbox').fill('Mục 13');
-        await page.getByRole('button',{name:'Áp dụng',exact:true}).click();
+        await page.getByRole('searchbox').press('Enter');
         await page.waitForURL(url=>!url.searchParams.has('page') && url.searchParams.get('q')==='Mục 13');
         await page.getByText('Hiển thị 1–1 trên 1 mục').waitFor();
         assert.equal(await page.getByRole('navigation',{name:'Phân trang'}).count(),0);
@@ -191,14 +191,108 @@ try {
     await page.getByLabel('Giá đến (VNĐ)',{exact:true}).fill('800');
     await page.getByLabel('Phục vụ',{exact:true}).selectOption('true');
     await page.getByLabel('Sắp xếp',{exact:true}).selectOption('price-desc');
-    await page.getByRole('button',{name:'Áp dụng',exact:true}).click();
+    await page.getByRole('searchbox').press('Enter');
     await page.getByText('Hiển thị 1–4 trên 4 mục').waitFor();
     assert.ok((await page.getByRole('rowheader').first().innerText()).includes('Mục 9'));
     assert.equal(new URL(page.url()).searchParams.has('page'),false);
     await page.reload();await page.getByText('Hiển thị 1–4 trên 4 mục').waitFor();
     assert.equal(await page.getByLabel('Sắp xếp',{exact:true}).inputValue(),'price-desc');
-    await page.getByRole('button',{name:'Xóa điều kiện',exact:true}).click();
+    await page.getByRole('button',{name:'Xóa tất cả',exact:true}).click();
     await page.getByText('Hiển thị 1–6 trên 13 mục').waitFor();
+    // Automatic queries: debounce, IME, validation, individual chips and history.
+    await page.setViewportSize({width:1440,height:1000});
+    await page.goto(webOrigin+'/admin/dishes');
+    await page.getByRole('rowheader').first().waitFor();
+    const search = page.getByRole('searchbox');
+    const queryRequests: string[] = [];
+    const recordQuery = (request: import('playwright-core').Request) => {
+      const url = new URL(request.url());
+      if (url.pathname === '/api/dishes' && url.searchParams.has('q')) queryRequests.push(url.searchParams.get('q')!);
+    };
+    page.on('request', recordQuery);
+    await search.fill('M');
+    await page.waitForTimeout(80);
+    await search.fill('Mục 13');
+    await page.waitForTimeout(150);
+    assert.equal(new URL(page.url()).searchParams.has('q'), false, 'typing waits for debounce');
+    await page.waitForURL(url => url.searchParams.get('q') === 'Mục 13');
+    await page.getByText('Hiển thị 1–1 trên 1 mục').waitFor();
+    assert.deepEqual(queryRequests, ['Mục 13'], 'only final typed term is requested');
+    assert.ok(await search.evaluate(el => el === document.activeElement));
+    // The explicit search button flushes the pending term without a second request.
+    await search.fill('Mục 12');
+    await page.getByRole('button',{name:'Tìm kiếm',exact:true}).click();
+    await page.waitForURL(url => url.searchParams.get('q') === 'Mục 12');
+    await page.getByText('Hiển thị 1–1 trên 1 mục').waitFor();
+    await page.waitForTimeout(350);
+    assert.deepEqual(queryRequests, ['Mục 13','Mục 12']);
+    await page.getByRole('button', {name:'Xóa từ khóa',exact:true}).click();
+    await page.waitForURL(url => !url.searchParams.has('q'));
+    await search.dispatchEvent('compositionstart');
+    await search.fill('Mục 12');
+    await page.waitForTimeout(400);
+    await search.press('Enter');
+    assert.equal(new URL(page.url()).searchParams.has('q'), false, 'IME never submits partial text');
+    await search.dispatchEvent('compositionend');
+    await page.waitForURL(url => url.searchParams.get('q') === 'Mục 12');
+    await page.getByRole('button', {name:'Xóa tất cả',exact:true}).click();
+    await page.waitForURL(url => !url.searchParams.has('q'));
+    await page.getByLabel('Danh mục',{exact:true}).selectOption('A');
+    await page.waitForURL(url => url.searchParams.get('category') === 'A');
+    await page.getByLabel('Giá từ (VNĐ)',{exact:true}).fill('800');
+    await page.getByLabel('Giá đến (VNĐ)',{exact:true}).fill('200');
+    await page.getByText('Giá đến phải lớn hơn hoặc bằng giá từ.',{exact:true}).waitFor();
+    assert.equal(new URL(page.url()).searchParams.has('minPrice'), false, 'invalid prices stay local');
+    await page.getByLabel('Giá đến (VNĐ)',{exact:true}).fill('1000');
+    await page.waitForURL(url => url.searchParams.get('maxPrice') === '1000');
+    await page.getByRole('button',{name:'Bỏ Danh mục: A',exact:true}).click();
+    await page.waitForURL(url => !url.searchParams.has('category'));
+    assert.equal(new URL(page.url()).searchParams.get('minPrice'), '800');
+    await page.getByRole('button',{name:'Xóa tất cả',exact:true}).click();
+    await page.waitForURL(url => !url.searchParams.has('minPrice'));
+    for (const price of ['-1', '10000000000', '2.333', 'abc']) {
+      await page.getByLabel('Giá từ (VNĐ)',{exact:true}).fill(price);
+      await page.waitForTimeout(350);
+      assert.equal(await page.getByLabel('Giá từ (VNĐ)',{exact:true}).inputValue(), price, 'invalid draft is retained: '+price);
+      assert.equal(await page.getByLabel('Giá từ (VNĐ)',{exact:true}).getAttribute('aria-invalid'), 'true', 'invalid price: '+price);
+      assert.equal(new URL(page.url()).searchParams.has('minPrice'), false);
+    }
+    await page.getByRole('button',{name:'Xóa tất cả',exact:true}).click();
+    await page.getByLabel('Danh mục',{exact:true}).selectOption('A');
+    await page.waitForURL(url => url.searchParams.get('category') === 'A');
+    await search.fill('pending navigation');
+    await page.goBack();
+    await page.waitForTimeout(400);
+    assert.equal(new URL(page.url()).searchParams.has('q'), false, 'Back cancels pending debounce');
+    assert.equal(await search.inputValue(), '');
+    await page.goForward();
+    assert.equal(await page.getByLabel('Danh mục',{exact:true}).inputValue(), 'A');
+    await page.reload();
+    assert.equal(await page.getByLabel('Danh mục',{exact:true}).inputValue(), 'A');
+    await page.getByRole('button',{name:'Xóa tất cả',exact:true}).click();
+    page.off('request', recordQuery);
+    // Guest search keeps the chosen sort while ranking by relevance.
+    await page.goto(webOrigin+'/dishes?sort=price-desc');
+    await page.getByRole('searchbox').fill('Mục');
+    await page.waitForURL(url => url.searchParams.get('q') === 'Mục');
+    assert.ok(await page.getByLabel('Sắp xếp',{exact:true}).isDisabled());
+    assert.equal(await page.getByLabel('Sắp xếp',{exact:true}).inputValue(), 'relevance');
+    await page.getByRole('button',{name:'Xóa từ khóa',exact:true}).click();
+    await page.waitForURL(url => !url.searchParams.has('q'));
+    assert.equal(await page.getByLabel('Sắp xếp',{exact:true}).inputValue(), 'price-desc');
+    for (const width of [1440,768,390]) {
+      await page.setViewportSize({width,height:1000});
+      for (const path of ['/dishes','/admin/dishes']) {
+        await page.goto(webOrigin+path+'?category=A&minPrice=200&available=true');
+        await page.getByRole('button',{name:'Bỏ Danh mục: A',exact:true}).waitFor();
+        const filters=page.locator('.query-filters');
+        assert.equal(await filters.evaluate(el => el.hasAttribute('open')), width >= 768);
+        if (width < 768) await filters.locator('summary').click();
+        assert.ok(await page.getByLabel('Giá từ (VNĐ)',{exact:true}).isVisible());
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+        await page.locator('.query-controls').screenshot({path:'artifacts/search-'+(path === '/dishes' ? 'menu' : 'admin')+'-'+width+'.png'});
+      }
+    }
     store.rows.dishes=beforeFilter;
     // Book-specific interactions: reduced motion, rapid input, resize and history cancellation.
     await page.setViewportSize({width:1440,height:1000});
@@ -282,9 +376,9 @@ try {
     });
     await page.getByRole('searchbox').fill('Mục 1');
     const requested=page.waitForRequest(req=>new URL(req.url()).searchParams.get('q')==='Mục 1');
-    await page.getByRole('button',{name:'Áp dụng',exact:true}).click();await requested;
+    await requested;
     await page.getByRole('searchbox').fill('Mục 13');
-    await page.getByRole('button',{name:'Áp dụng',exact:true}).click();
+    await page.getByRole('searchbox').press('Enter');
     await page.getByText('Hiển thị 1–1 trên 1 mục').waitFor();
     releaseOld();await page.waitForTimeout(150);
     assert.equal(await page.getByRole('rowheader').count(),1);
@@ -311,7 +405,7 @@ try {
     page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame())
         docs++; });
     await page.getByRole('searchbox').fill('unknown');
-    await page.getByRole('button', { name: 'Áp dụng', exact: true }).click();
+    await page.getByRole('searchbox').press('Enter');
     await page.getByText('Chưa có món phù hợp.').waitFor();
     assert.equal(new URL(page.url()).searchParams.get('q'), 'unknown');
     assert.equal(docs, 0);
@@ -375,12 +469,12 @@ try {
     }
     await page.goto(webOrigin + '/admin/ingredients');
     await page.getByRole('searchbox', {name: 'Tìm nguyên liệu'}).fill('hanh tay');
-    await page.getByRole('button',{name:'Áp dụng',exact:true}).click();
+    await page.getByRole('searchbox').press('Enter');
     await page.getByRole('rowheader').filter({hasText:'Hành tây'}).waitFor();
     await page.getByRole('searchbox').fill('không có');
-    await page.getByRole('button',{name:'Áp dụng',exact:true}).click();
+    await page.getByRole('searchbox').press('Enter');
     await page.getByRole('heading', {name: 'Chưa có kết quả phù hợp.'}).waitFor();
-    await page.getByRole('button', {name:'Xóa điều kiện',exact:true}).click();
+    await page.getByRole('button', {name:'Xóa tất cả',exact:true}).click();
     await page.getByRole('rowheader').filter({hasText:'Hành tây'}).waitFor();
     // A client-side transition between edit IDs must never initialize the new form with old data.
     store.rows.dishes.push({...store.rows.dishes[0], id: 88, name:'Món thứ hai'});
@@ -448,6 +542,55 @@ try {
     }
     assert.ok(requests.some(r=>r.method==='OPTIONS'),'writes still preflight');
     assert.ok(requests.some(r=>r.method==='DELETE'&&r.type===undefined));
+    // Large chef associations stay compact; full lists are searchable and bounded.
+    const savedRows=structuredClone(store.rows);
+    store.rows.chefs=[{id:901,name:'Đầu bếp nhiều món',specialty:'Ẩm thực Việt'},{id:902,name:'Đầu bếp một món',specialty:'Món Việt'},{id:903,name:'Đầu bếp hai món',specialty:'Món Việt'},{id:904,name:'Đầu bếp mới',specialty:'Món Việt'}];
+    store.rows.dishes=Array.from({length:120},(_,index)=>({id:1000+index,name:'Món gà · biến thể '+(index+1),price:'100000',category:'Món Việt',available:true,chefs:[{id:901,name:'Đầu bếp nhiều món'},...(index===0?[{id:902,name:'Đầu bếp một món'}]:[]),...(index<2?[{id:903,name:'Đầu bếp hai món'}]:[])],ingredients:[]}));
+    for(const width of [1440,390]) {
+      await page.setViewportSize({width,height:1000});
+      let releaseList!:()=>void;
+      const listGate=new Promise<void>(resolve=>{releaseList=resolve;});
+      await page.route('**/api/chefs?**',async route=>{await listGate;await route.continue();});
+      await page.goto(webOrigin+'/admin/chefs');
+      await page.locator('.list-placeholder-table .skeleton-line').first().waitFor();
+      assert.notEqual(await page.locator('.list-placeholder .skeleton-line').first().evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
+      assert.equal(await page.locator('.loading-ring').count(),0);
+      await page.screenshot({path:'artifacts/chefs-skeleton-'+width+'.png',fullPage:true});
+      releaseList();
+      const row=page.getByRole('row').filter({has:page.getByRole('rowheader',{name:'Đầu bếp nhiều món #901'})});
+      await row.waitFor();
+      await page.unroute('**/api/chefs?**');
+      assert.equal(await row.locator('.chef-dishes-preview a').count(),2);
+      assert.ok((await row.boundingBox())!.height < (width===390?420:220),'collapsed chef row stays compact');
+      assert.equal(await page.getByRole('row').filter({hasText:'Đầu bếp một món'}).locator('.chef-dishes-preview a').count(),1);
+      assert.equal(await page.getByRole('row').filter({hasText:'Đầu bếp hai món'}).locator('.chef-dishes-preview a').count(),2);
+      await page.screenshot({path:'artifacts/chefs-compact-'+width+'.png',fullPage:true});
+      await row.getByRole('button',{name:'Xem tất cả món ăn của Đầu bếp nhiều món'}).click();
+      const region=row.getByRole('region',{name:'Món ăn của Đầu bếp nhiều món'});
+      assert.equal(await region.getByRole('link').count(),120);
+      assert.ok((await region.boundingBox())!.height<=221);
+      assert.ok(await region.evaluate(el=>el.scrollHeight>el.clientHeight));
+      const findDish=row.getByRole('searchbox',{name:'Tìm món của Đầu bếp nhiều món'});
+      await findDish.fill('bien the 119');
+      assert.equal(await region.getByRole('link').count(),1);
+      assert.equal(await region.getByRole('link').getAttribute('href'),'/admin/dishes/1118/edit');
+      await page.screenshot({path:'artifacts/chefs-expanded-'+width+'.png',fullPage:true});
+      await findDish.fill('không tồn tại');
+      await region.getByText('Không có món phù hợp. Thử tên khác.').waitFor();
+      await row.getByRole('button',{name:'Thu gọn món ăn của Đầu bếp nhiều món'}).click();
+      assert.equal(await region.count(),0);
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    }
+    let releaseEditor!:()=>void;
+    const editorGate=new Promise<void>(resolve=>{releaseEditor=resolve;});
+    await page.route('**/api/chefs/901',async route=>{await editorGate;await route.continue();});
+    await page.goto(webOrigin+'/admin/chefs/901/edit');
+    await page.locator('.loading-view .skeleton-input').first().waitFor();
+    await page.screenshot({path:'artifacts/chef-editor-skeleton.png',fullPage:true});
+    releaseEditor();
+    await page.getByLabel('Tên đầu bếp').waitFor();
+    await page.unroute('**/api/chefs/901');
+    store.rows=savedRows;
     await new Promise<void>(r => server.close(() => r()));
     await page.goto(webOrigin + '/dishes');
     await page.getByRole('heading', { name: 'Chưa thể tải thông tin.' }).waitFor();

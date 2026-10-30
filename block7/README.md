@@ -30,7 +30,7 @@ Với database mới chưa có bảng, chạy `npm exec -w @table/api -- prisma 
 
 Không còn client paging trên tập dữ liệu tải đầy đủ. Việc `slice` trong sách chỉ chia **một trang gồm 6 món đã nhận** thành hai lá, mỗi lá 3 món. Cursor đọc dư một mục để biết còn dữ liệu; không COUNT cho picker. Các quan hệ trong chi tiết món được dùng để khôi phục lựa chọn đã lưu.
 
-- Thực đơn: nhập tên/mô tả, nhấn Áp dụng. PostgreSQL full-text dùng cấu hình `simple` ở cả document và query, tên trọng số A và mô tả trọng số B; `coalesce` xử lý NULL. Không có kết quả thì tìm tên gần đúng và ghi rõ đây là gợi ý.
+- Thực đơn: nhập tên/mô tả, tự tìm sau 300 ms ngừng gõ; Enter tìm ngay. PostgreSQL full-text dùng cấu hình `simple` ở cả document và query, tên trọng số A và mô tả trọng số B; `coalesce` xử lý NULL. Không có kết quả thì tìm tên gần đúng và ghi rõ đây là gợi ý.
 - Fuzzy dùng `pg_trgm`, `similarity >= 0.3`, có toán tử `%` để hỗ trợ GIN. Full-text/fuzzy xếp điểm giảm dần, `id` tăng dần khi bằng điểm; sort tên/giá không ghi đè thứ hạng tìm kiếm.
 - Quản trị và picker tìm một phần tên. Mọi ô tìm đều không phân biệt hoa/thường/dấu nhờ `lower(unaccent(...))` tại PostgreSQL. Ký tự `%`, `_`, `\` trong tìm tên là ký tự literal.
 - Bộ lọc món: danh mục, min/max giá (bao gồm biên), trạng thái phục vụ; kết hợp AND với tìm kiếm trên toàn bộ tập dữ liệu **trước** phân trang. Danh mục lấy DISTINCT từ database.
@@ -41,9 +41,13 @@ Không còn client paging trên tập dữ liệu tải đầy đủ. Việc `sl
 
 Ví dụ: `/admin/dishes?q=nam&category=Vườn+xanh&minPrice=50000&available=true&sort=price-asc&page=2`.
 
-URL danh sách giữ điều kiện và trang qua reload, copy link, Back/Forward. Đổi tìm kiếm/filter/sort bằng nút Áp dụng bắt đầu từ trang 1. Xóa điều kiện khôi phục mặc định. Trang sai ở UI về 1; trang vượt cuối được server clamp rồi đồng bộ URL bằng replace. Count, chọn ID và tải bản ghi nằm trong cùng transaction Repeatable Read.
+URL danh sách giữ điều kiện và trang qua reload, copy link, Back/Forward. Từ khóa và khoảng giá tự cập nhật sau 300 ms (replace lịch sử); lựa chọn danh mục/trạng thái/sort và xóa điều kiện cập nhật ngay (thêm lịch sử). Điều kiện mới bắt đầu từ trang 1. Chip cho phép bỏ từng điều kiện; Xóa tất cả khôi phục mặc định. Giá sai được báo tại trường nhập và không gửi request. Khi nhập bằng IME, chỉ tìm sau khi kết thúc composition. Back/Forward hoặc điều hướng hủy bản nhập đang chờ. Trang sai ở UI về 1; trang vượt cuối được server clamp rồi đồng bộ URL bằng replace. Count, chọn ID và tải bản ghi nằm trong cùng transaction Repeatable Read.
 
 Khi tải trang mới, trang cũ có trạng thái đang tải; chỉ đổi dữ liệu, số trang và lật sách khi phản hồi mới sẵn sàng. Reduced motion không chạy hiệu ứng. Lỗi có nút thử lại.
+
+Nút **Tìm kiếm** và phím Enter gửi ngay điều kiện hợp lệ đang nhập, không chờ debounce và không gửi lặp sau đó. Danh sách quản trị, trang chi tiết và form sử dụng skeleton theo bố cục nội dung; lỗi vẫn có nút thử lại.
+
+Quản trị đầu bếp hiển thị tổng số món và tối đa hai món xem trước. Với nhiều hơn hai món, nút **Xem tất cả** mở danh sách có khung cuộn giới hạn 220 px và ô tìm tên không phân biệt dấu. Danh sách đầy đủ chỉ được dựng khi mở; các liên kết vẫn dẫn tới trang chỉnh sửa món ăn.
 
 Picker tìm kiếm debounce 300 ms (Enter áp dụng ngay, không submit form món); đổi từ khóa hủy request cũ và tải từ cursor đầu. Lựa chọn giữ riêng bằng ID, có chip để xem/bỏ chọn cả mục nằm ngoài kết quả đang xem. Append giữ vị trí cuộn, loại trùng ID, khóa request đồng thời; lỗi giữ dữ liệu và lựa chọn. Infinite scroll dùng IntersectionObserver có root là khung nguyên liệu; lỗi không tự retry liên tục.
 
