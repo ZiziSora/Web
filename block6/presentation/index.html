@@ -64,7 +64,7 @@
           </div>
         </div>
         <div class="callout blue"><strong>Điểm phân loại:</strong> HTML ban đầu chỉ có <code>&lt;div id="root"&gt;&lt;/div&gt;</code>; nội dung món ăn xuất hiện sau khi JavaScript chạy và gọi API.</div>
-        <div class="footer"><span>Nguồn: web/index.html / web/src/main.tsx / api/src/app.ts</span><span>02 / 14</span></div>
+        <div class="footer"><span>Nguồn: web/index.html / web/src/main.tsx / web/src/App.tsx / api/src/app.ts</span><span>02 / 14</span></div>
       </section>
 
       <section class="slide" id="slide-3" aria-labelledby="title-3" hidden>
@@ -99,7 +99,7 @@
             <div class="box wash"><span class="label">Quy ước origin</span><p class="small">Dùng thống nhất <code>localhost</code>; <code>127.0.0.1</code> là một origin khác.</p></div>
           </div>
         </div>
-        <div class="footer"><span>Nguồn: README.md / web/src/api.ts / api/src/server.ts / api/src/db.ts</span><span>03 / 14</span></div>
+        <div class="footer"><span>Nguồn: README.md / web/src/api/client.ts / api/src/server.ts / api/src/db.ts</span><span>03 / 14</span></div>
       </section>
 
       <section class="slide" id="slide-4" aria-labelledby="title-4" hidden>
@@ -111,43 +111,43 @@
           <div class="pipeline">
             <div class="step"><span class="label">01 · Document</span><strong>HTML shell</strong><p>Vite trả <code>#root</code> và thẻ tải <code>main.tsx</code>.</p></div>
             <div class="step"><span class="label">02 · Khởi tạo</span><strong><code>createRoot</code></strong><p>React gắn ứng dụng vào phần tử root.</p></div>
-            <div class="step"><span class="label">03 · URL</span><strong>Router</strong><p><code>BrowserRouter</code> chọn component theo đường dẫn.</p></div>
+            <div class="step"><span class="label">03 · URL</span><strong>Router</strong><p><code>App</code> chọn page theo đường dẫn.</p></div>
             <div class="step"><span class="label">04 · Dữ liệu</span><strong><code>fetch</code></strong><p>Component gọi REST API, nhận JSON.</p></div>
             <div class="step"><span class="label">05 · Trạng thái</span><strong>State</strong><p>Hook lưu loading, data hoặc error.</p></div>
-            <div class="step"><span class="label">06 · Hiển thị</span><strong>DOM</strong><p>React render skeleton, dữ liệu hoặc thông báo lỗi.</p></div>
+            <div class="step"><span class="label">06 · Hiển thị</span><strong>DOM</strong><p>React render nội dung hoặc panel trạng thái.</p></div>
           </div>
           <div class="state-grid">
-            <div class="box"><strong>Loading</strong><p class="small">Skeleton bám theo bố cục của route hiện tại.</p></div>
+            <div class="box"><strong>Loading</strong><p class="small">Panel trạng thái với vòng tải và thông báo chờ.</p></div>
             <div class="box"><strong>Success</strong><p class="small">Dữ liệu được render theo route.</p></div>
             <div class="box"><strong>Empty</strong><p class="small">Danh sách rỗng có thông điệp riêng.</p></div>
             <div class="box"><strong>Error / 404</strong><p class="small">Có thử lại hoặc đường về thực đơn.</p></div>
           </div>
           <div class="callout blue"><strong>JavaScript là điều kiện vận hành:</strong> tắt JavaScript thì <code>#root</code> không được React lấp nội dung.</div>
         </div>
-        <div class="footer"><span>Nguồn: web/index.html / web/src/main.tsx / web/src/components/Loading.tsx</span><span>04 / 14</span></div>
+        <div class="footer"><span>Nguồn: web/src/main.tsx / web/src/App.tsx / hooks/useLoad.ts / components/State.tsx</span><span>04 / 14</span></div>
       </section>
 
       <section class="slide" id="slide-5" aria-labelledby="title-5" hidden>
         <div class="masthead"><span class="issue">Block 06 / The Table</span><span>URL phía client</span></div>
         <p class="eyebrow">05 / React Router</p>
         <h2 id="title-5">URL vẫn mô tả đúng màn hình, dù không tải lại document</h2>
-        <p class="lead">Link và điều hướng dùng History API; Vite hỗ trợ mở trực tiếp hoặc reload các route của SPA.</p>
+        <p class="lead"><code>App.tsx</code> khai báo route; query <code>q</code> và <code>page</code> giữ trạng thái tìm kiếm/phân trang để chia sẻ hoặc reload.</p>
         <div class="body">
           <table class="table route-map">
             <thead><tr><th>URL phía trình duyệt</th><th>Component</th><th>Hành vi chính</th></tr></thead>
             <tbody>
               <tr><td><code>/</code> · <code>/admin</code></td><td><code>Navigate</code></td><td>Chuyển phía client đến trang mặc định.</td></tr>
-              <tr><td><code>/dishes?q=...</code></td><td><code>Menu</code></td><td>Danh sách và tìm theo tên; query nằm trên URL.</td></tr>
+              <tr><td><code>/dishes?q=...&amp;page=...</code></td><td><code>Menu</code></td><td>Tìm kiếm, phân trang và thực đơn dạng sách.</td></tr>
               <tr><td><code>/dishes/:id</code></td><td><code>Detail</code></td><td>Chi tiết món, nguyên liệu và đầu bếp.</td></tr>
-              <tr><td><code>/admin/{resource}</code></td><td><code>List</code></td><td>Danh sách quản trị ba tài nguyên.</td></tr>
-              <tr><td><code>/new</code> · <code>/:id/edit</code></td><td><code>Editor</code></td><td>Tạo hoặc sửa bằng form React.</td></tr>
-              <tr><td><code>/:id/delete</code></td><td><code>Delete</code></td><td>Xem xác nhận; chưa xóa khi chỉ mở trang.</td></tr>
+              <tr><td><code>/admin/{resource}?q=...&amp;page=...</code></td><td><code>List</code></td><td>Lọc tại client và phân trang bảng quản trị.</td></tr>
+              <tr><td><code>/new</code> · <code>/:id/edit</code></td><td><code>Editor</code></td><td>Tạo mới; route edit đi qua <code>RecordPage</code>.</td></tr>
+              <tr><td><code>/:id/delete</code></td><td><code>Delete</code></td><td><code>RecordPage</code> remount đúng resource/ID.</td></tr>
               <tr><td>Route không tồn tại</td><td><code>State</code></td><td>Màn hình “Trang không tồn tại”.</td></tr>
             </tbody>
           </table>
           <div class="callout blue"><strong>Hai việc khác nhau:</strong> React Router đổi màn hình sau khi app đã chạy; history fallback đảm bảo server Vite vẫn trả <code>index.html</code> khi người dùng reload một URL sâu.</div>
         </div>
-        <div class="footer"><span>Nguồn: web/src/main.tsx · Layout / web/vite.config.ts</span><span>05 / 14</span></div>
+        <div class="footer"><span>Nguồn: web/src/App.tsx / RecordPage.tsx / components/layout / web/vite.config.ts</span><span>05 / 14</span></div>
       </section>
 
       <section class="slide" id="slide-6" aria-labelledby="title-6" hidden>
@@ -191,101 +191,102 @@
         <p class="lead">Một hàm <code>api&lt;T&gt;</code> gom lỗi kết nối, HTTP, JSON, lỗi nghiệp vụ và dữ liệu sai hình dạng.</p>
         <div class="body grid2">
           <div class="stack">
-            <div class="codebox medium"><div class="code-title"><span>web/src/api.ts</span><span>Lược trích</span></div><pre><code><span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(base + path, {
+            <div class="codebox medium"><div class="code-title"><span>api/client.ts + validation.ts</span><span>Lược trích</span></div><pre><code><span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(base + path, {
   ...options,
-  headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> }
+  headers: <span class="fn">requestHeaders</span>(options)
 });
 
 <span class="kw">if</span> (!res.ok) <span class="kw">throw new</span> <span class="fn">ApiError</span>(...);
 <span class="kw">const</span> body = <span class="kw">await</span> res.<span class="fn">json</span>();
-<span class="kw">if</span> (body?.ok === <span class="kw">false</span>) <span class="kw">throw new</span> <span class="fn">ApiError</span>(...);
-<span class="kw">if</span> (body?.ok !== <span class="kw">true</span>) <span class="kw">throw new</span> <span class="fn">ApiError</span>(...);</code></pre></div>
-            <p class="small muted">Sau đó client còn kiểm tra ID, kiểu chuỗi, boolean, mảng quan hệ và <code>null</code> của DELETE.</p>
+<span class="kw">return</span> <span class="fn">responseData</span>(path, options.method, body);</code></pre></div>
+            <p class="small muted">Validation dùng cả path và method để phân biệt list, detail, mutation và DELETE.</p>
           </div>
           <div class="stack">
-            <div class="box blue"><span class="label">Bốn lớp kiểm tra</span><ul class="bullets compact"><li>Kết nối có thực hiện được không?</li><li>HTTP status có thành công không?</li><li>Body có phải JSON/envelope hợp lệ không?</li><li><code>data</code> có đúng hình dạng resource không?</li></ul></div>
-            <div class="box wash"><span class="label">Một kiểu lỗi cho UI</span><h3><code>ApiError</code></h3><p class="small">Mang theo <code>code</code>, lỗi từng trường và danh sách món đang dùng nguyên liệu.</p></div>
+            <div class="box blue"><span class="label">Kiểm tra cả thành công lẫn lỗi</span><ul class="bullets compact"><li>List phải là mảng; detail/mutation phải là entity.</li><li>Giá, ID, boolean và các mảng quan hệ đúng kiểu.</li><li><code>error.message</code>, <code>fields</code>, <code>details.dishes</code> cũng được kiểm tra.</li></ul></div>
+            <div class="box wash"><span class="label">Header theo body</span><h3><code>requestHeaders</code></h3><p class="small">Chỉ thêm JSON Content-Type cho body chuỗi; GET/DELETE không body không tự gắn header này.</p></div>
             <div class="box navy"><span class="label">Kết quả</span><p class="small">Component không cần biết lỗi đến từ mạng, HTTP hay nghiệp vụ; nó nhận thông điệp và dữ liệu có cấu trúc thống nhất.</p></div>
           </div>
         </div>
-        <div class="footer"><span>Nguồn: web/src/api.ts</span><span>07 / 14</span></div>
+        <div class="footer"><span>Nguồn: web/src/api/client.ts / headers.ts / validation.ts / scripts/response.test.ts</span><span>07 / 14</span></div>
       </section>
 
       <section class="slide" id="slide-8" aria-labelledby="title-8" hidden>
         <div class="masthead"><span class="issue">Block 06 / The Table</span><span>Tải dữ liệu</span></div>
-        <p class="eyebrow">08 / Hook và component dùng chung</p>
-        <h2 id="title-8"><code>useLoad</code> và skeleton luôn theo đúng route</h2>
-        <p class="lead">Hook quản lý request; <code>State</code> chuyển trạng thái loading cho <code>Loading</code> để dựng placeholder phù hợp với từng màn hình.</p>
+        <p class="eyebrow">08 / Hook tải dữ liệu dùng chung</p>
+        <h2 id="title-8"><code>useLoad</code> chỉ trả trạng thái của request hiện tại</h2>
+        <p class="lead">Hook gắn state với <code>key</code>, hủy request cũ và chuẩn hóa lỗi lạ trước khi đưa dữ liệu cho page.</p>
         <div class="body sequence-layout">
           <div>
             <svg class="technical-diagram sequence-wide" viewBox="0 0 720 315" role="img" aria-labelledby="seq-title seq-desc">
               <title id="seq-title">Vòng đời useLoad khi query thay đổi</title>
-              <desc id="seq-desc">Component tạo controller, gọi API và cập nhật state nếu request chưa bị hủy. Khi key đổi, cleanup hủy request cũ rồi chạy effect mới.</desc>
+              <desc id="seq-desc">Component gửi key cho useLoad. Hook hủy request cũ, lưu key cùng state và chỉ trả dữ liệu nếu state key còn trùng key hiện tại.</desc>
               <defs><marker id="s8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#083b79"/></marker><marker id="sr8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#0874bb"/></marker></defs>
               <rect class="node-wash" x="0" y="0" width="170" height="44"/><text class="name" x="85" y="29" text-anchor="middle">Component</text>
               <rect class="node-wash" x="275" y="0" width="170" height="44"/><text class="name" x="360" y="29" text-anchor="middle">useLoad</text>
               <rect class="node-wash" x="550" y="0" width="170" height="44"/><text class="name" x="635" y="29" text-anchor="middle">REST API</text>
               <path class="lifeline" d="M85 44V300 M360 44V300 M635 44V300"/>
-              <path class="edge" d="M85 82H360" marker-end="url(#s8)"/><text class="mono" x="222" y="72" text-anchor="middle">key = q</text>
+              <path class="edge" d="M85 82H360" marker-end="url(#s8)"/><text class="mono" x="222" y="72" text-anchor="middle">key = route / query</text>
               <text class="tiny" x="375" y="104">SET LOADING</text>
               <path class="edge" d="M360 128H635" marker-end="url(#s8)"/><text class="sub" x="498" y="118" text-anchor="middle">fetch(signal)</text>
-              <path class="edge" d="M85 178H360" marker-end="url(#s8)"/><text class="mono" x="222" y="168" text-anchor="middle">q đổi</text>
+              <path class="edge" d="M85 178H360" marker-end="url(#s8)"/><text class="mono" x="222" y="168" text-anchor="middle">key đổi</text>
               <text class="tiny" x="375" y="199">CLEANUP → ABORT</text>
               <path class="edge" d="M360 222H635" marker-end="url(#s8)"/><text class="sub" x="498" y="212" text-anchor="middle">request mới</text>
               <path class="reply" d="M635 259H360" marker-end="url(#sr8)"/><text class="sub" x="498" y="249" text-anchor="middle">JSON mới nhất</text>
-              <path class="reply" d="M360 286H85" marker-end="url(#sr8)"/><text class="mono" x="222" y="278" text-anchor="middle">set({ data })</text>
+              <path class="reply" d="M360 286H85" marker-end="url(#sr8)"/><text class="mono" x="222" y="278" text-anchor="middle">state.key === key</text>
             </svg>
-            <p class="diagram-caption">Cleanup không làm server “quên” request đã nhận; nó ngăn response cũ ghi đè UI sau khi người dùng đã chuyển trạng thái.</p>
+            <p class="diagram-caption">Abort chặn cập nhật muộn; so sánh key thêm một lớp bảo vệ để page không nhận data/error của route trước.</p>
           </div>
           <div class="stack">
-            <div class="codebox compact"><div class="code-title"><span>State + Loading.tsx</span><span>Lược trích</span></div><pre><code><span class="kw">if</span> (loading) <span class="kw">return</span> &lt;<span class="fn">Loading</span> /&gt;;
-
-<span class="kw">const</span> { pathname } = <span class="fn">useLocation</span>();
-<span class="kw">const</span> detail = /^\/dishes\/[^/]+$/.<span class="fn">test</span>(pathname);
-<span class="kw">const</span> form = /\/(new|edit)$/.<span class="fn">test</span>(pathname);
-<span class="kw">const</span> confirmation = pathname.<span class="fn">endsWith</span>(<span class="str">'/delete'</span>);</code></pre></div>
-            <div class="box blue"><span class="label">Năm hình dạng skeleton</span><p class="small">Menu card, chi tiết món, bảng quản trị, form và trang xác nhận có placeholder riêng.</p></div>
-            <div class="box wash"><span class="label">Trạng thái có thể tiếp cận</span><p class="small"><code>role="status"</code>, <code>aria-live</code>, <code>aria-busy</code> và nội dung chỉ dành cho screen reader; animation tắt khi người dùng chọn reduced motion.</p></div>
+            <div class="codebox compact"><div class="code-title"><span>hooks/useLoad.ts</span><span>Lược trích</span></div><pre><code><span class="fn">set</span>({ key, loading: <span class="kw">true</span> });
+<span class="fn">load</span>(controller.signal).<span class="fn">catch</span>(error =>
+  <span class="fn">set</span>({ key,
+    error: error <span class="kw">instanceof</span> ApiError
+      ? error : <span class="kw">new</span> <span class="fn">ApiError</span>(<span class="str">'Vui lòng thử lại sau.'</span>),
+    loading: <span class="kw">false</span> })
+);
+<span class="kw">const</span> current = state.key === key;</code></pre></div>
+            <div class="box blue"><span class="label">Không lộ state cũ</span><p class="small"><code>data</code> và <code>error</code> chỉ được trả khi key lưu trong state còn khớp key của lần render hiện tại.</p></div>
+            <div class="box wash"><span class="label">Một panel trạng thái</span><p class="small"><code>State</code> hiển thị loading, lỗi kỹ thuật hoặc not found; đường quay lại thay đổi theo route và resource.</p></div>
           </div>
         </div>
-        <div class="footer"><span>Nguồn: web/src/main.tsx · useLoad / State · web/src/components/Loading.tsx</span><span>08 / 14</span></div>
+        <div class="footer"><span>Nguồn: web/src/hooks/useLoad.ts / web/src/components/State.tsx / RecordPage.tsx</span><span>08 / 14</span></div>
       </section>
 
       <section class="slide" id="slide-9" aria-labelledby="title-9" hidden>
-        <div class="masthead"><span class="issue">Block 06 / The Table</span><span>Tìm kiếm</span></div>
+        <div class="masthead"><span class="issue">Block 06 / The Table</span><span>Tìm kiếm và phân trang</span></div>
         <p class="eyebrow">09 / Query là state có địa chỉ</p>
-        <h2 id="title-9">Tìm món đổi URL, gọi API mới và không tải lại trang</h2>
-        <p class="lead">Giá trị gõ được giữ trong state form; khi submit mới đồng bộ vào <code>?q=</code> để route có thể chia sẻ và reload.</p>
+        <h2 id="title-9">Tìm kiếm và phân trang cùng sống trên URL</h2>
+        <p class="lead"><code>q</code> mô tả bộ lọc, <code>page</code> mô tả trang; mỗi trang tối đa sáu mục và URL sai được chuẩn hóa tự động.</p>
         <div class="body grid2">
           <div class="stack">
             <div class="mini-flow">
               <div class="flow-node">Nhập từ khóa<small><code>search</code> local state</small></div><span class="arrow">→</span>
-              <div class="flow-node">Submit form<small><code>preventDefault()</code></small></div><span class="arrow">→</span>
-              <div class="flow-node">Đổi <code>?q=</code><small><code>setSearchParams</code></small></div>
+              <div class="flow-node">Đổi <code>?q=</code><small>xóa <code>page</code> cũ</small></div><span class="arrow">→</span>
+              <div class="flow-node">Lọc và chia trang<small><code>PAGE_SIZE = 6</code></small></div>
             </div>
             <div class="mini-flow">
-              <div class="flow-node"><code>q</code> đổi<small><code>useLoad</code> chạy lại</small></div><span class="arrow">→</span>
-              <div class="flow-node">GET API<small><code>encodeURIComponent(q)</code></small></div><span class="arrow">→</span>
-              <div class="flow-node">Render kết quả<small>data / empty / error</small></div>
+              <div class="flow-node">← hoặc →<small><code>usePageKeys</code></small></div><span class="arrow">→</span>
+              <div class="flow-node">Kích hoạt Link thật<small>giữ query + history</small></div><span class="arrow">→</span>
+              <div class="flow-node">Focus tiêu đề<small>không vượt đầu/cuối</small></div>
             </div>
-            <div class="box navy"><span class="label">Ý nghĩa của URL</span><p class="small"><code>/dishes?q=bò</code> mở lại đúng truy vấn; URL không chỉ là trạng thái tạm trong bộ nhớ component.</p></div>
+            <div class="box navy"><span class="label">Ý nghĩa của URL</span><p class="small"><code>/dishes?q=bò&amp;page=2</code> mở lại đúng bộ lọc và đúng trang; phím tắt không hoạt động khi đang nhập liệu hoặc giữ modifier.</p></div>
           </div>
           <div class="stack">
-            <div class="codebox medium"><div class="code-title"><span>web/src/main.tsx · Menu</span><span>Lược trích</span></div><pre><code><span class="kw">const</span> [params, setParams] = <span class="fn">useSearchParams</span>();
+            <div class="codebox medium"><div class="code-title"><span>pages/Menu.tsx</span><span>Lược trích</span></div><pre><code><span class="kw">const</span> [params, setParams] = <span class="fn">useSearchParams</span>();
 <span class="kw">const</span> q = params.<span class="fn">get</span>(<span class="str">'q'</span>) ?? <span class="str">''</span>;
 
 <span class="kw">const</span> s = <span class="fn">useLoad</span>(q, signal =>
-  api(<span class="str">'/dishes?q='</span> + <span class="fn">encodeURIComponent</span>(q),
-      { signal })
+  api(<span class="str">'/dishes?q='</span> + <span class="fn">encodeURIComponent</span>(q), { signal })
 );
-
-<span class="comment">// submit</span>
-e.<span class="fn">preventDefault</span>();
-<span class="fn">setParams</span>(search.trim() ? { q: search.trim() } : {});</code></pre></div>
-            <div class="box blue"><span class="label">Hai lớp xử lý ký tự</span><p class="small">Client mã hóa URL; store phía server coi <code>%</code>, <code>_</code> và <code>\</code> là ký tự tìm kiếm thường.</p></div>
+<span class="kw">const</span> paging = <span class="fn">usePagination</span>(s.data?.length, <span class="kw">false</span>);
+<span class="kw">const</span> visible = s.data?.<span class="fn">slice</span>(
+  paging.start, paging.start + PAGE_SIZE
+);</code></pre></div>
+            <div class="box blue"><span class="label">Hai cách trình bày</span><p class="small">Trang khách dùng <code>MenuBook</code> với hiệu ứng lật; danh sách quản trị dùng <code>Pagination</code> và bảng responsive.</p></div>
+            <div class="box wash"><span class="label">Chuẩn hóa URL</span><p class="small"><code>page=0</code>, chữ, số quá lớn hoặc nhiều tham số page được sửa; trang vượt tổng được kẹp về trang cuối.</p></div>
           </div>
         </div>
-        <div class="footer"><span>Nguồn: web/src/main.tsx · Menu / api/src/store.ts</span><span>09 / 14</span></div>
+        <div class="footer"><span>Nguồn: pages/Menu.tsx / MenuBook.tsx / Pagination.tsx / hooks/usePagination.ts / usePageKeys.ts</span><span>09 / 14</span></div>
       </section>
 
       <section class="slide" id="slide-10" aria-labelledby="title-10" hidden>
@@ -305,16 +306,17 @@ e.<span class="fn">preventDefault</span>();
   method: entity ? <span class="str">'PATCH'</span> : <span class="str">'POST'</span>,
   body: JSON.<span class="fn">stringify</span>(body)
 });
+<span class="kw">if</span> (!active.current) <span class="kw">return</span>;
 <span class="fn">navigate</span>(<span class="str">'/admin/'</span> + r, { state: { message } });</code></pre></div>
             <p class="small muted">Danh sách field phụ thuộc resource; món ăn gửi thêm ID đầu bếp và nguyên liệu đã chọn.</p>
           </div>
           <div class="stack">
-            <div class="box blue"><span class="label">Trước khi gửi</span><ul class="bullets compact"><li><code>values</code> là nguồn dữ liệu của input.</li><li><code>lock</code> và <code>busy</code> chặn submit lặp.</li><li>Nút chuyển thành “Đang lưu…”.</li></ul></div>
-            <div class="box red"><span class="label">Khi validation lỗi</span><ul class="bullets compact"><li>Không điều hướng khỏi form.</li><li>Giữ toàn bộ input đã nhập.</li><li>Hiện lỗi cạnh đúng trường qua <code>aria-describedby</code>.</li></ul></div>
+            <div class="box blue"><span class="label">Trước khi gửi</span><ul class="bullets compact"><li><code>values</code> là nguồn dữ liệu của input.</li><li><code>lock</code>, <code>busy</code> và fieldset disabled chặn thao tác lặp.</li><li><code>useActive</code> ngăn response muộn đổi route.</li></ul></div>
+            <div class="box red"><span class="label">Khi validation lỗi</span><ul class="bullets compact"><li>Giữ toàn bộ input đã nhập.</li><li>Hiện lỗi cạnh trường qua <code>aria-describedby</code>.</li><li>Đưa focus tới lỗi đầu tiên hoặc alert.</li></ul></div>
             <div class="box navy"><span class="label">Khi thành công</span><p class="small">Đi tới danh sách bằng điều hướng client, hiện thông báo rồi component danh sách tải dữ liệu mới từ API.</p></div>
           </div>
         </div>
-        <div class="footer"><span>Nguồn: web/src/main.tsx · Editor / Form</span><span>10 / 14</span></div>
+        <div class="footer"><span>Nguồn: pages/admin/Editor.tsx / components/forms/ResourceForm.tsx / hooks/useActive.ts</span><span>10 / 14</span></div>
       </section>
 
       <section class="slide" id="slide-11" aria-labelledby="title-11" hidden>
@@ -337,31 +339,31 @@ e.<span class="fn">preventDefault</span>();
             </div>
             <div class="stack">
               <div class="box red"><span class="label">Chặn ngay trên giao diện</span><h3>Không hiển thị nút xóa</h3><p class="small">Trang liệt kê các món đang dùng nguyên liệu và cung cấp link sửa từng món.</p></div>
-              <div class="box blue"><span class="label">Server vẫn kiểm tra lại</span><p class="small">Store kiểm tra tại thời điểm DELETE trong transaction Serializable và retry xung đột có giới hạn.</p></div>
-              <p class="small muted">UI giúp tránh thao tác sai; quy tắc dữ liệu vẫn phải được thực thi ở backend.</p>
+              <div class="box blue"><span class="label">Không điều hướng bởi response muộn</span><p class="small"><code>useActive</code> chỉ cho phép navigate hoặc set state khi người dùng vẫn ở trang xóa.</p></div>
+              <div class="box wash"><span class="label">Server vẫn kiểm tra lại</span><p class="small">Store kiểm tra DELETE trong transaction Serializable và retry xung đột có giới hạn.</p></div>
             </div>
           </div>
         </div>
-        <div class="footer"><span>Nguồn: web/src/main.tsx · Delete / api/src/store.ts</span><span>11 / 14</span></div>
+        <div class="footer"><span>Nguồn: web/src/pages/admin/Delete.tsx / hooks/useActive.ts / api/src/store.ts</span><span>11 / 14</span></div>
       </section>
 
       <section class="slide" id="slide-12" aria-labelledby="title-12" hidden>
         <div class="masthead"><span class="issue">Block 06 / The Table</span><span>Biên hệ thống</span></div>
         <p class="eyebrow">12 / CORS, input và bí mật</p>
         <h2 id="title-12">Tách hai origin làm ranh giới hệ thống trở nên rõ ràng</h2>
-        <p class="lead">API chỉ cho origin đã cấu hình gọi các method cần thiết; mọi input vẫn được kiểm tra lại ở server.</p>
+        <p class="lead">API giới hạn origin; client chỉ gửi header cần thiết để GET không preflight nhưng các thao tác ghi vẫn đúng CORS.</p>
         <div class="body">
           <div class="security-grid">
             <div class="box blue"><span class="label">CORS chính xác</span><h3>Một <code>SPA_ORIGIN</code></h3><p class="small">Chỉ phản hồi <code>Access-Control-Allow-Origin</code> khi origin khớp chính xác.</p></div>
-            <div class="box"><span class="label">Preflight</span><h3><code>OPTIONS → 204</code></h3><p class="small">Cho phép GET, POST, PATCH, DELETE và header Content-Type.</p></div>
+            <div class="box"><span class="label">GET không preflight</span><h3>Không tự gắn Content-Type</h3><p class="small">GET và DELETE không body để <code>fetch</code> tự quyết định header phù hợp.</p></div>
             <div class="box red"><span class="label">Giới hạn body</span><h3><code>express.json(32kb)</code></h3><p class="small">JSON sai trả 400; payload quá lớn trả 413.</p></div>
-            <div class="box"><span class="label">Validation server</span><h3>Allowlist + kiểu dữ liệu</h3><p class="small">Không ghi trường ngoài định nghĩa; PATCH rỗng bị từ chối.</p></div>
+            <div class="box"><span class="label">Ghi dữ liệu</span><h3>JSON + preflight</h3><p class="small">POST/PATCH có <code>application/json</code>; DELETE vẫn preflight vì method không đơn giản.</p></div>
             <div class="box wash"><span class="label">Header phản hồi</span><h3><code>nosniff</code> · <code>no-store</code></h3><p class="small">Giảm đoán MIME và tránh cache phản hồi API nhạy cảm theo phiên làm việc.</p></div>
             <div class="box navy"><span class="label">Bí mật ở backend</span><h3><code>DATABASE_URL</code></h3><p class="small">Không đặt bí mật trong <code>VITE_*</code>; frontend chỉ biết base URL công khai.</p></div>
           </div>
           <div class="callout blue"><strong>Escape hiển thị:</strong> JSX render text theo cơ chế escape mặc định; source không dùng <code>dangerouslySetInnerHTML</code>.</div>
         </div>
-        <div class="footer"><span>Nguồn: api/src/app.ts / api/src/domain.ts / web/src/api.ts / README.md</span><span>12 / 14</span></div>
+        <div class="footer"><span>Nguồn: api/src/app.ts / domain.ts / web/src/api/headers.ts / scripts/headers.test.ts / README.md</span><span>12 / 14</span></div>
       </section>
 
       <section class="slide" id="slide-13" aria-labelledby="title-13" hidden>
@@ -387,10 +389,10 @@ page.<span class="fn">on</span>(<span class="str">'request'</span>, r => {
 <span class="kw">await</span> search.<span class="fn">fill</span>(<span class="str">'unknown'</span>);
 <span class="kw">await</span> submit.<span class="fn">click</span>();
 assert.<span class="fn">equal</span>(docs, <span class="kw">0</span>);</code></pre></div>
-            <div class="box red"><span class="label">Dấu hiệu 3</span><p class="small">Tìm kiếm, lưu và xóa đổi giao diện mà không tạo document navigation; Network vẫn có request <code>fetch</code> đến API.</p></div>
+            <div class="box red"><span class="label">Dấu hiệu 3</span><p class="small">Tìm kiếm, phân trang, lưu và xóa đổi giao diện mà không tạo document navigation; Network vẫn có request <code>fetch</code> đến API.</p></div>
           </div>
         </div>
-        <div class="callout blue"><strong>Kết luận kiểm chứng:</strong> HTML shell + React <code>createRoot</code> + API JSON + DOM sau render + điều hướng không tải document là bộ dấu hiệu đầy đủ hơn.</div>
+        <div class="callout blue"><strong>Browser QA hiện tại:</strong> kiểm tra <code>q/page</code>, phím ←/→, history, mobile, header/preflight, response sai cấu trúc và mutation trả về sau khi người dùng rời trang.</div>
         <div class="footer"><span>Nguồn: web/index.html / web/src/main.tsx / scripts/browser-check.ts</span><span>13 / 14</span></div>
       </section>
 
@@ -402,13 +404,13 @@ assert.<span class="fn">equal</span>(docs, <span class="kw">0</span>);</code></p
         <div class="body">
           <div class="checklist">
             <div class="check-item"><span class="check">01</span><div><strong>CSR thật sự</strong><p>HTML shell rỗng; React tải JSON và render nội dung ở client.</p></div></div>
-            <div class="check-item"><span class="check">02</span><div><strong>Route có thể chia sẻ</strong><p>BrowserRouter giữ URL cho danh sách, chi tiết và toàn bộ luồng quản trị.</p></div></div>
+            <div class="check-item"><span class="check">02</span><div><strong>URL giữ đúng trạng thái</strong><p><code>q/page</code> giữ bộ lọc và trang; phân trang hỗ trợ Link, history và phím ←/→.</p></div></div>
             <div class="check-item"><span class="check">03</span><div><strong>REST API đủ CRUD</strong><p>GET, POST, PATCH, DELETE cho Dish, Chef và Ingredient; không method override.</p></div></div>
-            <div class="check-item"><span class="check">04</span><div><strong>Trạng thái UI đầy đủ</strong><p>Skeleton theo route, retry, empty, not found; giữ input và khóa submit khi đang gửi.</p></div></div>
+            <div class="check-item"><span class="check">04</span><div><strong>Trạng thái UI đầy đủ</strong><p>Loading, retry, empty, not found; request key và <code>useActive</code> chặn cập nhật muộn.</p></div></div>
             <div class="check-item"><span class="check">05</span><div><strong>Biên hệ thống được bảo vệ</strong><p>CORS đúng origin, validation backend, giới hạn JSON và bí mật chỉ ở server.</p></div></div>
-            <div class="check-item"><span class="check">06</span><div><strong>Kiểm tra nhiều lớp</strong><p>Typecheck, HTTP test, build, browser QA và preview; integration DB chạy riêng khi có quyền.</p></div></div>
+            <div class="check-item"><span class="check">06</span><div><strong>Kiểm tra nhiều lớp</strong><p>HTTP, header, response shape, build, browser QA và preview; integration DB chạy riêng.</p></div></div>
           </div>
-          <div class="box navy summary-box"><span class="label">Kết luận</span><h3>CSR không loại bỏ server — nó thay đổi hợp đồng giữa browser và server.</h3><p class="small">React quản lý trải nghiệm và điều hướng; Express cung cấp JSON; Prisma giữ tính nhất quán dữ liệu. URL, trạng thái và lỗi kết nối ba lớp thành một ứng dụng SPA hoàn chỉnh.</p></div>
+          <div class="box navy summary-box"><span class="label">Kết luận</span><h3>CSR không loại bỏ server — nó làm hợp đồng giữa các lớp rõ hơn.</h3><p class="small">Pages/components/hooks quản lý trải nghiệm; API client kiểm tra mọi response; Express và Prisma giữ quy tắc dữ liệu. URL, state và test kết nối các lớp thành một SPA có thể kiểm chứng.</p></div>
         </div>
         <div class="footer"><span>Cảm ơn thầy/cô và các bạn · Sẵn sàng trao đổi về CSR, API và các quyết định kỹ thuật</span><span>14 / 14</span></div>
       </section>
