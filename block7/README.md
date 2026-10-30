@@ -10,12 +10,13 @@ Từ thư mục `block7`, cấu hình `api/.env` theo `api/.env.example`. Giữ 
 npm ci
 npm run db:generate
 npm run db:search:setup
+npm run seed
 npm run dev
 ```
 
 Mở http://localhost:5176. API mặc định http://localhost:3006/api.
 
-Với database mới chưa có bảng, chạy `npm exec -w @table/api -- prisma db push` trước setup; có thể chạy `npm run seed` sau setup để thêm 12 món, 4 đầu bếp, 12 nguyên liệu mẫu. Seed không ghi đè bản ghi có sẵn. Test tự tạo fixture dài hơn; không cần thêm dữ liệu demo vào database nghiệp vụ.
+Với database mới chưa có bảng, chạy `npm exec -w @table/api -- prisma db push` trước setup; chạy `npm run seed` sau setup để tạo bộ 1.000 món, 20 đầu bếp, 20 nguyên liệu mẫu. Đầu bếp/nguyên liệu do người dùng tạo cũng được tính vào tổng 20: seed chỉ bổ sung đến ngưỡng này, không xóa khi dữ liệu đã vượt ngưỡng. Khi tên trong bộ mẫu không có vì đã đủ 20 bản ghi khác, món mới dùng liên kết tương ứng từ danh sách hiện có. Với 20 đầu bếp và 20 nguyên liệu, mỗi danh sách tải theo các lô 6, 6, 6 và 2 mục để demo Tải thêm và cuộn vô hạn. Bộ món gồm 12 món gốc và 988 biến thể tổng hợp với tên riêng, mô tả, giá, danh mục, trạng thái và liên kết đầu bếp/nguyên liệu. Seed thêm phần còn thiếu theo tên ổn định; chạy lại không nhân đôi bộ mẫu, không ghi đè bản ghi hoặc liên kết đã có. Không xóa dữ liệu trước khi seed. Nếu đổi tên một món mẫu rồi seed lại, tên mẫu ban đầu sẽ được tạo lại và món đã đổi tên vẫn được giữ; vì vậy tổng số có thể lớn hơn 1.000.
 
 `db:search:setup` chạy transaction SQL idempotent: bật `unaccent`/`pg_trgm` (mặc định schema `extensions`, giữ vị trí extension đã tồn tại), tạo cột, trigger và index, backfill riêng trường tìm kiếm. Cần quyền tạo extension và sửa bảng. Chạy lại sau khi tạo lại bảng bằng `db push`. Schema đích lấy từ `?schema=...` trong `DATABASE_URL`, mặc định `public`.
 
@@ -99,6 +100,7 @@ Browser test cần Chrome (`CHROME_PATH` nếu không ở đường dẫn mặc 
 
 | Thao tác | Kết quả cần thấy |
 | --- | --- |
+| Chạy seed hai lần trên database mới | Có 1.000 món; lần hai thêm 0; giá và liên kết đã chỉnh sửa còn nguyên; trang 167 có 4 món |
 | Số mục 0/1/6/7/13, chọn trang rồi reload | Đúng số trang và phạm vi, không trùng/mất mục; trang quá cuối được clamp |
 | Tìm không dấu; đổi filter và sort từ trang 3 | Đúng bộ điều kiện trên toàn bộ dữ liệu; quay về trang 1 |
 | Tìm từ chỉ có trong mô tả | Có kết quả full-text |
