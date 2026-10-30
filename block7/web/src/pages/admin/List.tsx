@@ -27,9 +27,9 @@ export function List({ resource: r }: { resource: Resource }) {
   return <section className="container admin-content"><div className="section-heading"><div><h1 ref={headingRef} tabIndex={-1}>Quản lý {labels[r]}<span className="accent">.</span></h1><p className="muted">{intros[r]}</p></div><Link className="button" to={'/admin/' + r + '/new'}><Plus aria-hidden="true" /> Thêm {labels[r]}</Link></div>
     {loc.state?.message && <div className="notice success" role="status">{loc.state.message}</div>}
     <ListControls resource={r} />
-    {s.loading ? <ListPlaceholder /> : !data ? <State {...s} /> : <><p className="result-count" aria-live="polite"><span>{data.meta.total}</span> {labels[r]}</p>
+    {!data ? s.loading ? <ListPlaceholder /> : <State {...s} /> : <><p className="result-count" aria-live="polite"><span>{data.meta.total}</span> {labels[r]}</p>
       {s.error && <div className="notice error" role="alert">{s.error.message} <button className="button secondary" onClick={s.retry}>Thử lại</button></div>}
-      {!data.items.length ? <div className="empty-state"><h2>Chưa có kết quả phù hợp.</h2><p>Thử một tên khác hoặc xóa điều kiện để xem tất cả.</p></div> : <div aria-busy={s.loading}><ResourceTable resource={r} rows={data.items} total={data.meta.total} /><Pagination page={data.meta.page} pages={data.meta.pages} total={data.meta.total} loading={s.loading} /></div>}
+      {!data.items.length ? <div className="empty-state"><h2>Chưa có kết quả phù hợp.</h2><p>Thử một tên khác hoặc xóa điều kiện để xem tất cả.</p></div> : <div aria-busy={s.loading}>{s.loading ? <ListPlaceholder /> : <ResourceTable resource={r} rows={data.items} total={data.meta.total} />}<Pagination page={data.meta.page} pages={data.meta.pages} total={data.meta.total} loading={s.loading} onRetry={s.retry} /></div>}
     </>}
   </section>;
 }
