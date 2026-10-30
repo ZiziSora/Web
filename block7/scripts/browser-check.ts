@@ -547,7 +547,7 @@ try {
     store.rows.chefs=[{id:901,name:'Đầu bếp nhiều món',specialty:'Ẩm thực Việt'},{id:902,name:'Đầu bếp một món',specialty:'Món Việt'},{id:903,name:'Đầu bếp hai món',specialty:'Món Việt'},{id:904,name:'Đầu bếp mới',specialty:'Món Việt'}];
     store.rows.dishes=Array.from({length:120},(_,index)=>({id:1000+index,name:'Món gà · biến thể '+(index+1),price:'100000',category:'Món Việt',available:true,chefs:[{id:901,name:'Đầu bếp nhiều món'},...(index===0?[{id:902,name:'Đầu bếp một món'}]:[]),...(index<2?[{id:903,name:'Đầu bếp hai món'}]:[])],ingredients:[]}));
     store.rows.ingredients=[{id:905,name:'Nguyên liệu nhiều món',unit:'g'}];
-    store.rows.dishes=store.rows.dishes.map(dish=>({...dish,ingredients:[{id:905,name:'Nguyên liệu nhiều món'}]}));
+    store.rows.dishes=store.rows.dishes.map(dish=>({...dish,description:'Món ăn thử nghiệm cho danh sách nhiều liên kết.',ingredients:[{id:905,name:'Nguyên liệu nhiều món'}]}));
     for(const width of [1440,390]) {
       await page.setViewportSize({width,height:1000});
       let releaseList!:()=>void;
@@ -629,10 +629,18 @@ try {
     });
     await page.getByRole('link',{name:'Trang 20',exact:true}).evaluate(el=>{(el as HTMLElement).click();(el as HTMLElement).click();});
     await page.locator('.menu-book .book-skeleton-entry').first().waitFor();
+    assert.equal(await page.getByRole('link',{name:'Trang 20',exact:true}).getAttribute('aria-current'),'page','selected page updates before the response');
+    assert.equal(await page.getByRole('link',{name:'Trang 1',exact:true}).getAttribute('aria-current'),null);
+    await page.getByText('Đang tải trang 20…',{exact:true}).waitFor();
+    await page.setViewportSize({width:390,height:1000});
+    assert.equal(await page.locator('.book-page-mobile').innerText(),'Trang 20/20');
+    await page.setViewportSize({width:1440,height:1000});
     await page.locator('.menu-book').screenshot({path:'artifacts/menu-page-loading.png'});
     releaseJump();
     const jump=page.locator('.book-turn[data-distance="19"]');
     await jump.waitFor();
+    await page.getByRole('link',{name:'Trang 1',exact:true}).evaluate(el=>(el as HTMLElement).click());
+    assert.equal(new URL(page.url()).searchParams.get('page'),'20','navigation remains locked during the turn');
     assert.equal(await jump.evaluate(el=>getComputedStyle(el).animationDuration),'0.845s');
     await page.locator('.book-content .book-leaf').first().getByRole('heading',{name:'Món gà · biến thể 1',exact:true}).waitFor();
     await page.locator('.book-content .book-leaf').last().getByRole('heading',{name:'Món gà · biến thể 120',exact:true}).waitFor();
@@ -648,6 +656,57 @@ try {
     await page.getByRole('link',{name:'Trang 20',exact:true}).click();
     await page.locator('.book-content').getByRole('heading',{name:'Món gà · biến thể 115',exact:true}).waitFor();
     assert.equal(await page.locator('.book-turn').count(),0);
+    await page.emulateMedia({reducedMotion:'no-preference'});
+    // Pending selection follows URL history; failed requests restore the loaded page.
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await page.goto(webOrigin+'/dishes');
+    await page.locator('.book-content .dish-card').first().waitFor();
+    let releaseHistory!:()=>void;
+    const historyGate=new Promise<void>(resolve=>{releaseHistory=resolve;});
+    await page.route('**/api/dishes?**',async route=>{
+      if(new URL(route.request().url()).searchParams.get('page')!=='20') { await route.continue(); return; }
+      const response=await route.fetch();await historyGate;
+      try { await route.fulfill({response}); } catch { /* Back can abort a pending request. */ }
+    });
+    await page.getByRole('link',{name:'Trang 20',exact:true}).click();
+    await page.getByText('Đang tải trang 20…',{exact:true}).waitFor();
+    assert.equal(await page.getByRole('link',{name:'Trang 20',exact:true}).getAttribute('aria-current'),'page');
+    await page.goBack();
+    await page.locator('.book-content').getByRole('heading',{name:'Món gà · biến thể 1',exact:true}).waitFor();
+    assert.equal(await page.getByRole('link',{name:'Trang 1',exact:true}).getAttribute('aria-current'),'page');
+    await page.goForward();
+    await page.getByText('Đang tải trang 20…',{exact:true}).waitFor();
+    assert.equal(await page.getByRole('link',{name:'Trang 20',exact:true}).getAttribute('aria-current'),'page');
+    releaseHistory();
+    await page.locator('.book-content').getByRole('heading',{name:'Món gà · biến thể 115',exact:true}).waitFor();
+    await page.unroute('**/api/dishes?**');
+    let releaseFailure!:()=>void;
+    const failureGate=new Promise<void>(resolve=>{releaseFailure=resolve;});
+    let failPage=true;
+    await page.route('**/api/dishes?**',async route=>{
+      if(failPage && new URL(route.request().url()).searchParams.get('page')==='19') {
+        await failureGate;
+        await route.fulfill({status:500,headers:{'Access-Control-Allow-Origin':webOrigin},body:'unavailable'});
+      } else await route.continue();
+    });
+    await page.getByRole('link',{name:'Trang 19',exact:true}).click();
+    await page.getByText('Đang tải trang 19…',{exact:true}).waitFor();
+    assert.equal(await page.getByRole('link',{name:'Trang 19',exact:true}).getAttribute('aria-current'),'page');
+    assert.equal(await page.getByRole('link',{name:'Trang 17',exact:true}).count(),1,'page window follows the pending selection');
+    releaseFailure();
+    await page.locator('.notice.error').waitFor();
+    assert.equal(await page.getByRole('link',{name:'Trang 20',exact:true}).getAttribute('aria-current'),'page','failure restores the loaded page');
+    assert.equal(new URL(page.url()).searchParams.get('page'),'19','retry keeps the failed destination');
+    failPage=false;
+    await page.getByRole('button',{name:'Thử lại',exact:true}).click();
+    await page.locator('.book-content').getByRole('heading',{name:'Món gà · biến thể 109',exact:true}).waitFor();
+    assert.equal(await page.getByRole('link',{name:'Trang 19',exact:true}).getAttribute('aria-current'),'page');
+    await page.unroute('**/api/dishes?**');
+    store.rows.dishes=store.rows.dishes.slice(0,12);
+    await page.getByRole('link',{name:'Trang 20',exact:true}).click();
+    await page.waitForURL(url=>url.searchParams.get('page')==='2');
+    await page.locator('.book-content').getByRole('heading',{name:'Món gà · biến thể 7',exact:true}).waitFor();
+    assert.equal(await page.getByRole('link',{name:'Trang 2',exact:true}).getAttribute('aria-current'),'page','server-clamped page owns the final selection');
     await page.emulateMedia({reducedMotion:'no-preference'});
     store.rows=savedRows;
     await new Promise<void>(r => server.close(() => r()));
