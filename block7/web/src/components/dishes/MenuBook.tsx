@@ -1,11 +1,17 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { type Entity } from '../../api';
 import { Pagination } from '../Pagination';
 import { DishGrid } from './DishGrid';
-import { BookSkeletonLeaves } from './MenuSkeleton';
+import { BookLoadingPages } from './MenuLoading';
 
 type Flip = { from: number; target: number; dishes: Entity[]; duration: number; desktop: boolean };
 export function MenuBook({ dishes, page, pages, total, headingRef, onRetry, loading = false }: { dishes: Entity[]; page: number; pages: number; total: number; headingRef: RefObject<HTMLHeadingElement | null>; onRetry: () => void; loading?: boolean }) {
+  const [params] = useSearchParams();
+  const raw = params.get('page');
+  const requested = raw && /^[1-9]\d*$/.test(raw) && Number(raw) <= 2147483647 ? Number(raw) : 1;
+  // Compare the URL target with the last loaded page, including Back/Forward.
+  const loadingDirection = Math.min(requested, pages) < page ? 'back' : 'forward';
   const [flip, setFlip] = useState<Flip | null>(null);
   const busy = loading || !!flip;
   const locked = useRef(false);
@@ -46,8 +52,8 @@ export function MenuBook({ dishes, page, pages, total, headingRef, onRetry, load
   const forward = flip ? flip.target > flip.from : true;
   const left = flip?.desktop && forward ? { items: flip.dishes.slice(0, 3), page: flip.from } : { items: dishes.slice(0, 3), page };
   const right = flip?.desktop && !forward ? { items: flip.dishes.slice(3), page: flip.from } : { items: dishes.slice(3), page };
-  return <div className={'menu-book' + (loading ? ' loading-view' : '')} aria-busy={!!flip || loading}>
-    <div className="book-binding"><div className="book-content">{loading ? <BookSkeletonLeaves /> : <>{leaf(left.items, (left.page - 1) * 6)}{leaf(right.items, (right.page - 1) * 6 + 3)}</>}</div>
+  return <div className="menu-book" aria-busy={!!flip || loading}>
+    <div className="book-binding">{loading ? <BookLoadingPages direction={loadingDirection} /> : <div className="book-content">{leaf(left.items, (left.page - 1) * 6)}{leaf(right.items, (right.page - 1) * 6 + 3)}</div>}
       {flip && !loading && <div className={'book-turn ' + (forward ? 'turn-forward' : 'turn-back')} style={{ '--book-turn-duration': flip.duration + 'ms' } as CSSProperties} data-distance={Math.abs(flip.target - flip.from)} onAnimationEnd={event => { if (event.target === event.currentTarget) finish(); }} aria-hidden="true" inert>
         <div className="turn-front">{flip.desktop ? leaf(forward ? flip.dishes.slice(3) : flip.dishes.slice(0, 3), (flip.from - 1) * 6 + (forward ? 3 : 0)) : <>{leaf(flip.dishes.slice(0, 3), (flip.from - 1) * 6)}{leaf(flip.dishes.slice(3), (flip.from - 1) * 6 + 3)}</>}</div>
         <div className="turn-reverse">{leaf(forward ? dishes.slice(0, 3) : dishes.slice(3), (page - 1) * 6 + (forward ? 0 : 3))}</div>

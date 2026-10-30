@@ -3845,21 +3845,47 @@ button:disabled {
 .chef-dishes-scroll a:hover { background:var(--paper); text-decoration:underline; }
 @media(max-width:767px) { .chef-dishes { max-width:none; } .chef-dishes-preview a { white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:1; } }
 
-/* Menu skeletons follow the same two leaves and six entries as the real menu. */
-.menu-skeleton { padding:0; }
-.book-skeleton-entry { display:flex; flex-direction:column; gap:14px; min-height:212px; padding:26px 0; border-bottom:1px solid var(--line); }
-.book-skeleton-entry .skeleton-line:nth-child(1) { width:24%; }
-.book-skeleton-entry .skeleton-line:nth-child(2) { width:65%; margin:0; height:28px; }
-.book-skeleton-entry .skeleton-line:nth-child(3) { width:90%; }
-.book-skeleton-entry .skeleton-line:nth-child(4) { width:75%; }
-.book-skeleton-entry .skeleton-line:nth-child(5) { width:35%; margin-top:10px; height:20px; }
-.book-running-title > .skeleton-line { width:45%; }
+/* Pending menu requests turn blank paper sheets inside the existing binding. */
+.book-loading-content { position:relative; isolation:isolate; overflow:hidden; }
+.book-loading-leaf { position:relative; }
+.book-loading-imprint { position:absolute; top:42%; left:0; right:0; display:grid; justify-items:center; gap:12px; color:var(--accent); opacity:.45; }
+.book-loading-imprint > span:first-child { font-size:12px; letter-spacing:4px; }
+.book-loading-imprint > span:last-child { font-family:var(--serif); font-size:32px; font-style:italic; }
+.book-loading-sheets { position:absolute; inset:0; perspective:2200px; pointer-events:none; }
+.book-loading-sheet { position:absolute; inset:0 0 0 50%; transform-origin:left center; transform-style:preserve-3d; animation:book-loading-flip 2.6s cubic-bezier(.35,.05,.25,1) infinite; will-change:transform; }
+.book-loading-content[data-direction=back] .book-loading-sheet { inset:0 50% 0 0; transform-origin:right center; --book-loading-angle:180deg; }
+.book-loading-sheet:nth-child(1) { z-index:3; }
+.book-loading-sheet:nth-child(2) { z-index:2; animation-delay:.26s; }
+.book-loading-sheet:nth-child(3) { z-index:1; animation-delay:.52s; }
+.book-loading-face { position:absolute; inset:0; backface-visibility:hidden; background:linear-gradient(90deg,#ded5c3,var(--cream) 12%,#f8f2e7 85%,#e5dbc8); border:1px solid #c8baa1; box-shadow:0 8px 24px #122c2526; }
+.book-loading-face::after { content:'THE TABLE · THỰC ĐƠN'; position:absolute; top:28px; left:36px; right:36px; padding-bottom:18px; border-bottom:1px solid var(--line); color:var(--accent); font-size:10px; letter-spacing:2px; }
+.book-loading-reverse { transform:rotateY(180deg); background:linear-gradient(90deg,var(--cream) 85%,#ded5c3); }
+.book-loading-content[data-direction=back] .book-loading-face { background:linear-gradient(90deg,#e5dbc8,#f8f2e7 15%,var(--cream) 88%,#ded5c3); }
+.book-loading-content[data-direction=back] .book-loading-reverse { background:linear-gradient(90deg,#ded5c3,var(--cream) 15%); }
+.book-loading-caption { position:absolute; z-index:4; top:130px; left:50%; transform:translateX(-50%); width:max-content; max-width:calc(100% - 32px); margin:0; padding:12px 20px; border:1px solid var(--line); border-radius:3px; background:var(--cream); color:var(--forest); text-align:center; font-size:14px; box-shadow:0 3px 14px #122c2510; }
+@keyframes book-loading-flip {
+  0% { transform:rotateY(0); opacity:0; }
+  8% { opacity:1; }
+  70% { transform:rotateY(var(--book-loading-angle, -180deg)); opacity:1; }
+  85%,100% { transform:rotateY(var(--book-loading-angle, -180deg)); opacity:0; }
+}
 .book-turn { will-change:transform; }
 @media(max-width:1023px) {
-  .book-content > .book-leaf:last-child:has(.book-skeleton-entry) { display:block; }
+  .book-loading-content .book-leaf { min-height:660px; }
+  .book-loading-content .book-leaf:last-child { display:block; }
+  .book-loading-sheet { left:0; }
+  .book-loading-content[data-direction=back] .book-loading-sheet { right:0; }
+  .book-loading-face::after { top:24px; left:28px; right:28px; }
   .book-turn.turn-back { animation-name:book-mobile-back; transform-origin:right center; }
   .book-turn .book-leaf + .book-leaf { padding-top:0; }
   .book-turn .book-leaf + .book-leaf .book-running-title { display:none; }
+}
+@media(max-width:640px) {
+  .book-loading-face::after { top:18px; left:20px; right:20px; font-size:9px; letter-spacing:1.4px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .book-loading-sheets { display:none; }
+  .book-loading-sheet { animation:none; will-change:auto; }
 }
 @keyframes book-mobile-back { to { transform:rotateY(12deg); opacity:0; } }
 

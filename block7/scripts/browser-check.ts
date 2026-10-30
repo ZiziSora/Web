@@ -620,9 +620,9 @@ try {
       const menuGate=new Promise<void>(resolve=>{releaseMenu=resolve;});
       await page.route('**/api/dishes?**',async route=>{await menuGate;await route.continue();});
       await page.goto(webOrigin+'/dishes');
-      await page.locator('.menu-skeleton .book-skeleton-entry').first().waitFor();
-      assert.equal(await page.locator('.menu-skeleton .book-skeleton-entry').count(),6);
-      await page.locator('.menu-skeleton').screenshot({path:'artifacts/menu-skeleton-'+width+'.png'});
+      await page.locator('.menu-loading .book-loading-content').waitFor();
+      assert.equal(await page.locator('.menu-loading .skeleton-line').count(),0);
+      await page.locator('.menu-loading').screenshot({path:'artifacts/menu-book-loading-'+width+'.png'});
       releaseMenu();
       await page.locator('.book-content .dish-card').first().waitFor();
       await page.unroute('**/api/dishes?**');
@@ -639,7 +639,7 @@ try {
     });
     await page.getByRole('textbox',{name:'Đi tới trang',exact:true}).fill('20');
     await page.getByRole('button',{name:'Đi tới',exact:true}).evaluate(el=>{(el as HTMLElement).click();(el as HTMLElement).click();});
-    await page.locator('.menu-book .book-skeleton-entry').first().waitFor();
+    await page.locator('.menu-book .book-loading-content').waitFor();
     assert.equal(await page.getByRole('link',{name:'Trang 20',exact:true}).getAttribute('aria-current'),'page','selected page updates before the response');
     assert.equal(await page.getByRole('link',{name:'Trang 1',exact:true}).getAttribute('aria-current'),null);
     await page.getByText('Đang tải trang 20…',{exact:true}).waitFor();
