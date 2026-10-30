@@ -106,7 +106,7 @@ try {
           assert.equal(await page.getByRole('navigation',{name:'Phân trang'}).count(), count>6?1:0);
           if(path==='/dishes') assert.equal(await page.getByRole('form',{name:'Đi tới trang thực đơn'}).count(),count>6?1:0);
           if (count>6) {
-            await page.getByRole('link',{name:path==='/dishes'?'Trang sau':'Sau',exact:true}).focus();
+            await page.getByRole('link',{name:'Trang sau',exact:true}).focus();
             await page.keyboard.press('Enter');
             await page.locator(selector).filter({hasText:'Mục 7'}).first().waitFor();
             assert.equal(new URL(page.url()).searchParams.get('page'),'2');
@@ -118,7 +118,7 @@ try {
             await page.reload();
             await page.locator(selector).first().waitFor();
             assert.ok((await page.locator(selector).first().innerText()).includes('Mục 7'));
-            await page.getByRole('link',{name:path==='/dishes'?'Trang trước':'Trước',exact:true}).click();
+            await page.getByRole('link',{name:'Trang trước',exact:true}).click();
             assert.equal(new URL(page.url()).searchParams.get('page'),null);
             await page.goBack();
             await page.waitForURL('**page=2');
@@ -758,12 +758,14 @@ try {
     await page.waitForURL(url=>url.searchParams.get('page')==='7');
     await page.waitForFunction(()=>!document.querySelector('.menu-book[aria-busy="true"]'));
     assert.equal(await jumpInput.inputValue(),'7');
-    for(const width of [1440,768,390,320]) {
+    for(const width of [1440,768,640,616,390,320]) {
       await page.setViewportSize({width,height:1000});
       await page.locator('.book-footer').screenshot({path:'artifacts/menu-jump-'+width+'.png'});
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'jump footer fits '+width);
       const inputBounds=(await jumpInput.boundingBox())!;
       const nextBounds=(await page.getByRole('link',{name:'Trang sau',exact:true}).boundingBox())!;
+      assert.ok((await page.locator('.book-prev').boundingBox())!.width<110,'previous button remains compact at '+width);
+      assert.ok(nextBounds.width<110,'next button remains compact at '+width);
       assert.ok(Math.abs(inputBounds.y+inputBounds.height/2-nextBounds.y-nextBounds.height/2)<3,'jump stays in the pagination row at '+width);
     }
     await jumpInput.fill('1');
@@ -781,6 +783,53 @@ try {
     assert.equal(await jumpInput.inputValue(),'2');
     await page.emulateMedia({reducedMotion:'no-preference'});
     store.rows=savedRows;
+    // Every numbered management list uses the same jump control as the menu.
+    const adminPaginationRows=structuredClone(store.rows);
+    for(const resource of ['dishes','chefs','ingredients'] as const) {
+      const sample=adminPaginationRows[resource][0];
+      store.rows[resource]=Array.from({length:120},(_,index)=>({...structuredClone(sample),id:index+1,name:'Mục '+(index+1)}));
+    }
+    for(const resource of ['dishes','chefs','ingredients'] as const) {
+      for(const width of [1440,616,320]) {
+        await page.setViewportSize({width,height:1000});
+        await page.goto(webOrigin+'/admin/'+resource+'?q=Muc&sort=name-asc');
+        await page.getByRole('rowheader').first().waitFor();
+        const input=page.getByRole('textbox',{name:'Đi tới trang',exact:true});
+        const go=page.getByRole('button',{name:'Đi tới',exact:true});
+        await input.fill('21');await input.press('Enter');
+        await page.getByRole('alert').filter({hasText:'Nhập số nguyên từ 1 đến 20.'}).waitFor();
+        assert.equal(new URL(page.url()).searchParams.has('page'),false);
+        await input.fill('7');
+        await input.press('ArrowRight');
+        assert.equal(new URL(page.url()).searchParams.has('page'),false);
+        let releaseAdminPage!:()=>void;
+        const adminPageGate=new Promise<void>(resolve=>{releaseAdminPage=resolve;});
+        await page.route('**/api/'+resource+'?**',async route=>{await adminPageGate;await route.continue();});
+        if(width===1440) await go.click();else await input.press('Enter');
+        await page.getByText('Đang tải trang 7…',{exact:true}).waitFor();
+        assert.equal(await input.inputValue(),'7');
+        assert.ok(await input.isDisabled());assert.ok(await go.isDisabled());
+        assert.equal(await page.locator('.book-page-numbers [aria-current=page]').getAttribute('aria-label'),'Trang 7');
+        assert.equal(await page.locator('.resource-table').count(),0,'old rows are replaced by a skeleton');
+        releaseAdminPage();
+        await page.getByRole('rowheader').first().waitFor();
+        await page.unroute('**/api/'+resource+'?**');
+        assert.equal(new URL(page.url()).searchParams.get('q'),'Muc');
+        assert.equal(new URL(page.url()).searchParams.get('sort'),'name-asc');
+        await page.locator('.pagination-panel').screenshot({path:'artifacts/pagination-'+resource+'-'+width+'.png'});
+        assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+        assert.ok((await page.locator('.book-prev').boundingBox())!.width<110);
+        await page.goBack();
+        await page.waitForURL(url=>!url.searchParams.has('page'));
+        await page.getByRole('rowheader').first().waitFor();
+        assert.equal(await input.inputValue(),'1');
+        await page.goForward();
+        await page.waitForURL(url=>url.searchParams.get('page')==='7');
+        await page.getByRole('rowheader').first().waitFor();
+        assert.equal(await input.inputValue(),'7');
+      }
+    }
+    store.rows=adminPaginationRows;
     await new Promise<void>(r => server.close(() => r()));
     await page.goto(webOrigin + '/dishes');
     await page.getByRole('heading', { name: 'Chưa thể tải thông tin.' }).waitFor();

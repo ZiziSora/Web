@@ -3866,7 +3866,8 @@ button:disabled {
 /* Pagination follows the reference: links, page input, then result range below. */
 .book-footer { flex-direction:column; align-items:flex-start; gap:10px; padding:24px 0; }
 .book-pagination { max-width:100%; min-width:0; }
-.book-pagination .book-controls { justify-content:flex-start; gap:8px; flex-wrap:wrap; }
+.book-pagination .book-controls { display:flex; justify-content:flex-start; gap:8px; flex-wrap:wrap; }
+.book-pagination .book-controls > .book-prev,.book-pagination .book-controls > .book-next { flex:0 0 auto; width:auto; }
 .book-controls .book-prev { order:0; }
 .book-controls .book-page-numbers { order:1; }
 .book-controls .book-next { order:2; }
