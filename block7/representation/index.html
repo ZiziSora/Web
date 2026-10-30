@@ -115,22 +115,28 @@ api&lt;Page&lt;Entity&gt;&gt;(<span class="str">&#x27;/&#x27;</span> + key, {
 <section class="slide" id="slide-5" data-title="Filter · sort · search" aria-labelledby="title-5" hidden>
       <div class="masthead"><span class="issue">Block 07 / The Table</span><span>Filter · sort · search</span></div>
       <p class="eyebrow">05 / Quyết định của nhóm</p>
-      <h2 id="title-5">Lọc toàn bộ tập kết quả rồi mới phân trang</h2>
-      <p class="lead">Món lọc tại PostgreSQL: danh mục + giá + trạng thái + từ khóa kết hợp AND. Đầu bếp/nguyên liệu tìm tên và sort trên mảng ở client.</p>
-      <div class="body"><div class="flow"><div>Tìm kiếm + filter<small>món: PostgreSQL · tập nhỏ: client</small></div><span>→</span><div>Sắp xếp<small>tên / giá; search dùng độ phù hợp</small></div><span>→</span><div>LIMIT / OFFSET<small>tập nhỏ: slice trên mảng</small></div><span>→</span><div>JSON → React<small>món fetch tiếp · tập nhỏ tải một lần</small></div></div>
-<div class="grid"><div class="stack"><div class="codebox"><div class="code-title"><span>store.ts · nhánh fulltext</span><span>Lược trích · xuống dòng lại</span></div><pre><code><span class="kw">const</span> tsquery = Prisma.sql`
-  websearch_to_tsquery(<span class="str">&#x27;simple&#x27;</span>, ${term})`;
-clauses.push(Prisma.sql`
-  <span class="str">&quot;searchVector&quot;</span> @@ ${tsquery}`);
-score = Prisma.sql`
-  ts_rank(<span class="str">&quot;searchVector&quot;</span>, ${tsquery})`;</code></pre></div><div class="box wash"><p class="small"><strong>Tên + mô tả:</strong> cấu hình <code>simple</code> ở document/query; tên trọng số A, mô tả B; xử lý NULL bằng coalesce.</p></div></div><div class="stack"><div class="codebox"><div class="code-title"><span>store.ts · nhánh fuzzy</span><span>Lược trích · xuống dòng lại</span></div><pre><code>clauses.push(Prisma.sql`
-  <span class="str">&quot;searchName&quot;</span> % ${term}
-  <span class="kw">AND</span> similarity(<span class="str">&quot;searchName&quot;</span>, ${term}) &gt;= 0.3::real
-`);
-score = Prisma.sql`
-  similarity(<span class="str">&quot;searchName&quot;</span>, ${term})`;</code></pre></div><div class="box wash"><p class="small"><strong>Chỉ tên món:</strong> pg_trgm, ngưỡng ≥ 0.3. Không có full-text mới fallback; trả <code>effectiveMode</code> cho UI.</p></div></div></div>
-<div class="callout"><strong>Quy tắc chung:</strong> lower + unaccent; full-text/fuzzy xếp điểm giảm dần, rồi ID tăng dần. Sort thường cũng có ID làm khóa phụ; trigger và GIN hỗ trợ dữ liệu tìm kiếm.</div></div>
-      <div class="footer"><span>Nguồn: api/src/store.ts:24–60 · api/src/search-setup.ts · web/src/components/ListControls.tsx</span><span>05 / 08</span></div>
+      <h2 id="title-5">Tìm, lọc và sắp xếp được xử lý ở đâu?</h2>
+      <p class="lead">Món ăn xử lý tại PostgreSQL. Đầu bếp và nguyên liệu tải toàn bộ một lần, rồi xử lý tại trình duyệt.</p>
+      <div class="body query-summary">
+        <table class="table-tight summary-table">
+          <colgroup><col style="width:20%"><col style="width:37%"><col style="width:26%"><col style="width:17%"></colgroup>
+          <thead><tr><th scope="col">Khu vực</th><th scope="col">Tìm kiếm &amp; bộ lọc</th><th scope="col">Sắp xếp</th><th scope="col">Xử lý tại</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Thực đơn</strong></td><td>Full-text trên tên + mô tả; không có kết quả mới tìm tên gần giống.<br>Thêm danh mục, khoảng giá, trạng thái.</td><td>Có từ khóa: độ phù hợp.<br>Không có: tên hoặc giá.</td><td><strong class="processing-server">Server</strong><br>PostgreSQL</td></tr>
+            <tr><td><strong>Quản trị món</strong></td><td>Tìm một phần tên + danh mục + khoảng giá + trạng thái. Các điều kiện kết hợp AND.</td><td>Tên A–Z / Z–A;<br>giá tăng / giảm.</td><td><strong class="processing-server">Server</strong><br>PostgreSQL</td></tr>
+            <tr><td><strong>Quản trị đầu bếp<br>&amp; nguyên liệu</strong></td><td>Tìm một phần tên trên toàn bộ danh sách đã tải; hỗ trợ nhập không dấu.</td><td>Tên A–Z / Z–A.</td><td><strong class="processing-client">Client</strong><br>Trình duyệt</td></tr>
+            <tr><td><strong>Chọn đầu bếp<br>&amp; nguyên liệu trong form</strong></td><td>Tìm một phần tên trên toàn bộ danh sách đã tải; giữ riêng các mục đã chọn.</td><td>Theo ID tăng dần;<br>không có ô chọn sort.</td><td><strong class="processing-client">Client</strong><br>Trình duyệt</td></tr>
+          </tbody>
+        </table>
+        <div class="query-order" aria-label="Thứ tự xử lý dữ liệu">
+          <strong>Luôn theo thứ tự:</strong><span>Tìm kiếm / lọc</span><b aria-hidden="true">→</b><span>Sắp xếp</span><b aria-hidden="true">→</b><span>Chia trang / số mục hiển thị</span>
+        </div>
+        <div class="grid summary-evidence">
+          <div class="box blue"><h3>Chứng minh server bằng Network</h3><p>Đổi filter hoặc sort món → có request mới mang điều kiện; response chỉ trả một trang, mặc định 6 món.</p></div>
+          <div class="box red"><h3>Chứng minh client bằng Network</h3><p>Đầu bếp/nguyên liệu đã tải đủ → tìm tên, sort, đổi trang, Tải thêm hoặc cuộn tiếp không gửi request mới.</p></div>
+        </div>
+      </div>
+      <div class="footer"><span>Nguồn: api/src/store.ts · utils/client-list.ts · hooks/useClientPagedList.ts · hooks/useOptions.ts</span><span>05 / 08</span></div>
     </section>
 
 <section class="slide" id="slide-6" data-title="Demo · Network phân trang" aria-labelledby="title-6" hidden>
@@ -164,7 +170,7 @@ data.meta.pages            → 167
 <div class="request">Payload<br><b>q: bo luc lacx</b><br>mode: fulltext<br>fallback: fuzzy</div>
 <div class="result fuzzy">Response → data.meta<br><strong>effectiveMode: "fuzzy"</strong></div>
 <p class="small">Trên UI hiện nhãn <strong>“Các món có tên gần giống”</strong>. Để tách riêng hai mode: <a class="demo-link" href="http://localhost:3006/api/dishes?mode=fulltext&amp;q=bo%20luc%20lacx" target="_blank" rel="noopener">fulltext → rỗng</a> / <a class="demo-link" href="http://localhost:3006/api/dishes?mode=fuzzy&amp;q=bo%20luc%20lacx" target="_blank" rel="noopener">fuzzy → gợi ý</a>.</p></div></div>
-<div class="callout red"><strong>Trường cần nhìn là effectiveMode ở response.</strong> Cả hai request đều gửi fulltext + fallback=fuzzy. Network cho thấy request/response; đối chiếu SQL ở slide 5 để giải thích PostgreSQL xử lý.</div>
+<div class="callout red"><strong>Trường cần nhìn là effectiveMode ở response.</strong> Cả hai request đều gửi fulltext + fallback=fuzzy. PostgreSQL dùng <code>websearch_to_tsquery</code> cho full-text; <code>pg_trgm</code> + <code>similarity ≥ 0.3</code> cho fuzzy (code: <code>api/src/store.ts</code>).</div>
 </div>
       <div class="footer"><span>Demo trên bộ seed · API mặc định localhost:3006 · các liên kết mở tab mới, không tự gọi API</span><span>07 / 08</span></div>
     </section>

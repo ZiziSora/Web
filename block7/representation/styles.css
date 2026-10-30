@@ -63,6 +63,14 @@ pre code { font:inherit; color:inherit; }
 .flow > div { flex:1; border-top:3px solid var(--blue); padding:12px 10px; text-align:center; background:var(--wash); font-size:14px; font-weight:700; }
 .flow small { display:block; margin-top:5px; color:var(--muted); font-size:11px; font-weight:400; }
 .flow > span { align-self:center; color:var(--blue); font-size:21px; }
+.summary-table td { padding:9px 12px; font-size:14px; }
+.processing-server { color:var(--blue); }
+.processing-client { color:#b4123a; }
+.query-order { display:flex; align-items:center; justify-content:center; gap:15px; margin:13px 0; padding:11px 12px; background:#eef6fd; color:var(--navy); font-size:14px; }
+.query-order > b { color:var(--blue); }
+.summary-evidence .box { padding:12px 15px; }
+.summary-evidence h3 { font-size:17px; margin-bottom:6px; }
+.summary-evidence p { font-size:14px; line-height:1.5; }
 .steps { padding:0; margin:0; list-style:none; counter-reset:step; display:flex; flex-direction:column; gap:13px; }
 .steps li { counter-increment:step; position:relative; padding-left:37px; font-size:15px; line-height:1.5; }
 .steps li::before { content:counter(step,decimal-leading-zero); position:absolute; left:0; top:0; color:var(--red); font:700 17px/1.4 var(--mono); }
