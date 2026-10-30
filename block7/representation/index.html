@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Block 7 — 8 slide ngắn về server pagination, ba kiểu UI, filter/sort, full-text, fuzzy và bằng chứng DevTools; có trích đoạn code nguồn.">
+  <title>Block 7 · Phân trang và tìm kiếm tại server</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script src="slides.js" defer></script>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"><div id="progress"></div></div>
+  <main class="stage" aria-label="Bài trình bày Block 7"><div class="deck" id="deck">
+<section class="slide active" id="slide-1" data-title="Ba UI, cùng server paging" aria-labelledby="title-1">
+      <div class="masthead"><span class="issue">Block 07 / The Table</span><span>Ba UI, cùng server paging</span></div>
+      <p class="eyebrow">01 / Quyết định của nhóm</p>
+      <h1 id="title-1">Phân trang đúng nơi, tải dữ liệu từng phần</h1>
+      <p class="lead">PostgreSQL chọn phần dữ liệu; React nhận JSON qua AJAX và cập nhật giao diện. 8 slide · khoảng 6 phút.</p>
+      <div class="body">
+<div class="stats"><div class="stat"><strong>1.000</strong><span>món ăn trong bộ seed</span></div><div class="stat"><strong>20 + 20</strong><span>đầu bếp và nguyên liệu</span></div><div class="stat"><strong>6 mục</strong><span>mỗi trang / mỗi lô mặc định</span></div><div class="stat"><strong>3 UI</strong><span>số trang · tải thêm · cuộn tiếp</span></div></div>
+<table><thead><tr><th>Vị trí</th><th>UI</th><th>Truy vấn server</th><th>Lý do chọn</th></tr></thead><tbody>
+<tr><td>Thực đơn sách + 3 bảng quản trị</td><td><strong>Số trang</strong></td><td><code>COUNT + LIMIT / OFFSET</code></td><td>Nhảy trang, biết tổng, chia sẻ URL.</td></tr>
+<tr><td>Form món → chọn đầu bếp</td><td><strong>Load More</strong></td><td><code>id &gt; after · LIMIT 7</code></td><td>Chủ động nối tiếp lựa chọn.</td></tr>
+<tr><td>Form món → chọn nguyên liệu</td><td><strong>Infinite Scroll</strong></td><td><code>id &gt; after · LIMIT 7</code></td><td>Cuộn trong khung, có nút tải dự phòng.</td></tr>
+</tbody></table>
+<div class="callout"><strong>Phân biệt hai trục:</strong> server paging quyết định <em>lấy dữ liệu ở đâu</em>; AJAX quyết định <em>cập nhật UI bằng cách nào</em>. Cả ba UI đều dùng server paging + AJAX.</div>
+<p class="small muted" style="margin-top:12px">Client giữ state, URL và lựa chọn; thao tác chia 6 món thành hai lá sách chỉ là bố cục, không phải tải 1.000 món rồi chia trang.</p>
+</div>
+      <div class="footer"><span>Nguồn: api/src/store.ts · web/src/pages/Menu.tsx · web/src/pages/admin/List.tsx</span><span>01 / 08</span></div>
+    </section>
+
+<section class="slide" id="slide-2" data-title="Code · số trang" aria-labelledby="title-2" hidden>
+      <div class="masthead"><span class="issue">Block 07 / The Table</span><span>Code · số trang</span></div>
+      <p class="eyebrow">02 / Quyết định của nhóm</p>
+      <h2 id="title-2">Số trang: SQL lấy đúng phần, URL giữ điều kiện</h2>
+      <p class="lead">COUNT dùng cùng điều kiện WHERE; đếm tổng, lấy ID và tải quan hệ trong transaction Repeatable Read.</p>
+      <div class="body"><div class="grid wide"><div class="stack"><div class="codebox"><div class="code-title"><span>api/src/store.ts · list()</span><span>Lược trích · xuống dòng lại</span></div><pre><code><span class="kw">const</span> pages = Math.max(1,
+  Math.ceil(total / query.pageSize));
+<span class="kw">const</span> page = Math.min(query.page, pages);
+<span class="kw">const</span> ids = <span class="kw">await</span> tx.$queryRaw(Prisma.sql`
+  <span class="kw">SELECT</span> id <span class="kw">FROM</span> ${this.table(resource)}
+  <span class="kw">WHERE</span> ${conditions.where}
+  <span class="kw">ORDER BY</span> ${conditions.order}
+  <span class="kw">LIMIT</span> ${query.pageSize}
+  <span class="kw">OFFSET</span> ${(page - 1) * query.pageSize}
+`);
+<span class="kw">const</span> where = {
+  id: { in: ids.map(row =&gt; row.id) }
+};</code></pre></div><div class="box wash"><p class="small"><strong>Trang 2:</strong> OFFSET = 6. <strong>1.000 món:</strong> 167 trang; trang cuối có 4 món. Truy vấn ORM tiếp theo chỉ tải các ID vừa chọn và trả lại đúng thứ tự.</p></div></div><div class="stack"><div class="codebox"><div class="code-title"><span>MenuBook.tsx · href(target)</span><span>Lược trích · xuống dòng lại</span></div><pre><code><span class="kw">const</span> next = <span class="kw">new</span> URLSearchParams(params);
+next.delete(<span class="str">&#x27;page&#x27;</span>);
+<span class="kw">if</span> (target &gt; 1)
+  next.set(<span class="str">&#x27;page&#x27;</span>, String(target));
+<span class="kw">return</span> {
+  pathname: location.pathname,
+  search: next.toString()
+    ? <span class="str">&#x27;?&#x27;</span> + next.toString() : <span class="str">&#x27;&#x27;</span>
+};</code></pre></div><div class="box blue"><h3>Reload / Back / copy link</h3><p class="small">Giữ <code>q</code>, filter, sort khi đổi trang. Đổi điều kiện thì xóa <code>page</code> để bắt đầu lại từ trang 1. Trang vượt cuối được clamp và đồng bộ lại URL.</p></div></div></div></div>
+      <div class="footer"><span>Nguồn: api/src/store.ts:51–70 · web/src/components/dishes/MenuBook.tsx · ListControls.tsx</span><span>02 / 08</span></div>
+    </section>
+
+<section class="slide" id="slide-3" data-title="Code · Load More" aria-labelledby="title-3" hidden>
+      <div class="masthead"><span class="issue">Block 07 / The Table</span><span>Code · Load More</span></div>
+      <p class="eyebrow">03 / Quyết định của nhóm</p>
+      <h2 id="title-3">Cursor nối tiếp bằng ID, đọc dư một mục</h2>
+      <p class="lead">Bấm “Tải thêm” ở đầu bếp: lấy nextCursor của response trước làm after cho request tiếp theo.</p>
+      <div class="body"><div class="grid wide"><div class="stack"><div class="codebox"><div class="code-title"><span>api/src/store.ts · options()</span><span>Lược trích · xuống dòng lại</span></div><pre><code><span class="kw">const</span> rows = <span class="kw">await</span> tx.$queryRaw(Prisma.sql`
+  <span class="kw">SELECT</span> id, name, ${extra}
+  <span class="kw">FROM</span> ${this.table(resource)}
+  <span class="kw">WHERE</span> id &gt; ${query.after}
+    <span class="kw">AND</span> <span class="str">&quot;searchName&quot;</span> LIKE (<span class="str">&#x27;%&#x27;</span> || ${term} || <span class="str">&#x27;%&#x27;</span>)
+  <span class="kw">ORDER BY</span> id <span class="kw">ASC</span> <span class="kw">LIMIT</span> ${query.limit + 1}
+`);
+<span class="kw">const</span> hasMore = rows.length &gt; query.limit;
+<span class="kw">const</span> items = rows.slice(0, query.limit);
+<span class="kw">return</span> {
+  items, hasMore,
+  nextCursor: hasMore ? items.at(-1)!.id : null
+};</code></pre></div><p class="small muted">Server đọc tối đa 7 để biết còn dữ liệu, nhưng chỉ trả tối đa 6. Picker không cần COUNT tổng.</p></div><div class="stack"><div class="codebox"><div class="code-title"><span>web/src/hooks/useOptions.ts</span><span>Lược trích · xuống dòng lại</span></div><pre><code><span class="kw">const</span> params = <span class="kw">new</span> URLSearchParams({
+  q: term, limit: String(PAGE_SIZE)
+});
+<span class="kw">if</span> (after)
+  params.set(<span class="str">&#x27;after&#x27;</span>, String(after));
+<span class="kw">const</span> data = <span class="kw">await</span> api&lt;OptionsPage&gt;(
+  `/${resource}/options?${params}`,
+  { signal: request.signal }
+);</code></pre></div><div class="box blue"><h3>20 mục → 4 lô</h3><p><strong>6 → 12 → 18 → 20</strong> mục đang hiển thị.</p><p class="small" style="margin-top:8px">Client nối thêm, loại trùng bằng <code>Map(id → item)</code>. Hết dữ liệu: <code>hasMore=false</code>, <code>nextCursor=null</code>.</p></div><p class="small muted">ID có thể có khoảng trống. Luôn dùng nextCursor nhận được; không tự cộng 6.</p></div></div></div>
+      <div class="footer"><span>Nguồn: api/src/store.ts:72–81 · web/src/hooks/useOptions.ts · components/forms/RelationField.tsx</span><span>03 / 08</span></div>
+    </section>
+
+<section class="slide" id="slide-4" data-title="Code · cuộn &amp; trạng thái" aria-labelledby="title-4" hidden>
+      <div class="masthead"><span class="issue">Block 07 / The Table</span><span>Code · cuộn &amp; trạng thái</span></div>
+      <p class="eyebrow">04 / Quyết định của nhóm</p>
+      <h2 id="title-4">Cuộn kích hoạt tải; query quyết định dữ liệu hợp lệ</h2>
+      <p class="lead">Infinite Scroll dùng chung API cursor với Load More; điểm khác là IntersectionObserver kích hoạt request.</p>
+      <div class="body"><div class="grid"><div class="stack"><div class="codebox"><div class="code-title"><span>RelationField.tsx · khung nguyên liệu</span><span>Lược trích · xuống dòng lại</span></div><pre><code><span class="kw">if</span> (!infinite || !s.hasMore || s.loading ||
+    s.error || !sentinel.current ||
+    search.trim() !== q) <span class="kw">return</span>;
+<span class="kw">const</span> observer = <span class="kw">new</span> IntersectionObserver(
+  entries =&gt; {
+    <span class="kw">if</span> (entries.some(entry =&gt; entry.isIntersecting))
+      load.current();
+  },
+  { root: root.current, threshold: 0.1 }
+);
+observer.observe(sentinel.current);
+<span class="kw">return</span> () =&gt; observer.disconnect();</code></pre></div><div class="box blue"><p class="small"><strong>root là khung nguyên liệu</strong>, không phải toàn trang. Có nút “Tải thêm” để dùng bàn phím; lỗi dừng tự tải và cho thử lại.</p></div></div><div class="stack"><div class="codebox"><div class="code-title"><span>web/src/hooks/usePagedList.ts</span><span>Lược trích · xuống dòng lại</span></div><pre><code><span class="kw">const</span> controller = <span class="kw">new</span> AbortController();
+api&lt;Page&lt;Entity&gt;&gt;(<span class="str">&#x27;/&#x27;</span> + key, {
+  signal: controller.signal
+}).then(data =&gt; {
+  <span class="kw">if</span> (!controller.signal.aborted &amp;&amp;
+      active.current === key)
+    set({ key, signature, data, loading: <span class="kw">false</span> });
+});
+<span class="kw">return</span> () =&gt; controller.abort();</code></pre></div><div class="box red"><h3>Đổi query: bắt đầu một danh sách mới</h3><p class="small">Hủy request cũ, xóa lô/cursor cũ; giữ ID và chip đã chọn riêng. Khóa tải đồng thời, không append phản hồi của từ khóa trước.</p></div><p class="small muted">useOptions kiểm tra thêm <code>current.current === term</code> trước khi cập nhật.</p></div></div></div>
+      <div class="footer"><span>Nguồn: RelationField.tsx:20–25 · hooks/usePagedList.ts:26–35 · hooks/useOptions.ts</span><span>04 / 08</span></div>
+    </section>
+
+<section class="slide" id="slide-5" data-title="Filter · sort · search" aria-labelledby="title-5" hidden>
+      <div class="masthead"><span class="issue">Block 07 / The Table</span><span>Filter · sort · search</span></div>
+      <p class="eyebrow">05 / Quyết định của nhóm</p>
+      <h2 id="title-5">Lọc toàn bộ tập kết quả rồi mới phân trang</h2>
+      <p class="lead">Menu và quản trị món: danh mục + khoảng giá + trạng thái + từ khóa kết hợp AND. Đầu bếp/nguyên liệu tìm một phần tên.</p>
+      <div class="body"><div class="flow"><div>Tìm kiếm + filter<small>trên database, trước paging</small></div><span>→</span><div>Sắp xếp<small>tên / giá; search dùng độ phù hợp</small></div><span>→</span><div>LIMIT / OFFSET<small>hoặc cursor cho picker</small></div><span>→</span><div>JSON → React<small>thay trang hoặc nối lô</small></div></div>
+<div class="grid"><div class="stack"><div class="codebox"><div class="code-title"><span>store.ts · nhánh fulltext</span><span>Lược trích · xuống dòng lại</span></div><pre><code><span class="kw">const</span> tsquery = Prisma.sql`
+  websearch_to_tsquery(<span class="str">&#x27;simple&#x27;</span>, ${term})`;
+clauses.push(Prisma.sql`
+  <span class="str">&quot;searchVector&quot;</span> @@ ${tsquery}`);
+score = Prisma.sql`
+  ts_rank(<span class="str">&quot;searchVector&quot;</span>, ${tsquery})`;</code></pre></div><div class="box wash"><p class="small"><strong>Tên + mô tả:</strong> cấu hình <code>simple</code> ở document/query; tên trọng số A, mô tả B; xử lý NULL bằng coalesce.</p></div></div><div class="stack"><div class="codebox"><div class="code-title"><span>store.ts · nhánh fuzzy</span><span>Lược trích · xuống dòng lại</span></div><pre><code>clauses.push(Prisma.sql`
+  <span class="str">&quot;searchName&quot;</span> % ${term}
+  <span class="kw">AND</span> similarity(<span class="str">&quot;searchName&quot;</span>, ${term}) &gt;= 0.3::real
+`);
+score = Prisma.sql`
+  similarity(<span class="str">&quot;searchName&quot;</span>, ${term})`;</code></pre></div><div class="box wash"><p class="small"><strong>Chỉ tên món:</strong> pg_trgm, ngưỡng ≥ 0.3. Không có full-text mới fallback; trả <code>effectiveMode</code> cho UI.</p></div></div></div>
+<div class="callout"><strong>Quy tắc chung:</strong> lower + unaccent; full-text/fuzzy xếp điểm giảm dần, rồi ID tăng dần. Sort thường cũng có ID làm khóa phụ; trigger và GIN hỗ trợ dữ liệu tìm kiếm.</div></div>
+      <div class="footer"><span>Nguồn: api/src/store.ts:24–60 · api/src/search-setup.ts · web/src/components/ListControls.tsx</span><span>05 / 08</span></div>
+    </section>
+
+<section class="slide" id="slide-6" data-title="Demo · Network phân trang" aria-labelledby="title-6" hidden>
+      <div class="masthead"><span class="issue">Block 07 / The Table</span><span>Demo · Network phân trang</span></div>
+      <p class="eyebrow">06 / Quyết định của nhóm</p>
+      <h2 id="title-6">Network cho thấy server chỉ trả một phần danh sách</h2>
+      <p class="lead">Mở web localhost:5176 → F12 → Network. Theo dõi Fetch/XHR để đọc JSON, rồi đối chiếu cột Type hoặc bộ lọc Doc.</p>
+      <div class="body"><div class="grid"><div class="stack"><ol class="steps"><li><strong>Clear log, mở thực đơn, chuyển trang 2.</strong><br>Chọn request dishes có query; xem Payload → Query String Parameters.</li><li><strong>Chỉ ra page=2 và pageSize=6.</strong><br>Response có tối đa 6 món, total và số trang. Không có mảng 1.000 món để client tự cắt.</li><li><strong>Form món → Tải thêm / cuộn trong khung.</strong><br>Request options có limit=6; lần sau có after lấy từ nextCursor. Response lô cuối có hasMore=false.</li><li><strong>Đổi filter hoặc sort.</strong><br>Request mới mang đủ điều kiện, về trang 1; thao tác sau khi app đã tải không tạo document navigation.</li></ol></div><div class="stack"><div class="codebox"><div class="code-title"><span>DevTools → Preview / Response</span><span>Các trường cần chỉ ra</span></div><pre><code>data.items.length          → 6
+
+data.meta.page             → 2
+data.meta.pageSize         → 6
+data.meta.total            → 1000
+data.meta.pages            → 167
+
+<span class="comment">// Ví dụ khi database có đúng 1.000 món.</span>
+<span class="comment">// Trang 167 trả 4 món.</span></code></pre></div><div class="request">GET /api/dishes?<b>page=2&amp;pageSize=6</b><br>GET /api/chefs/options?<b>limit=6&amp;after=&lt;nextCursor&gt;</b></div><p class="small muted">URL phía trên rút gọn để tập trung vào paging. <code>dishes/facets</code> chỉ lấy danh mục, không phải request danh sách món.</p></div></div></div>
+      <div class="footer"><span>Quan sát trực tiếp: Payload + Response + Type · AJAX dùng fetch, không tải lại document khi đổi trang</span><span>06 / 08</span></div>
+    </section>
+
+<section class="slide" id="slide-7" data-title="Demo · full-text và fuzzy" aria-labelledby="title-7" hidden>
+      <div class="masthead"><span class="issue">Block 07 / The Table</span><span>Demo · full-text và fuzzy</span></div>
+      <p class="eyebrow">07 / Quyết định của nhóm</p>
+      <h2 id="title-7">Cùng một ô tìm, response cho biết cách tìm thực tế</h2>
+      <p class="lead">F12 → Network → Fetch/XHR → Clear. Gõ và chờ debounce 300 ms, hoặc nhấn “Tìm kiếm”; chọn request dishes có q.</p>
+      <div class="body">
+<div class="grid"><div class="stack"><div class="box blue"><span class="label">Demo A / Full-text</span><h3>Nhập “gion ngot”</h3><p>“Bò lúc lắc” có cụm <strong>“hành tây giòn ngọt”</strong> trong mô tả. Tên món không chứa cụm đang tìm.</p></div>
+<div class="request">Payload<br><b>q: gion ngot</b><br>mode: fulltext<br>fallback: fuzzy</div>
+<div class="result">Response → data.meta<br><strong>effectiveMode: "fulltext"</strong></div>
+<p class="small">Mở <code>data.items</code> → chỉ vào <code>name</code> và <code>description</code> để chứng minh tìm trên mô tả và hỗ trợ không dấu.</p></div>
+<div class="stack"><div class="box red"><span class="label">Demo B / Fuzzy</span><h3>Nhập “bo luc lacx”</h3><p>Cố tình gõ sai từ cuối. Full-text không khớp; server tìm tên gần giống và gợi ý <strong>“Bò lúc lắc”</strong>.</p></div>
+<div class="request">Payload<br><b>q: bo luc lacx</b><br>mode: fulltext<br>fallback: fuzzy</div>
+<div class="result fuzzy">Response → data.meta<br><strong>effectiveMode: "fuzzy"</strong></div>
+<p class="small">Trên UI hiện nhãn <strong>“Các món có tên gần giống”</strong>. Để tách riêng hai mode: <a class="demo-link" href="http://localhost:3006/api/dishes?mode=fulltext&amp;q=bo%20luc%20lacx" target="_blank" rel="noopener">fulltext → rỗng</a> / <a class="demo-link" href="http://localhost:3006/api/dishes?mode=fuzzy&amp;q=bo%20luc%20lacx" target="_blank" rel="noopener">fuzzy → gợi ý</a>.</p></div></div>
+<div class="callout red"><strong>Trường cần nhìn là effectiveMode ở response.</strong> Cả hai request đều gửi fulltext + fallback=fuzzy. Network cho thấy request/response; đối chiếu SQL ở slide 5 để giải thích PostgreSQL xử lý.</div>
+</div>
+      <div class="footer"><span>Demo trên bộ seed · API mặc định localhost:3006 · các liên kết mở tab mới, không tự gọi API</span><span>07 / 08</span></div>
+    </section>
+
+<section class="slide" id="slide-8" data-title="Lỗi &amp; nghiệm thu" aria-labelledby="title-8" hidden>
+      <div class="masthead"><span class="issue">Block 07 / The Table</span><span>Lỗi &amp; nghiệm thu</span></div>
+      <p class="eyebrow">08 / Quyết định của nhóm</p>
+      <h2 id="title-8">Giải thích lỗi bằng thao tác và kết quả quan sát được</h2>
+      <p class="lead">Giữ điều kiện nhất quán từ URL đến SQL, từ request đến state; giữ lựa chọn độc lập với lô dữ liệu đang nhìn thấy.</p>
+      <div class="body">
+<table class="table-tight"><thead><tr><th>Vấn đề đã xử lý</th><th>Code chính</th><th>Cách chứng minh khi trình bày</th></tr></thead><tbody>
+<tr><td>Response từ khóa cũ ghi đè lần tìm mới</td><td><code>AbortController</code> + kiểm tra query key.</td><td>Bật Slow 3G; đổi từ khóa liên tiếp. UI và URL cuối cùng cùng một từ khóa.</td></tr>
+<tr><td>Đổi filter ở trang xa, hoặc trộn hai lô</td><td>Xóa <code>page</code>; reset danh sách/cursor theo query.</td><td>Đang trang 3 → đổi filter: về trang 1. Picker tìm tên khác: không lẫn các mục của query cũ.</td></tr>
+<tr><td>Lựa chọn mất khi tìm khác; Enter lưu nhầm form</td><td>ID/chip giữ riêng; ô tìm picker chặn submit.</td><td>Chọn một mục rồi tìm tên khác: chip còn. Nhấn Enter chỉ tìm, form chưa được lưu.</td></tr>
+<tr><td>Append trùng mục hoặc tải mãi khi lỗi</td><td>Khóa request, Map theo ID, chặn observer khi lỗi.</td><td>Tải nhanh/cho API lỗi: mục cũ và input còn nguyên; nút “Thử lại” nối đúng lô.</td></tr>
+</tbody></table>
+<div class="callout"><strong>Thứ tự demo ngắn:</strong> ① Trang 2 + Network → ② Tải đầu bếp / cuộn nguyên liệu (6–12–18–20) → ③ Filter + sort + reload URL → ④ “gion ngot” / “bo luc lacx”.</div>
+<div class="tags" style="margin-top:15px"><span class="tag">Số trang: khôi phục URL</span><span class="tag">Picker mở lại: tải từ lô đầu</span><span class="tag">Liên kết đã lưu: khôi phục từ món</span><span class="tag">Seed chạy lại: không thêm trùng</span></div>
+</div>
+      <div class="footer"><span>Đối chiếu: usePagedList.ts · useOptions.ts · RelationField.tsx · ListControls.tsx · README.md</span><span>08 / 08</span></div>
+    </section>
+  </div></main>
+  <nav class="nav" aria-label="Điều hướng bài trình bày">
+    <button id="previous" type="button" aria-label="Slide trước" disabled>← Trước</button>
+    <span class="counter" id="counter" role="status" aria-live="polite">01 / 08</span>
+    <button id="next" type="button" aria-label="Slide tiếp theo">Sau →</button>
+    <select id="slide-picker" aria-label="Chọn slide"></select>
+    <button id="fullscreen" type="button" aria-label="Bật hoặc tắt toàn màn hình" aria-pressed="false">⛶ <span class="fullscreen-label">Toàn màn hình</span></button>
+    <span class="shortcut">← → / Home / End · Ctrl+P để xuất PDF</span>
+  </nav>
+  <noscript>Bật JavaScript để chuyển slide. In hoặc lưu PDF để xem toàn bộ bài trình bày.</noscript>
+</body>
+</html>
