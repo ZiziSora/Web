@@ -99,18 +99,69 @@
     const link = pagination?.querySelector(event.key === 'ArrowLeft' ? '[rel="prev"]' : event.key === 'ArrowRight' ? '[rel="next"]' : 'missing-link');
     if (link) { event.preventDefault(); link.click(); }
   });
+  document.querySelectorAll('[data-password-toggle]').forEach(button => {
+    const input = document.getElementById(button.getAttribute('aria-controls'));
+    if (!input) return;
+    button.hidden = false;
+    button.addEventListener('click', () => {
+      const visible = input.type === 'password';
+      input.type = visible ? 'text' : 'password';
+      button.setAttribute('aria-pressed', String(visible));
+      button.setAttribute('aria-label', visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+      button.querySelector('[data-password-show]').hidden = visible;
+      button.querySelector('[data-password-hide]').hidden = !visible;
+    });
+  });
+  const pendingForms = new Map();
+  const resetPending = form => {
+    const state = pendingForms.get(form);
+    if (!state) return;
+    clearTimeout(state.slowTimer);
+    clearTimeout(state.disableTimer);
+    pendingForms.delete(form);
+    delete form.dataset.pending;
+    form.removeAttribute('aria-busy');
+    state.buttons.forEach(({ button, disabled, label }) => {
+      button.disabled = disabled;
+      const text = button.querySelector('[data-submit-label]');
+      if (text) text.textContent = label;
+      const icon = button.querySelector('[data-submit-icon]'), spinner = button.querySelector('[data-submit-spinner]');
+      if (icon) icon.hidden = false;
+      if (spinner) spinner.hidden = true;
+    });
+    const status = form.querySelector('.auth-pending-status');
+    if (status) status.textContent = '';
+  };
   document.querySelectorAll('form[method="post"]').forEach(form => form.addEventListener('submit', event => {
+    if (event.defaultPrevented) return;
     if (form.dataset.pending) { event.preventDefault(); return; }
+    if (!form.checkValidity()) { event.preventDefault(); form.reportValidity(); return; }
+    const buttons = [...form.querySelectorAll('button[type="submit"]')].map(button => ({ button, disabled:button.disabled, label:button.querySelector('[data-submit-label]')?.textContent }));
+    const state = { buttons, slowTimer:undefined, disableTimer:undefined };
+    pendingForms.set(form, state);
     form.dataset.pending = 'true';
-    setTimeout(() => form.querySelectorAll('button[type="submit"]').forEach(button => { button.disabled = true; }), 0);
+    // Delay disabling until the browser has collected the native POST payload.
+    state.disableTimer = setTimeout(() => buttons.forEach(({ button }) => { button.disabled = true; }), 0);
+    if (form.matches('[data-auth-form]')) {
+      form.setAttribute('aria-busy', 'true');
+      buttons.forEach(({ button }) => {
+        button.querySelector('[data-submit-label]').textContent = button.dataset.pendingLabel;
+        button.querySelector('[data-submit-icon]').hidden = true;
+        button.querySelector('[data-submit-spinner]').hidden = false;
+      });
+      const status = form.querySelector('.auth-pending-status');
+      status.textContent = event.submitter?.dataset.pendingLabel || 'Đang xử lý…';
+      state.slowTimer = setTimeout(() => { status.textContent = 'Yêu cầu đang được xử lý, vui lòng chờ thêm.'; }, 8000);
+    }
   }));
   window.addEventListener('pagehide', () => {
     timers.forEach(clearTimeout); timers.clear();
+    pendingForms.forEach(state => { clearTimeout(state.slowTimer); clearTimeout(state.disableTimer); });
     try { sessionStorage.setItem('table-previous', JSON.stringify({ path: location.pathname, page: Number(pagination?.dataset.page || 1) })); } catch { /* Storage may be unavailable. */ }
   });
   window.addEventListener('pageshow', () => {
     book?.classList.remove('departing'); book?.removeAttribute('aria-busy');
-    document.querySelectorAll('form[data-pending]').forEach(form => { delete form.dataset.pending; form.querySelectorAll('button[type="submit"]').forEach(button => { button.disabled = false; }); });
+    pendingForms.forEach((_, form) => resetPending(form));
     try {
       const previous = JSON.parse(sessionStorage.getItem('table-previous') || 'null');
       const page = Number(pagination?.dataset.page || 1);

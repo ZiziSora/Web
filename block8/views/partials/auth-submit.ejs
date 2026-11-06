@@ -1,0 +1,4 @@
+<div class="auth-submit">
+  <button class="button auth-submit-button<%= secondary ? ' secondary' : '' %>" type="submit" data-pending-label="<%= pendingLabel %>"><span data-submit-label><%= label %></span><span data-submit-icon><%- include('auth-icon', {name:icon}) %></span><span data-submit-spinner hidden><%- include('auth-icon', {name:'loader-circle'}) %></span></button>
+  <p class="auth-pending-status" role="status" aria-live="polite" aria-atomic="true"></p>
+</div>

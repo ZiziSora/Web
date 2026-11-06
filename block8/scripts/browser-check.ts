@@ -28,6 +28,68 @@ await mkdir('artifacts',{recursive:true});
 let browser;
 try {
   browser=await chromium.launch({executablePath:process.env.CHROME_PATH??'/usr/bin/google-chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+  // Hold a real POST to inspect pending UI without changing the server behavior.
+  {
+    const context = await browser.newContext({ viewport:{width:390,height:1000} });
+    const page = await context.newPage();
+    await page.goto(origin+'/login');
+    const form = page.locator('[data-auth-form]');
+    await form.evaluate((element: HTMLFormElement) => element.requestSubmit());
+    assert.equal(await form.getAttribute('data-pending'), null, 'Invalid forms stay interactive');
+    await page.getByLabel('Email',{exact:true}).fill(credentials.email);
+    await page.getByLabel('Mật khẩu',{exact:true}).fill('wrong-password');
+    const toggle = page.getByRole('button',{name:'Hiện mật khẩu',exact:true});
+    await toggle.focus(); await page.keyboard.press('Space');
+    assert.equal(await page.locator('#password').getAttribute('type'),'text');
+    assert.equal(await page.getByRole('button',{name:'Ẩn mật khẩu'}).getAttribute('aria-pressed'),'true');
+    assert.equal(await page.locator('#password').inputValue(),'wrong-password');
+    await page.getByRole('button',{name:'Ẩn mật khẩu'}).click();
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await page.clock.install();
+    // Keep the document interactive while the browser sends a native POST.
+    await page.evaluate(() => {
+      const frame=document.createElement('iframe'); frame.name='auth-result'; frame.hidden=true;
+      document.body.append(frame);
+      document.querySelector<HTMLFormElement>('[data-auth-form]')!.target='auth-result';
+    });
+    let release!: () => void, posted!: () => void, posts=0;
+    const held = new Promise<void>(resolve => { release=resolve; });
+    const received = new Promise<void>(resolve => { posted=resolve; });
+    await page.route('**/login',async route => {
+      if(route.request().method()!=='POST') return route.continue();
+      posts++; assert.match(route.request().postData()!,/password=wrong-password/);
+      posted(); await held; await route.continue();
+    });
+    const responseReceived = page.waitForResponse(response => response.url()===origin+'/login' && response.request().method()==='POST');
+    try {
+      await form.evaluate((element: HTMLFormElement) => element.requestSubmit(element.querySelector<HTMLButtonElement>('button[type="submit"]')!));
+      await Promise.race([received,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Pending POST was not sent')),10000))]);
+      // Inspect the source form while the result frame waits for its response.
+      await page.evaluate(() => { const form=document.querySelector<HTMLFormElement>('[data-auth-form]')!; form.requestSubmit(); form.requestSubmit(); });
+      await page.clock.runFor(20);
+      const state = await page.evaluate(() => ({
+        busy:document.querySelector('[data-auth-form]')!.getAttribute('aria-busy'),
+        disabled:document.querySelector<HTMLButtonElement>('.auth-submit-button')!.disabled,
+        label:document.querySelector('[data-submit-label]')!.textContent,
+        spinner:!document.querySelector<HTMLElement>('[data-submit-spinner]')!.hidden,
+        animation:getComputedStyle(document.querySelector('[data-submit-spinner] svg')!).animationName,
+        inputDisabled:document.querySelector<HTMLInputElement>('#email')!.disabled,
+      }));
+      assert.deepEqual(state,{busy:'true',disabled:true,label:'Đang đăng nhập…',spinner:true,animation:'none',inputDisabled:false});
+      await page.clock.fastForward(8100);
+      assert.match(await page.evaluate(() => document.querySelector('.auth-pending-status')!.textContent!),/vui lòng chờ thêm/);
+      assert.equal(posts,1,'Repeated submissions produce one POST');
+      await page.screenshot({path:'artifacts/auth-pending-mobile.png',fullPage:true});
+    } finally { release(); }
+    assert.equal((await responseReceived).status(),400);
+    // Exercise BFCache restoration explicitly; native navigation flows follow below.
+    await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));
+    assert.equal(await page.locator('[data-auth-form]').getAttribute('aria-busy'),null);
+    assert.equal(await page.getByRole('button',{name:'Đăng nhập',exact:true}).isEnabled(),true);
+    assert.equal(await page.locator('[data-submit-spinner]').isVisible(),false);
+    assert.equal(await page.locator('.auth-pending-status').textContent(),'');
+    await context.close();
+  }
   for(const javaScriptEnabled of [false,true]) for(const width of [1440,390]) {
     const context=await browser.newContext({javaScriptEnabled,viewport:{width,height:1000}});
     const page=await context.newPage();
@@ -38,6 +100,8 @@ try {
     await page.waitForURL('**/login');
     for (const route of ['/register', '/activate', '/forgot', '/login']) {
       await page.goto(origin + route);
+      assert.ok(await page.locator('.auth-panel .lucide').count()>0,'Icons render in server HTML');
+      assert.equal(await page.getByRole('button',{name:'Hiện mật khẩu',exact:true}).isVisible(),javaScriptEnabled && route==='/login' || javaScriptEnabled && route==='/register');
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth), `${route} overflows at ${suffix}`);
       await page.screenshot({path:`artifacts/auth-${route.slice(1)}-${suffix}.png`,fullPage:true});
     }
@@ -58,7 +122,7 @@ try {
     await page.getByRole('button', {name:'Đăng xuất'}).click(); await page.waitForURL('**/login');
     await page.goto(origin+'/forgot');
     await page.getByLabel('Email', {exact:true}).fill(email);
-    await page.getByRole('button', {name:'Gửi hướng dẫn'}).click(); await page.getByRole('alert').waitFor();
+    await page.getByRole('button', {name:'Gửi hướng dẫn'}).click(); await page.locator('.auth-notice[role="status"]').waitFor();
     const reset = new URL(auth.emails.findLast(message=>message.kind==='reset'&&message.email===email)!.value);
     await page.goto(origin+reset.pathname+reset.search);
     await page.screenshot({path:`artifacts/auth-reset-${suffix}.png`,fullPage:true});

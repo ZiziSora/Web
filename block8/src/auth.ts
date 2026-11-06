@@ -123,7 +123,7 @@ export function authentication(deps: AuthDependencies) {
     const needsCaptcha = mode === 'register' || (mode === 'login' && (forceCaptcha || (state?.count ?? 0) >= 3));
     const captcha = needsCaptcha ? await captchaForm(req, mode) : null;
     if (captcha?.seconds) return limited(res, captcha.seconds);
-    return res.status(status).render('auth/form', { mode, email, message, captcha, pageTitle: ({ login: 'Đăng nhập', register: 'Đăng ký', activate: 'Kích hoạt email', forgot: 'Quên mật khẩu', reset: 'Đặt lại mật khẩu' } as Record<string, string>)[mode] });
+    return res.status(status).render('auth/form', { mode, email, message, captcha, messageTone: status >= 400 ? 'error' : (req.query.status === 'reset' || req.query.status === 'activated') ? 'success' : 'info', pageTitle: ({ login: 'Đăng nhập', register: 'Đăng ký', activate: 'Kích hoạt email', forgot: 'Quên mật khẩu', reset: 'Đặt lại mật khẩu' } as Record<string, string>)[mode] });
   };
   const safeMail = async (send: () => Promise<void>) => {
     try { await send(); } catch { (deps.logger ?? console).error('Không thể gửi email xác thực. Kiểm tra cấu hình SMTP.'); }
@@ -159,7 +159,8 @@ export function authentication(deps: AuthDependencies) {
     if (seconds) return limited(res, seconds);
     if (!await consumeCaptcha(req, 'register')) return form(req, res, 'register', 'CAPTCHA không hợp lệ hoặc đã hết hạn.', 400);
     const email = normalizeEmail(req.body?.email);
-    if (!validEmail(email) || !validPassword(req.body?.password)) return form(req, res, 'register', 'Email không hợp lệ hoặc mật khẩu chưa đủ 8 ký tự / vượt quá 72 byte UTF-8.', 400);
+    if (!validEmail(email)) return form(req, res, 'register', 'Vui lòng nhập địa chỉ email hợp lệ.', 400);
+    if (!validPassword(req.body?.password)) return form(req, res, 'register', typeof req.body?.password === 'string' && [...req.body.password].length >= 8 ? 'Mật khẩu quá dài. Vui lòng chọn mật khẩu ngắn hơn.' : 'Mật khẩu cần ít nhất 8 ký tự.', 400);
     const passwordHash = await bcrypt.hash(req.body.password, 12);
     const created = await db.atomic(async tx => {
       if (await tx.userByEmail(email)) return false;
@@ -267,7 +268,7 @@ export function authentication(deps: AuthDependencies) {
   router.post('/reset', async (req, res) => {
     const seconds = await db.atomic(tx => rate(tx, 'reset:ip', req.ip ?? '', 20, HOUR));
     if (seconds) return limited(res, seconds);
-    if (!validPassword(req.body?.password)) return form(req, res, 'reset', 'Mật khẩu cần ít nhất 8 ký tự và không vượt quá 72 byte UTF-8.', 400);
+    if (!validPassword(req.body?.password)) return form(req, res, 'reset', typeof req.body?.password === 'string' && [...req.body.password].length >= 8 ? 'Mật khẩu quá dài. Vui lòng chọn mật khẩu ngắn hơn.' : 'Mật khẩu cần ít nhất 8 ký tự.', 400);
     const hash = req.session.resetHash ?? '';
     const candidate = hash ? await db.resetByHash(hash) : null;
     if (!candidate || candidate.usedAt || candidate.expiresAt.getTime() <= now()) return errorPage(res, 400, 'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.');
