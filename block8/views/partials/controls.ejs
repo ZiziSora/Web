@@ -1,0 +1,19 @@
+<form method="get" action="<%= base %><%= base === '/dishes' ? '#menu' : '' %>" class="query-controls" role="search" data-list-form>
+  <div class="query-main">
+    <label class="query-search"><span>Tìm <%= labels[resource].singular %></span><input type="search" name="q" value="<%= state.q || '' %>" maxlength="200" placeholder="<%= base === '/dishes' ? 'Tên món hoặc hương vị bạn muốn tìm…' : 'Nhập tên, có thể không dấu…' %>" data-debounce></label>
+    <label><span>Sắp xếp</span><select name="sort"><% for(const [value,title] of [['id','Mặc định'],['name-asc','Tên A–Z'],['name-desc','Tên Z–A'],...(resource === 'dishes' ? [['price-asc','Giá tăng dần'],['price-desc','Giá giảm dần']] : [])]) { %><option value="<%= value %>" <%= (state.sort || 'id') === value ? 'selected' : '' %>><%= title %></option><% } %></select></label>
+    <button class="button query-submit" type="submit">Tìm kiếm</button>
+  </div>
+  <% if(base === '/dishes') { %><p class="query-hint">Tìm theo tên và mô tả, có thể nhập không dấu.<% if(state.q) { %> Kết quả ưu tiên độ phù hợp với từ khóa; xóa từ khóa để sắp xếp theo tên hoặc giá.<% } %></p><% } %>
+  <% if(resource === 'dishes') { %>
+  <details class="query-filters" open><summary>Bộ lọc món ăn</summary><div class="query-filter-fields">
+    <label><span>Danh mục</span><select name="category"><option value="">Tất cả danh mục</option><% for(const category of [...new Set([...categories, ...(state.category ? [state.category] : [])])]) { %><option value="<%= category %>" <%= state.category === category ? 'selected' : '' %>><%= category %></option><% } %></select></label>
+    <label><span>Giá từ (VNĐ)</span><input name="minPrice" inputmode="decimal" value="<%= state.minPrice || '' %>" data-debounce pattern="[0-9]{1,10}(\.[0-9]{1,2})?"></label>
+    <label><span>Giá đến (VNĐ)</span><input name="maxPrice" inputmode="decimal" value="<%= state.maxPrice || '' %>" data-debounce pattern="[0-9]{1,10}(\.[0-9]{1,2})?"></label>
+    <label><span>Trạng thái</span><select name="available"><option value="">Tất cả trạng thái</option><option value="true" <%= state.available === 'true' ? 'selected' : '' %>>Đang phục vụ</option><option value="false" <%= state.available === 'false' ? 'selected' : '' %>>Tạm hết</option></select></label>
+  </div></details>
+  <% } %>
+  <div class="query-actions"><a href="<%= base %><%= base === '/dishes' ? '#menu' : '' %>">Xóa tất cả ×</a></div>
+</form>
+<% if(queryError) { %><p class="notice error" role="alert"><%= queryError %></p><% } %>
+<div class="active-filters"><% for(const [key,title] of [['q','Từ khóa'],['category','Danh mục'],['minPrice','Giá từ'],['maxPrice','Giá đến'],['available','Trạng thái']]) { if(state[key]) { %><a class="filter-chip" href="<%= listUrl(base,state,{[key]:'',page:'1'}) %>" aria-label="Bỏ <%= title %>"><%= title %>: <%= key === 'available' ? (state[key] === 'true' ? 'Đang phục vụ' : 'Tạm hết') : state[key] %> ×</a><% }} %></div>

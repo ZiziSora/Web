@@ -1,0 +1,13 @@
+<% const {page,pages,total,pageSize} = result.meta; const numbered = [...new Set([1,...Array.from({length:5},(_,i)=>page+i-2).filter(n=>n>1&&n<pages),pages])].sort((a,b)=>a-b); %>
+<div class="pagination-panel" data-pagination data-page="<%= page %>">
+  <p class="pagination-summary"><%= total ? (page-1)*pageSize+1 : 0 %>–<%= Math.min(page*pageSize,total) %> / <%= total %> · Trang <%= page %> / <%= pages %></p>
+  <nav class="pagination" aria-label="Phân trang">
+    <% if(page>1) { %><a href="<%= listUrl(base,state,{page:String(page-1)}) %>" rel="prev">← Trước</a><% } else { %><span aria-disabled="true">← Trước</span><% } %>
+    <span class="pagination-numbers"><% numbered.forEach((n,i)=>{ if(i && n-numbered[i-1]>1) { %><span aria-hidden="true">…</span><% } %><a href="<%= listUrl(base,state,{page:String(n)}) %>" <%- n === page ? 'aria-current="page"' : '' %> aria-label="Trang <%= n %>"><%= n %></a><% }); %></span>
+    <% if(page<pages) { %><a href="<%= listUrl(base,state,{page:String(page+1)}) %>" rel="next">Sau →</a><% } else { %><span aria-disabled="true">Sau →</span><% } %>
+  </nav>
+  <form class="page-jump" method="get" action="<%= base %><%= base === '/dishes' ? '#menu' : '' %>">
+    <% for(const [key,value] of Object.entries(state)) { if(key !== 'page' && value) { %><input type="hidden" name="<%= key %>" value="<%= value %>"><% }} %>
+    <label>Đến trang <input type="number" name="page" value="<%= page %>" min="1" max="<%= pages %>" required></label><button type="submit" class="button secondary">Đi</button>
+  </form>
+</div>

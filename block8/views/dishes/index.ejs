@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+<section class="menu-hero container">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="eyebrow-rule" aria-hidden="true"></span> MỜI BẠN NGỒI XUỐNG</p>
+    <h1>Vị quen thuộc.<br><em>Chút bất ngờ.</em></h1>
+    <p class="hero-description">Từ căn bếp Việt đến những hương vị phương xa.<br class="desktop-break"> Một thực đơn để khám phá, một chiếc bàn để sẻ chia.</p>
+    <a href="#menu" class="text-link">Khám phá thực đơn <span aria-hidden="true">↓</span></a>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <%- include('../partials/hero') %>
+    <div class="art-caption"><span>TỪ CĂN BẾP · ĐẾN BÀN ĂN</span><span class="art-line"></span></div>
+  </div>
+</section>
+<div class="philosophy-strip"><div class="container philosophy-inner"><span>NGUYÊN LIỆU TỬ TẾ</span><i aria-hidden="true"></i><span>HƯƠNG VỊ CHÂN THÀNH</span><i aria-hidden="true"></i><span>NIỀM VUI QUANH BÀN ĂN</span></div></div>
+<section class="menu-section container" id="menu" aria-labelledby="menu-heading">
+  <div class="section-heading"><div><p class="eyebrow">CÓ GÌ NGON HÔM NAY?</p><h2 id="menu-heading">Thực đơn của chúng tôi<span class="accent">.</span></h2></div><span class="section-aside">Mỗi món ngon, một câu chuyện.</span></div>
+  <%- include('../partials/controls', {base:'/dishes'}) %>
+  <% if(result) { %>
+  <p class="result-count"><span><%= result.meta.total %></span> món<%= state.q ? ' phù hợp' : ' dành cho bạn' %></p>
+  <% if(state.q) { %><p class="search-summary"><%= result.meta.effectiveMode === 'fuzzy' ? 'Các món có tên gần giống · Không có kết quả khớp tên và mô tả' : 'Kết quả' %> cho “<%= state.q %>”</p><% } %>
+  <% if(result.items.length) { %>
+  <div class="menu-book"><div class="book-binding"><div class="book-content">
+    <% for(let leaf=0;leaf<2;leaf++) { %><div class="book-leaf"><p class="book-running-title">THE TABLE · THỰC ĐƠN</p><div class="dish-grid">
+      <% result.items.slice(leaf*3,leaf*3+3).forEach((dish,index)=>{ %>
+      <article class="dish-card <%= dish.available ? '' : 'dish-unavailable' %>">
+        <div class="card-top"><span class="category"><%= dish.category %></span><span class="dish-number"><%= String((result.meta.page-1)*6+leaf*3+index+1).padStart(2,'0') %></span></div>
+        <h3><a href="/dishes/<%= dish.id %>"><%= dish.name %></a></h3><p class="dish-description"><%= dish.description %></p>
+        <div class="card-bottom"><div><span class="dish-price"><%= money(dish.price) %></span><span class="availability <%= dish.available ? '' : 'unavailable' %>"><i aria-hidden="true"></i><%= dish.available ? 'Sẵn sàng phục vụ' : 'Tạm hết món' %></span></div><a class="circle-link" href="/dishes/<%= dish.id %>" aria-label="Xem chi tiết <%= dish.name %>">↗</a></div>
+      </article><% }); %>
+    </div></div><% } %>
+  </div><div class="ssr-turn" aria-hidden="true"></div></div><%- include('../partials/pagination',{base:'/dishes'}) %></div>
+  <% } else { %><div class="empty-state"><h3>Chưa có món phù hợp.</h3><p>Thử từ khóa khác hoặc điều chỉnh bộ lọc.</p><a class="button secondary" href="/dishes#menu">Xem tất cả món</a></div><% } %>
+  <% } %>
+  <div class="menu-endnote"><span aria-hidden="true"></span><p>Ngon hơn khi cùng nhau thưởng thức.</p><span aria-hidden="true"></span></div>
+</section>
+<%- include('../partials/footer') %>

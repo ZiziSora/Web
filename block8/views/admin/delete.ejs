@@ -1,0 +1,12 @@
+<%- include('../partials/header') %>
+<section class="container confirmation-page">
+  <a class="back-link" href="/admin/<%= resource %>">← Danh sách <%= labels[resource].singular %></a>
+  <div class="confirmation-panel"><div class="confirmation-icon" aria-hidden="true"><%= blocked ? '!' : '↗' %></div><p class="eyebrow">KIỂM TRA TRƯỚC KHI TIẾP TỤC</p><h1><%= blocked ? 'Chưa thể xóa nguyên liệu' : 'Xóa ' + labels[resource].singular %><span class="accent">?</span></h1>
+    <p class="confirmation-name"><%= entity.name %></p>
+    <% if(error) { %><div class="notice error" role="alert"><%= error %></div><% } %>
+    <% if(blocked) { %><p>Nguyên liệu này đang có trong các món dưới đây. Hãy chỉnh sửa món ăn để gỡ nguyên liệu trước khi xóa.</p><ul class="blocking-dishes"><% for(const dish of entity.dishes) { %><li><span><%= dish.name %></span><a href="/admin/dishes/<%= dish.id %>/edit">Chỉnh sửa món ↗</a></li><% } %></ul>
+    <% } else { %><p>Thao tác này không thể hoàn tác.<% if(resource === 'chefs') { %> Hồ sơ đầu bếp và các liên kết món biết nấu sẽ được xóa. Các món ăn vẫn được giữ nguyên.<% } else if(resource === 'dishes') { %> Món ăn và các liên kết sẽ được xóa. Đầu bếp và nguyên liệu vẫn được giữ nguyên.<% } else { %> Nguyên liệu sẽ được xóa khỏi danh mục.<% } %></p><% } %>
+    <div class="confirmation-actions"><a class="button secondary" href="/admin/<%= resource %>"><%= blocked ? 'Quay lại danh sách' : 'Giữ lại' %></a><% if(!blocked) { %><form action="/admin/<%= resource %>/<%= entity.id %>" method="post"><input type="hidden" name="_method" value="DELETE"><input type="hidden" name="expires" value="<%= expires %>"><input type="hidden" name="token" value="<%= token %>"><button class="button danger" type="submit">Xác nhận xóa</button></form><% } %></div>
+  </div>
+</section>
+<%- include('../partials/footer') %>
