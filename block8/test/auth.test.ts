@@ -24,7 +24,7 @@ async function fixture() {
   const captchaBody = (html: string) => ({ captchaId: captchaIdFrom(html), captcha: auth.captchaAnswer(html) });
   const register = async (email = 'new@example.com') => {
     const page = await agent.get('/register').expect(200);
-    return post('/register', { email, password: credentials.password, role: 'admin', ...captchaBody(page.text) }).expect(303);
+    return post('/register', { email, password: credentials.password, passwordConfirm: credentials.password, role: 'admin', ...captchaBody(page.text) }).expect(303);
   };
   return { ...auth, app, agent, store, post, login, register, captchaBody, initialCookie: cookie(page), getCsrf: () => csrf };
 }
@@ -82,7 +82,7 @@ test('registration CAPTCHA precedes creation/email, role is ignored, duplicate r
 test('CAPTCHA rejects expired, reused, wrong-purpose and other anonymous sessions', async () => {
   const f = await fixture();
   const page = await f.agent.get('/register').expect(200);
-  const body = { email: 'captcha@example.com', password: credentials.password, ...f.captchaBody(page.text) };
+  const body = { email: 'captcha@example.com', password: credentials.password, passwordConfirm: credentials.password, ...f.captchaBody(page.text) };
   const other = request.agent(f.app); const otherPage = await other.get('/login').expect(200);
   await other.post('/register').type('form').send({ ...body, _csrf: csrfFrom(otherPage.text) }).expect(400);
   // Wrong purpose is rejected without granting login permission.
@@ -194,8 +194,8 @@ test('forgot response is uniform; new reset invalidates old; GET does not consum
   assert.equal((await f.repository.read('passwordReset', user.id))!.usedAt, null);
   await guest.get(path).expect(200);
   await guest.post('/login').type('form').send({ email: credentials.email, password: new URL(link).searchParams.get('token'), _csrf: csrf }).expect(400);
-  await guest.post('/reset').type('form').send({ password: '1234567', _csrf: csrfFrom(page.text) }).expect(400);
-  await guest.post('/reset').type('form').send({ password: '12345678', _csrf: csrfFrom(page.text) }).expect(303).expect('Location', '/login?status=reset');
+  await guest.post('/reset').type('form').send({ password: '1234567', passwordConfirm: '1234567', _csrf: csrfFrom(page.text) }).expect(400);
+  await guest.post('/reset').type('form').send({ password: '12345678', passwordConfirm: '12345678', _csrf: csrfFrom(page.text) }).expect(303).expect('Location', '/login?status=reset');
   await request(f.app).get('/admin/dishes').set('Cookie', sid).expect(303).expect('Location', '/login');
   await guest.get('/admin').expect(303).expect('Location', '/login');
   await guest.get(path).expect(400);
@@ -212,8 +212,8 @@ test('reset expiry, concurrent consumption and forgot limits are enforced', asyn
   const a = request.agent(f.app), b = request.agent(f.app);
   const pa = await a.get(link.pathname + link.search).expect(200), pb = await b.get(link.pathname + link.search).expect(200);
   const results = await Promise.all([
-    a.post('/reset').type('form').send({ _csrf: csrfFrom(pa.text), password: 'newpass-A' }),
-    b.post('/reset').type('form').send({ _csrf: csrfFrom(pb.text), password: 'newpass-B' }),
+    a.post('/reset').type('form').send({ _csrf: csrfFrom(pa.text), password: 'newpass-A', passwordConfirm: 'newpass-A' }),
+    b.post('/reset').type('form').send({ _csrf: csrfFrom(pb.text), password: 'newpass-B', passwordConfirm: 'newpass-B' }),
   ]);
   assert.deepEqual(results.map(r => r.status).sort(), [303, 400]);
   for (let i = 0; i < 3; i++) await f.post('/forgot', { email: credentials.email }).expect(200);

@@ -107,10 +107,26 @@
       const visible = input.type === 'password';
       input.type = visible ? 'text' : 'password';
       button.setAttribute('aria-pressed', String(visible));
-      button.setAttribute('aria-label', visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+      button.setAttribute('aria-label', `${visible ? 'Ẩn' : 'Hiện'} ${button.dataset.passwordLabel || 'mật khẩu'}`);
       button.querySelector('[data-password-show]').hidden = visible;
       button.querySelector('[data-password-hide]').hidden = !visible;
     });
+  });
+  document.querySelectorAll('[data-password-confirm]').forEach(confirmation => {
+    const password = confirmation.form.elements.namedItem('password');
+    const error = document.getElementById(confirmation.getAttribute('aria-describedby'));
+    const validate = () => {
+      const mismatch = confirmation.value !== '' && confirmation.value !== password.value;
+      confirmation.setCustomValidity(mismatch ? 'Mật khẩu nhập lại không khớp.' : '');
+      error.hidden = !mismatch;
+      if (mismatch) confirmation.setAttribute('aria-invalid', 'true');
+      else confirmation.removeAttribute('aria-invalid');
+    };
+    password.addEventListener('input', validate);
+    confirmation.addEventListener('input', validate);
+    confirmation.addEventListener('change', validate);
+    confirmation.form.addEventListener('submit', validate);
+    validate();
   });
   const pendingForms = new Map();
   const resetPending = form => {

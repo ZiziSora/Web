@@ -109,6 +109,7 @@ try {
     await page.goto(origin+'/register');
     await page.getByLabel('Email', {exact:true}).fill(email);
     await page.getByLabel('Mật khẩu', {exact:true}).fill('12345678');
+    await page.getByLabel('Nhập lại mật khẩu', {exact:true}).fill('12345678');
     await page.getByLabel('Mã trong ảnh', {exact:true}).fill(latestCaptcha);
     await page.getByRole('button', {name:'Tạo tài khoản'}).click();
     await page.waitForURL('**/activate?email=*');
@@ -127,6 +128,7 @@ try {
     await page.goto(origin+reset.pathname+reset.search);
     await page.screenshot({path:`artifacts/auth-reset-${suffix}.png`,fullPage:true});
     await page.getByLabel('Mật khẩu mới', {exact:true}).fill('password-new');
+    await page.getByLabel('Nhập lại mật khẩu', {exact:true}).fill('password-new');
     await page.getByRole('button', {name:'Đổi mật khẩu'}).click(); await page.waitForURL('**/login?status=reset');
     await page.getByLabel('Email', {exact:true}).fill(email);
     await page.getByLabel('Mật khẩu', {exact:true}).fill('password-new');

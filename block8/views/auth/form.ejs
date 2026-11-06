@@ -24,6 +24,17 @@ const icons = {login:'log-in',register:'user-plus',activate:'shield-check',forgo
         <% if(mode !== 'login') { %><p id="password-hint" class="field-hint">Tối thiểu 8 ký tự.</p><% } %>
       </div>
       <% } %>
+      <% if(['register','reset'].includes(mode)) { %>
+      <div class="field">
+        <label for="password-confirm">Nhập lại mật khẩu</label>
+        <div class="auth-input auth-input--password">
+          <%- include('../partials/auth-icon', {name:'lock-keyhole'}) %>
+          <input id="password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" required aria-describedby="password-confirm-error" data-password-confirm>
+          <button type="button" class="auth-password-toggle" data-password-toggle data-password-label="mật khẩu nhập lại" aria-label="Hiện mật khẩu nhập lại" aria-controls="password-confirm" aria-pressed="false" hidden><span data-password-show><%- include('../partials/auth-icon', {name:'eye'}) %></span><span data-password-hide hidden><%- include('../partials/auth-icon', {name:'eye-off'}) %></span></button>
+        </div>
+        <p id="password-confirm-error" class="field-error" aria-live="polite" hidden>Mật khẩu nhập lại không khớp.</p>
+      </div>
+      <% } %>
       <% if(mode === 'activate') { %>
       <div class="field"><label for="otp">Mã kích hoạt</label><div class="auth-input"><%- include('../partials/auth-icon', {name:'shield-check'}) %><input id="otp" name="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000" required aria-describedby="otp-hint"></div><p id="otp-hint" class="field-hint">Nhập mã 6 chữ số trong email. Mã có hiệu lực 10 phút.</p></div>
       <% } %>

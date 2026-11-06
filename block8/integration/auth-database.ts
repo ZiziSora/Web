@@ -35,7 +35,7 @@ test('PostgreSQL auth: persistence, atomic OTP/reset consumption and concurrent 
       await request(restarted).get('/admin/dishes').set('Cookie', sid).expect(200);
     } finally { await restartedDb.$disconnect(); }
     const registerPage = await agent.get('/register').expect(200);
-    await agent.post('/register').type('form').send({ email: 'pending@example.com', password: '12345678', _csrf: csrfFrom(registerPage.text), captchaId: captchaIdFrom(registerPage.text), captcha: f.captchaAnswer(registerPage.text) }).expect(303);
+    await agent.post('/register').type('form').send({ email: 'pending@example.com', password: '12345678', passwordConfirm: '12345678', _csrf: csrfFrom(registerPage.text), captchaId: captchaIdFrom(registerPage.text), captcha: f.captchaAnswer(registerPage.text) }).expect(303);
     const otp = f.emails.at(-1)!.value;
     const activate = () => agent.post('/activate').type('form').send({ email: 'pending@example.com', otp, _csrf: csrfFrom(registerPage.text) });
     const activationResults = await Promise.all([activate(), activate()]);
@@ -50,8 +50,8 @@ test('PostgreSQL auth: persistence, atomic OTP/reset consumption and concurrent 
     const a = request.agent(app), b = request.agent(app);
     const pa = await a.get(link.pathname + link.search).expect(200), pb = await b.get(link.pathname + link.search).expect(200);
     const resets = await Promise.all([
-      a.post('/reset').type('form').send({ password: 'password-A', _csrf: csrfFrom(pa.text) }),
-      b.post('/reset').type('form').send({ password: 'password-B', _csrf: csrfFrom(pb.text) }),
+      a.post('/reset').type('form').send({ password: 'password-A', passwordConfirm: 'password-A', _csrf: csrfFrom(pa.text) }),
+      b.post('/reset').type('form').send({ password: 'password-B', passwordConfirm: 'password-B', _csrf: csrfFrom(pb.text) }),
     ]);
     assert.deepEqual(resets.map(r => r.status).sort(), [303, 400]);
     await request(app).get('/admin/dishes').set('Cookie', sid).expect(303).expect('Location', '/login');
