@@ -1,0 +1,51 @@
+BLOCK 8 — KẾT QUẢ KIỂM THỬ ĐÃ QUAN SÁT
+Ngày chuẩn bị: 2026-11-06 (Asia/Bangkok)
+
+Lệnh: npm.cmd test
+Thư mục: D:\Web\block8
+DOTENV_CONFIG_PATH được đặt tới đường dẫn vô hiệu, không đọc .env.
+Không chạy PostgreSQL integration, không gửi SMTP thật.
+
+Đây là bản ghi tổng hợp từ kết quả terminal của lần chạy chuẩn bị slide,
+không phải log Network, Cookies, PostgreSQL hay SMTP.
+
+Kết quả do Node test runner trả về:
+tests 24
+suites 0
+pass 24
+fail 0
+cancelled 0
+skipped 0
+todo 0
+duration_ms 29614.4596
+
+Các nhóm đã chạy:
+PASS SSR delivers actual menu, details, forms and all list pages in HTML
+PASS paging preserves query, clamps ranges and invalid pages; search and filters run before pagination
+PASS all resources support native form CRUD, validation and post-redirect-get
+PASS invalid forms preserve values, checked/stale relations and escape HTML
+PASS deletion tokens bind resource and ID; linked ingredients cannot be removed
+PASS 404, safe errors, static files and override constraints
+PASS database config consistently isolates block8 and temporary test schemas
+PASS bcrypt password boundaries, real CAPTCHA output and strict configuration
+PASS anonymous requests to every admin route redirect before CSRF and never change data
+PASS registration CAPTCHA precedes creation/email, role is ignored, duplicate response is identical
+PASS CAPTCHA rejects expired, reused, wrong-purpose and other anonymous sessions
+PASS pending user denied; OTP error stays generic, activation consumes once without login
+PASS OTP resend invalidates old code, preserves attempts, cooldown and lock return 429
+PASS login rotates sid, persists across application restart, logout deletes and revokes old sid
+PASS CSRF blocks auth, CRUD and method override; unicode CSRF cannot trigger 500
+PASS login CAPTCHA starts at 3 failures, does not reset failures, and cookie changes do not reset lock
+PASS forgot response is uniform; new reset invalidates old; GET does not consume; POST revokes all sessions
+PASS reset expiry, concurrent consumption and forgot limits are enforced
+PASS SMTP failure stays generic and logs no email, OTP, token or credentials
+PASS session store refuses a stale save after logout or password reset
+PASS IP limits cover malformed login/register and CAPTCHA issuance; OTP send cap includes registration
+PASS authenticated session expires after a fixed eight hours, including after session modifications
+PASS correct login CAPTCHA permits password authentication and successful login resets email failures
+PASS seed catalog contains 1,000 distinct reproducible dishes that satisfy CRUD validation
+
+Đối chiếu: test/app.test.ts, test/auth.test.ts, test/seed.test.ts.
+Test restart phía trên tái tạo app với MemoryAuthRepository, không chứng minh độ bền PostgreSQL thật.
+Kiểm thử PostgreSQL thật nằm ở integration/auth-database.ts, chưa chạy trong tác vụ này.
+Typecheck/build/browser tests đã qua trong lần triển khai auth trước, không phải lệnh trong bản ghi này.
