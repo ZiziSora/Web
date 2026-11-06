@@ -1,0 +1,332 @@
+[
+  {
+    "id": "R01",
+    "scenario": "Pending đăng nhập đúng password",
+    "expected": "Không cấp session xác thực, /admin trả 303 /login",
+    "test": "pending user denied",
+    "screenshot": "assets/auth-activate-1440-js.png",
+    "databaseFields": "status pending, Session.userId không có quyền",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "R02",
+    "scenario": "OTP hợp lệ",
+    "expected": "Đúng user active, emailVerifiedAt có giá trị, không auto login",
+    "test": "pending user denied",
+    "screenshot": "assets/auth-activate-1440-js.png",
+    "databaseFields": "User.status, emailVerifiedAt, challenge.usedAt",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "R03",
+    "scenario": "OTP sai, hết hạn hoặc đã dùng",
+    "expected": "Cùng lỗi, status user không đổi",
+    "test": "pending user denied",
+    "screenshot": "assets/auth-activate-1440-js.png",
+    "databaseFields": "expiresAt, usedAt, attempts, status",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "R04",
+    "scenario": "Gửi lại OTP",
+    "expected": "Mã cũ bị từ chối, mã mới dùng được, attempts giữ nguyên",
+    "test": "OTP resend invalidates old code",
+    "screenshot": "assets/auth-activate-1440-js.png",
+    "databaseFields": "otpHash thay đổi, attempts, lastSentAt",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "R05",
+    "scenario": "Vượt số lần thử/gửi OTP",
+    "expected": "429 ở server, Retry-After, resend không reset attempts",
+    "test": "OTP resend invalidates old code; IP limits cover",
+    "screenshot": "assets/auth-activate-1440-js.png",
+    "databaseFields": "attempts, lockedUntil, AuthRateLimit",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "R06",
+    "scenario": "Đăng ký kèm role admin",
+    "expected": "Tài khoản vẫn viewer",
+    "test": "registration CAPTCHA precedes",
+    "screenshot": "assets/auth-register-1440-js.png",
+    "databaseFields": "User.role = viewer",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "R07",
+    "scenario": "Kích hoạt xong",
+    "expected": "Không tự đăng nhập, vẫn phải POST /login",
+    "test": "pending user denied",
+    "screenshot": "assets/auth-activate-1440-js.png",
+    "databaseFields": "User active, chưa có Session xác thực tương ứng",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "R08",
+    "scenario": "Dùng OTP activation làm password",
+    "expected": "Bị từ chối ở /login",
+    "test": "pending user denied",
+    "screenshot": "assets/auth-login-1440-js.png",
+    "databaseFields": "passwordHash không đổi, bộ đếm login tăng",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "C01",
+    "scenario": "Register thiếu/sai CAPTCHA",
+    "expected": "Không tạo user hoặc gửi OTP",
+    "test": "registration CAPTCHA precedes",
+    "screenshot": "assets/auth-register-390-nojs.png",
+    "databaseFields": "Không có User mới, mailer không gửi",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "C02",
+    "scenario": "CAPTCHA và form hợp lệ",
+    "expected": "Đi tiếp đăng ký và OTP",
+    "test": "registration CAPTCHA precedes",
+    "screenshot": "assets/auth-register-1440-js.png",
+    "databaseFields": "User pending và ActivationChallenge",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "C03",
+    "scenario": "CAPTCHA dùng lại, hết hạn, sai purpose/owner",
+    "expected": "Bị từ chối, không cấp quyền tiếp tục",
+    "test": "CAPTCHA rejects expired",
+    "screenshot": "assets/auth-register-1440-js.png",
+    "databaseFields": "owner, purpose, usedAt, expiresAt",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "C04",
+    "scenario": "Login đạt ngưỡng rồi bỏ CAPTCHA",
+    "expected": "Chặn trước kiểm tra password",
+    "test": "login CAPTCHA starts at 3 failures",
+    "screenshot": "assets/auth-login-1440-js.png",
+    "databaseFields": "AuthRateLimit.count, không có phiên mới",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "C05",
+    "scenario": "CAPTCHA đúng, password sai",
+    "expected": "Bộ đếm tiếp tục tăng",
+    "test": "login CAPTCHA starts at 3 failures",
+    "screenshot": "assets/auth-login-1440-js.png",
+    "databaseFields": "AuthRateLimit.count tăng",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "C06",
+    "scenario": "Đã khóa, credential và CAPTCHA đúng",
+    "expected": "429, không cấp session xác thực",
+    "test": "login CAPTCHA starts at 3 failures",
+    "screenshot": "assets/auth-login-1440-js.png",
+    "databaseFields": "lockedUntil còn hạn, Session không được cấp",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "C07",
+    "scenario": "Xóa cookie/mở ẩn danh",
+    "expected": "Không reset bộ đếm email",
+    "test": "login CAPTCHA starts at 3 failures",
+    "screenshot": "assets/auth-login-1440-js.png",
+    "databaseFields": "Khóa theo email chuẩn hóa vẫn giữ",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "S01",
+    "scenario": "Chưa login gọi mọi route CRUD",
+    "expected": "303 /login, dữ liệu không đổi",
+    "test": "anonymous requests to every admin route",
+    "screenshot": "assets/dishes-1440-js.png",
+    "databaseFields": "Dữ liệu Dish/Chef/Ingredient không đổi",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "S02",
+    "scenario": "Login đúng user active",
+    "expected": "303, Set-Cookie sid, vào được CRUD",
+    "test": "login rotates sid",
+    "screenshot": "assets/auth-login-1440-js.png",
+    "databaseFields": "Session userId, authVersion, expiresAt",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "S03",
+    "scenario": "Sai email hoặc password",
+    "expected": "Cùng thông báo cho email có/không có",
+    "test": "pending user denied",
+    "screenshot": "assets/auth-login-1440-js.png",
+    "databaseFields": "Không cấp quyền từ user sai, bộ đếm tăng",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "S04",
+    "scenario": "So sid trước và sau login",
+    "expected": "sid đổi, sid cũ không vào CRUD",
+    "test": "login rotates sid",
+    "screenshot": "assets/auth-login-1440-js.png",
+    "databaseFields": "Digest phiên cũ/mới và userId",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "S05",
+    "scenario": "Restart server và dùng cookie cũ",
+    "expected": "Session còn hạn vẫn dùng được trong PostgreSQL thật",
+    "test": "login rotates sid; integration: persistence",
+    "screenshot": "assets/auth-login-1440-js.png",
+    "databaseFields": "Session tồn tại sau restart; giữ cùng secret",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "S06",
+    "scenario": "Logout rồi dùng lại sid cũ",
+    "expected": "Bị từ chối, session server đã hủy",
+    "test": "login rotates sid; session store refuses a stale save",
+    "screenshot": "assets/auth-login-1440-js.png",
+    "databaseFields": "Session cũ không còn, dấu revoked",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "S07",
+    "scenario": "Form đổi dữ liệu từ trang khác/thiếu CSRF",
+    "expected": "403, dữ liệu không đổi",
+    "test": "CSRF blocks auth, CRUD",
+    "screenshot": "assets/form-1440-js.png",
+    "databaseFields": "Dish/Chef/Ingredient trước/sau giống nhau",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "F01",
+    "scenario": "Forgot email có/không có",
+    "expected": "Cùng nội dung và status",
+    "test": "forgot response is uniform",
+    "screenshot": "assets/auth-forgot-1440-js.png",
+    "databaseFields": "Chỉ active user có reset được tạo",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "F02",
+    "scenario": "Forgot vượt giới hạn",
+    "expected": "Trang 429 áp ở server, có Retry-After",
+    "test": "reset expiry, concurrent consumption",
+    "screenshot": "assets/auth-forgot-1440-js.png",
+    "databaseFields": "AuthRateLimit theo email/IP",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "F03",
+    "scenario": "Reset token cũ, hết hạn, đã dùng",
+    "expected": "Bị từ chối, password không đổi",
+    "test": "forgot response is uniform; reset expiry",
+    "screenshot": "assets/auth-reset-390-nojs.png",
+    "databaseFields": "tokenHash, expiresAt, usedAt, passwordHash",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "F04",
+    "scenario": "GET reset với token hợp lệ",
+    "expected": "Chỉ hiện form, usedAt vẫn null",
+    "test": "forgot response is uniform",
+    "screenshot": "assets/auth-reset-1440-js.png",
+    "databaseFields": "usedAt null và passwordHash chưa đổi",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "F05",
+    "scenario": "Reset thành công",
+    "expected": "Không auto login, mọi sid cũ bị từ chối",
+    "test": "forgot response is uniform; reset expiry",
+    "screenshot": "assets/auth-reset-390-nojs.png",
+    "databaseFields": "usedAt, authVersion tăng, sessions user bị xóa",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "F06",
+    "scenario": "Reset token ở route khác",
+    "expected": "Không dùng làm password hoặc quyền CRUD",
+    "test": "forgot response is uniform",
+    "screenshot": "assets/auth-reset-1440-js.png",
+    "databaseFields": "PasswordReset không cấp quyền /login hay /admin",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "X01",
+    "scenario": "Đăng ký email trùng",
+    "expected": "Phản hồi giống mới, không đổi password/status",
+    "test": "registration CAPTCHA precedes",
+    "screenshot": "assets/auth-register-1440-js.png",
+    "databaseFields": "Unique email, passwordHash cũ giữ nguyên",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "X02",
+    "scenario": "Password 7/8 ký tự, 72 byte, Unicode",
+    "expected": "Nhận/từ chối đúng giới hạn, không cắt ngầm",
+    "test": "bcrypt password boundaries",
+    "screenshot": "assets/auth-register-390-nojs.png",
+    "databaseFields": "Hash bcrypt khi hợp lệ",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "X03",
+    "scenario": "Hai request dùng cùng reset token",
+    "expected": "Chỉ một request thành công",
+    "test": "reset expiry, concurrent consumption",
+    "screenshot": "assets/auth-reset-1440-js.png",
+    "databaseFields": "Một usedAt và một lần tăng authVersion",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "X04",
+    "scenario": "SMTP lỗi và kiểm tra mã nguồn",
+    "expected": "Không lộ credential, OTP hoặc token qua log/response",
+    "test": "SMTP failure stays generic",
+    "screenshot": "assets/auth-forgot-1440-js.png",
+    "databaseFields": "Các trường hash/HMAC thay cho mã thô",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  },
+  {
+    "id": "X05",
+    "scenario": "Session sau các lần sửa dữ liệu phiên",
+    "expected": "Hết hạn cố định sau 8 giờ",
+    "test": "authenticated session expires",
+    "screenshot": "assets/auth-login-1440-js.png",
+    "databaseFields": "Session.expiresAt không bị kéo dài",
+    "liveEvidence": "Chưa thu thập",
+    "environment": "Test cô lập; SMTP/PostgreSQL thật chưa xác minh"
+  }
+]
