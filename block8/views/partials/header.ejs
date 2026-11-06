@@ -18,6 +18,7 @@
     <nav aria-label="Điều hướng chính" class="main-nav">
       <a href="/dishes" <%- !admin ? 'aria-current="page"' : '' %>>Thực đơn</a>
       <a href="/admin" class="admin-link" <%- admin ? 'aria-current="page"' : '' %>>Quản trị <span aria-hidden="true">↗</span></a>
+      <% if(currentUser) { %><form action="/logout" method="post" class="logout-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><button type="submit">Đăng xuất</button></form><% } else { %><a href="/login">Đăng nhập</a><% } %>
     </nav>
   </header>
   <% if (admin) { %>

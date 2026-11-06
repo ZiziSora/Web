@@ -36,3 +36,63 @@ model Ingredient {
   unit   String @db.VarChar(40)
   dishes Dish[]
 }
+
+model User {
+  id              String   @id
+  email           String   @unique @db.VarChar(254)
+  passwordHash    String   @db.VarChar(60)
+  role            String   @default("viewer")
+  status          String   @default("pending")
+  emailVerifiedAt DateTime?
+  authVersion     Int      @default(0)
+  createdAt       DateTime @default(now())
+}
+
+model ActivationChallenge {
+  id          String   @id // one challenge per user
+  userId      String   @unique
+  purpose     String
+  otpHash     String
+  expiresAt   DateTime
+  attempts    Int      @default(0)
+  lockedUntil DateTime?
+  lastSentAt  DateTime
+  usedAt      DateTime?
+  @@index([expiresAt])
+}
+
+model PasswordReset {
+  id        String   @id // one outstanding reset per user
+  userId    String   @unique
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  @@index([expiresAt])
+}
+
+model Session {
+  id        String   @id // SHA-256 of the opaque sid; never the cookie itself
+  userId    String?
+  data      Json
+  expiresAt DateTime
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AuthRateLimit {
+  id          String   @id // HMAC of scope + normalized email/IP
+  count       Int
+  windowStart DateTime
+  lockedUntil DateTime?
+  @@index([windowStart])
+}
+
+model CaptchaChallenge {
+  id         String   @id
+  owner      String
+  purpose    String
+  answerHash String
+  expiresAt  DateTime
+  usedAt     DateTime?
+  @@index([expiresAt])
+}

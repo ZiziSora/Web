@@ -1,8 +1,8 @@
-import 'dotenv/config';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { resolve } from 'node:path';
 import pg from 'pg';
 import { createDatabase } from '../src/db.js';
 import { PrismaRestaurantStore } from '../src/store.js';
@@ -11,18 +11,18 @@ import { setupSearch } from '../src/search-setup.js';
 import { parseListQuery } from '../src/list-query.js';
 import { jsonInput, IngredientInUseError, type EntityInput } from '../src/domain.js';
 test('PostgreSQL: CRUD, seed, server paging, search và cursor trong schema cô lập', {timeout: 600000}, async () => {
-    if (!process.env.DATABASE_URL)
-        throw new Error('Cần DATABASE_URL để kiểm thử DB.');
+    if (!process.env.AUTH_TEST_DATABASE_URL)
+        throw new Error('Cần AUTH_TEST_DATABASE_URL riêng để kiểm thử DB; không tự đọc .env.');
     const schema = 'block8_test_' + randomUUID().replaceAll('-', '');
-    const url = new URL(process.env.DATABASE_URL);
+    const url = new URL(process.env.AUTH_TEST_DATABASE_URL);
     url.searchParams.set('schema', schema);
-    const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 15000 });
+    const pool = new pg.Pool({ connectionString: process.env.AUTH_TEST_DATABASE_URL, connectionTimeoutMillis: 15000 });
     const db = createDatabase(url.toString());
     let created = false;
     try {
         await pool.query(`CREATE SCHEMA "${schema}"`);
         created = true;
-        const push = spawnSync('npm', ['exec', '--', 'prisma', 'db', 'push'], { env: { ...process.env, DATABASE_URL: url.toString() }, stdio: 'pipe', timeout: 90000 });
+        const push = spawnSync(process.execPath, [resolve('node_modules/prisma/build/index.js'), 'db', 'push'], { env: { ...process.env, DOTENV_CONFIG_PATH: resolve('artifacts/dotenv-disabled-do-not-create'), DATABASE_URL: url.toString() }, stdio: 'pipe', timeout: 90000 });
         assert.equal(push.status, 0, 'Không thể tạo schema kiểm thử.');
         const firstSeed = await seedRestaurant(db, schema);
         assert.equal(firstSeed.created, SEED_DISH_COUNT);

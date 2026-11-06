@@ -1,5 +1,4 @@
 import { databaseConfig } from './config.js';
-import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './generated/prisma/client.js';
 export function createDatabase(connectionString = process.env.DATABASE_URL) {

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { databaseConfig } from '../src/config.js';
 import { createDatabase } from '../src/db.js';
 const db = createDatabase();

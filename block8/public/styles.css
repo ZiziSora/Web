@@ -3959,3 +3959,15 @@ button:disabled {
 .query-main .query-search { display:flex; }
 .query-controls .query-filter-fields { grid-template-columns:1.4fr 1fr 1fr 1fr; }
 @media(max-width:767px) { .query-main { grid-template-columns:1fr; } .query-controls .query-filter-fields { grid-template-columns:1fr 1fr; } }
+
+/* Authentication uses the existing paper, ink and terracotta palette. */
+.auth-page { padding-block: 64px 90px; }
+.auth-panel { max-width: 520px; margin-inline: auto; padding: 32px; border: 1px solid var(--line, #d9d0c1); background: var(--paper, #faf7f0); }
+.auth-panel h1 { font-size: clamp(2rem, 6vw, 3rem); overflow-wrap: anywhere; }
+.auth-form { display: grid; gap: 20px; margin-block: 24px; }
+.auth-form .field { margin: 0; }
+.captcha-field img { display: block; max-width: 100%; margin-bottom: 12px; }
+.auth-links { display: flex; flex-wrap: wrap; gap: 12px 20px; padding-top: 20px; }
+.resend-form { display: grid; gap: 12px; border-top: 1px solid #d9d0c1; padding-top: 20px; }
+.logout-form button { border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; padding: 0; }
+@media (max-width: 600px) { .auth-page { padding-block: 32px; } .auth-panel { padding: 20px; } .main-nav { flex-wrap: wrap; } }

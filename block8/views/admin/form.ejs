@@ -4,6 +4,7 @@
   <div class="section-heading"><div><p class="eyebrow"><%= labels[resource].eyebrow %> / <%= entity ? 'CHỈNH SỬA' : 'THÊM MỚI' %></p><h1><%= entity ? 'Chỉnh sửa' : 'Thêm' %> <%= labels[resource].singular %><span class="accent">.</span></h1></div><span class="section-aside">Chăm chút từng chi tiết nhỏ.</span></div>
   <% if(Object.keys(errors).length) { %><div class="notice error" role="alert"><strong>Chưa thể lưu thông tin.</strong><p><%= errors.form || 'Vui lòng kiểm tra các trường được đánh dấu bên dưới. Thông tin bạn đã nhập vẫn được giữ lại.' %></p></div><% } %>
   <form action="/admin/<%= resource %><%= entity ? '/' + entity.id : '' %>" method="post" class="edit-form" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
     <% if(entity) { %><input type="hidden" name="_method" value="PATCH"><% } %>
     <div class="form-layout"><div class="form-panel">
       <div class="panel-heading"><span class="eyebrow">01 / THÔNG TIN CƠ BẢN</span><p>Các trường có dấu <span class="accent">*</span> là bắt buộc.</p></div>

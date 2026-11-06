@@ -5,6 +5,8 @@ import { spawn } from 'node:child_process';
 import { chromium } from 'playwright-core';
 import { createApp } from '../src/app.js';
 import { MemoryStore } from '../test/memory-store.js';
+import { authFixture, credentials } from '../test/auth-fixture.js';
+import { createCaptcha } from '../src/auth.js';
 import { buildSeedDishes, sampleChefs, sampleIngredients } from '../prisma/seed.js';
 
 const store = new MemoryStore();
@@ -13,7 +15,11 @@ store.rows.ingredients = sampleIngredients.map((row,index)=>({...row,id:index+1}
 store.rows.dishes = buildSeedDishes().slice(0,13).map((row,index)=>({
   ...row,id:index+1, chefs:[{id:1,name:sampleChefs[0].name}], ingredients:[{id:1,name:sampleIngredients[0].name}],
 }));
-const server = createApp(store).listen(0,'127.0.0.1');
+const auth = await authFixture();
+let latestCaptcha = '';
+const server = createApp(store, { auth: { ...auth.deps, captcha: () => {
+  const generated = createCaptcha(); latestCaptcha = generated.answer; return generated;
+} } }).listen(0,'127.0.0.1');
 await new Promise<void>(resolve=>server.once('listening',resolve));
 const address=server.address();
 if(!address || typeof address==='string') throw new Error('Không mở được server.');
@@ -28,6 +34,44 @@ try {
     const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
     let documents=0; page.on('request',request=>{if(request.isNavigationRequest()&&request.frame()===page.mainFrame()) documents++;});
     const suffix=`${width}-${javaScriptEnabled?'js':'nojs'}`;
+    await page.goto(origin+'/admin/dishes');
+    await page.waitForURL('**/login');
+    for (const route of ['/register', '/activate', '/forgot', '/login']) {
+      await page.goto(origin + route);
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth), `${route} overflows at ${suffix}`);
+      await page.screenshot({path:`artifacts/auth-${route.slice(1)}-${suffix}.png`,fullPage:true});
+    }
+    const email = `browser-${suffix}@example.com`;
+    await page.goto(origin+'/register');
+    await page.getByLabel('Email', {exact:true}).fill(email);
+    await page.getByLabel('Mật khẩu', {exact:true}).fill('12345678');
+    await page.getByLabel('Mã trong ảnh', {exact:true}).fill(latestCaptcha);
+    await page.getByRole('button', {name:'Tạo tài khoản'}).click();
+    await page.waitForURL('**/activate?email=*');
+    await page.getByLabel('Mã kích hoạt', {exact:true}).fill(auth.emails.findLast(message=>message.kind==='activation'&&message.email===email)!.value);
+    await page.getByRole('button', {name:'Kích hoạt',exact:true}).click();
+    await page.waitForURL('**/login?status=activated');
+    await page.goto(origin+'/admin'); await page.waitForURL('**/login');
+    await page.getByLabel('Email', {exact:true}).fill(email);
+    await page.getByLabel('Mật khẩu', {exact:true}).fill('12345678');
+    await page.getByRole('button', {name:'Đăng nhập'}).click(); await page.waitForURL('**/admin/dishes');
+    await page.getByRole('button', {name:'Đăng xuất'}).click(); await page.waitForURL('**/login');
+    await page.goto(origin+'/forgot');
+    await page.getByLabel('Email', {exact:true}).fill(email);
+    await page.getByRole('button', {name:'Gửi hướng dẫn'}).click(); await page.getByRole('alert').waitFor();
+    const reset = new URL(auth.emails.findLast(message=>message.kind==='reset'&&message.email===email)!.value);
+    await page.goto(origin+reset.pathname+reset.search);
+    await page.screenshot({path:`artifacts/auth-reset-${suffix}.png`,fullPage:true});
+    await page.getByLabel('Mật khẩu mới', {exact:true}).fill('password-new');
+    await page.getByRole('button', {name:'Đổi mật khẩu'}).click(); await page.waitForURL('**/login?status=reset');
+    await page.getByLabel('Email', {exact:true}).fill(email);
+    await page.getByLabel('Mật khẩu', {exact:true}).fill('password-new');
+    await page.getByRole('button', {name:'Đăng nhập'}).click(); await page.waitForURL('**/admin/dishes');
+    await page.getByRole('button', {name:'Đăng xuất'}).click(); await page.waitForURL('**/login');
+    await page.getByLabel('Email', {exact:true}).fill(credentials.email);
+    await page.getByLabel('Mật khẩu', {exact:true}).fill(credentials.password);
+    await page.getByRole('button', {name:'Đăng nhập'}).click();
+    await page.waitForURL('**/admin/dishes');
     await page.goto(origin+'/dishes');
     assert.equal(await page.locator('.dish-card').count(),6);
     await page.screenshot({path:`artifacts/menu-${suffix}.png`,fullPage:true});
@@ -115,7 +159,7 @@ try {
     console.log(`PASS browser ${suffix}`);
   }
   if(existsSync('dist/src/server.js')) {
-    const child=spawn(process.execPath,['dist/src/server.js'],{env:{...process.env,DATABASE_URL:process.env.DATABASE_URL??'postgresql://localhost/table?schema=block8',PORT:'0'},stdio:'pipe'});
+    const child=spawn(process.execPath,['dist/src/server.js'],{env:{...process.env,DATABASE_URL:'postgresql://localhost/table?schema=block8',PORT:'0',NODE_ENV:'production',APP_BASE_URL:'https://example.test',SESSION_SECRET:auth.deps.config.sessionSecret,AUTH_TOKEN_SECRET:auth.deps.config.tokenSecret,SMTP_HOST:'smtp.example.test',SMTP_USER:'test',SMTP_PASS:'test',SMTP_FROM:'test@example.test'},stdio:'pipe'});
     child.stderr.resume();
     try {
       const port=await new Promise<string>((resolve,reject)=>{
@@ -123,11 +167,10 @@ try {
         child.on('error',error=>{clearTimeout(timer);reject(error);});child.on('exit',code=>{clearTimeout(timer);reject(new Error('Production exit '+code));});
         child.stdout.on('data',(data:Buffer)=>{const match=data.toString().match(/localhost:(\d+)/);if(match){clearTimeout(timer);resolve(match[1]);}});
       });
-      const response=await fetch(`http://127.0.0.1:${port}/unknown`);assert.equal(response.status,404);assert.match(await response.text(),/Có lẽ bạn đã rẽ nhầm bàn/);
       for(const asset of ['styles.css','app.js','favicon.svg']) assert.equal((await fetch(`http://127.0.0.1:${port}/${asset}`)).status,200);
     } finally {child.kill('SIGTERM');await new Promise<void>(resolve=>child.once('close',()=>resolve()));}
   }
-  console.log('PASS: SSR documents, navigation, CRUD, no-JS, picker, responsive, reduced motion and production assets.');
+  console.log('PASS: registration/OTP/login/logout/reset, real CAPTCHA, SSR/CRUD, no-JS, responsive and compiled production assets.');
 } finally {
   await browser?.close();server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));
 }

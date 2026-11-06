@@ -122,6 +122,7 @@ export async function seedRestaurant(db: PrismaClient, schema = databaseConfig()
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await import('dotenv/config');
   const db = createDatabase();
   try {
     const schema = databaseConfig().schema;

@@ -1,5 +1,3 @@
-import 'dotenv/config';
-
 /** One schema policy for Prisma CLI, SQL, seed and runtime. */
 export function databaseConfig(value = process.env.DATABASE_URL, required = true) {
   if (!value && required) throw new Error('Thiếu DATABASE_URL trong .env.');

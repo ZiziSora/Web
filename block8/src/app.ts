@@ -5,14 +5,17 @@ import { fileURLToPath } from 'node:url';
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import express, { type Request, type Response, type NextFunction } from 'express';
 import methodOverride from 'method-override';
+import { authentication, type AuthDependencies } from './auth.js';
 import {
   resources, labels, money, parseId, formValues, entityValues, validate,
   InputError, NotFoundError, IngredientInUseError,
   type RestaurantStore, type Resource, type FormValues, type Errors, type Entity,
 } from './domain.js';
 
-export function createApp(store: RestaurantStore, options: { root?: string; logger?: { error(message: string): void } } = {}) {
+export function createApp(store: RestaurantStore, options: { root?: string; logger?: { error(message: string): void }; auth: AuthDependencies }) {
   const app = express();
+  const auth = authentication(options.auth);
+  app.set('trust proxy', options.auth.config.trustProxyHops);
   const root = options.root ?? fileURLToPath(new URL(import.meta.url.includes('/dist/') ? '../../' : '../', import.meta.url));
   const secret = randomBytes(32);
   app.disable('x-powered-by');
@@ -24,7 +27,7 @@ export function createApp(store: RestaurantStore, options: { root?: string; logg
     res.setHeader('Referrer-Policy', 'same-origin');
     res.setHeader('Content-Security-Policy', "default-src 'self'; style-src 'self'; img-src 'self' data:; script-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'");
     res.setHeader('Cache-Control', 'no-store');
-    res.locals = { ...res.locals, admin: req.path.startsWith('/admin'), resource: '', pageTitle: 'The Table', q: '' };
+    res.locals = { ...res.locals, admin: req.path.startsWith('/admin'), resource: '', pageTitle: 'The Table', q: '', currentUser: null, csrf: '' };
     next();
   });
   app.use(express.static(path.join(root, 'public')));
@@ -32,6 +35,9 @@ export function createApp(store: RestaurantStore, options: { root?: string; logg
   app.use(methodOverride(req => {
     if (req.method === 'POST' && ['PATCH', 'DELETE'].includes(req.body?._method)) return req.body._method;
   }, { methods: ['POST'] }));
+  app.use(auth.sessionMiddleware, auth.locals);
+  app.use('/admin', auth.requireLogin);
+  app.use(auth.csrf, auth.router);
 
   const load = async (resource: Resource, raw: unknown) => {
     const id = parseId(raw);
@@ -154,7 +160,11 @@ export function createApp(store: RestaurantStore, options: { root?: string; logg
       : typeof error === 'object' && error !== null && 'status' in error && [400, 413].includes(Number(error.status)) ? Number(error.status) : 500;
     if (status === 500) (options.logger ?? console).error('Không thể xử lý yêu cầu nhà hàng. Kiểm tra kết nối và cấu hình máy chủ.');
     return res.status(status).render('error', {
-      retryUrl: _req.method === 'PATCH' ? _req.path + '/edit'
+      retryUrl: _req.path === '/reset' ? '/forgot'
+        : ['/login', '/register', '/activate', '/forgot'].includes(_req.path) ? _req.path
+        : _req.path === '/activate/resend' ? '/activate'
+        : _req.path === '/logout' ? '/login'
+        : _req.method === 'PATCH' ? _req.path + '/edit'
         : _req.method === 'DELETE' ? _req.path + '/delete'
         : _req.method === 'POST' ? _req.path + '/new'
         : _req.originalUrl.startsWith('/') && !_req.originalUrl.startsWith('//') ? _req.originalUrl : '/dishes',

@@ -1,0 +1,18 @@
+<%- include('../partials/header') %>
+<section class="container auth-page">
+  <div class="auth-panel">
+    <p class="eyebrow">THE TABLE / TÀI KHOẢN</p><h1><%= pageTitle %><span class="accent">.</span></h1>
+    <% if(message) { %><div class="notice" role="alert"><%= message %></div><% } %>
+    <form action="/<%= mode %>" method="post" class="auth-form">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <% if(mode !== 'reset') { %><div class="field"><label for="email">Email</label><input id="email" name="email" type="email" maxlength="254" autocomplete="email" value="<%= email %>" required></div><% } %>
+      <% if(['login','register','reset'].includes(mode)) { %><div class="field"><label for="password">Mật khẩu<%= mode === 'reset' ? ' mới' : '' %></label><input id="password" name="password" type="password" autocomplete="<%= mode === 'login' ? 'current-password' : 'new-password' %>" required aria-describedby="password-hint"><p id="password-hint" class="field-hint">Ít nhất 8 ký tự, tối đa 72 byte UTF-8. Ký tự có dấu có thể chiếm nhiều byte.</p></div><% } %>
+      <% if(mode === 'activate') { %><div class="field"><label for="otp">Mã kích hoạt</label><input id="otp" name="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required><p class="field-hint">Mã gồm 6 chữ số, có hạn 10 phút.</p></div><% } %>
+      <% if(captcha) { %><div class="field captcha-field"><label for="captcha">Mã trong ảnh</label><img src="<%= captcha.image %>" width="220" height="70" alt="Ảnh CAPTCHA gồm sáu ký tự"><input type="hidden" name="captchaId" value="<%= captcha.id %>"><input id="captcha" name="captcha" autocomplete="off" maxlength="12" required><p class="field-hint">Mã dùng một lần, có hạn 5 phút. Tải lại trang để lấy ảnh mới.</p></div><% } %>
+      <button class="button" type="submit"><%= ({login:'Đăng nhập',register:'Tạo tài khoản',activate:'Kích hoạt',forgot:'Gửi hướng dẫn',reset:'Đổi mật khẩu'})[mode] %> <span aria-hidden="true">↗</span></button>
+    </form>
+    <% if(mode === 'activate') { %><form action="/activate/resend" method="post" class="resend-form"><input type="hidden" name="_csrf" value="<%= csrf %>"><label for="resend-email">Email nhận lại mã</label><input id="resend-email" type="email" name="email" value="<%= email %>" required maxlength="254"><button class="button secondary" type="submit">Gửi lại mã</button><p class="field-hint">Chờ ít nhất 60 giây giữa hai lần gửi.</p></form><% } %>
+    <nav class="auth-links" aria-label="Tài khoản"><a href="/login">Đăng nhập</a><a href="/register">Đăng ký</a><a href="/activate">Kích hoạt</a><a href="/forgot">Quên mật khẩu?</a></nav>
+  </div>
+</section>
+<%- include('../partials/footer') %>
