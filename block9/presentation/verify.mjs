@@ -14,9 +14,9 @@ try {
   page.on('pageerror', error => issues.push(error.message));
   const url = pathToFileURL(path.join(root, 'index.html')).href;
   await page.goto(url);
-  assert.equal(await page.locator('.slide').count(), 24);
-  assert.equal(await page.locator('#slide-picker option').count(), 24);
-  for (let i=1; i<=24; i++) {
+  assert.equal(await page.locator('.slide').count(), 23);
+  assert.equal(await page.locator('#slide-picker option').count(), 23);
+  for (let i=1; i<=23; i++) {
     await page.selectOption('#slide-picker', String(i-1));
     await page.waitForFunction(index=>document.querySelector('.slide.active')?.id===`slide-${index}`,i);
     const problems = await page.locator('.slide.active').evaluate(slide=>{
@@ -51,10 +51,10 @@ try {
   await page.click('#previous'); assert.equal(await page.locator('.slide.active').getAttribute('id'),'slide-13');
   await page.click('#appendix'); assert.equal(await page.locator('.slide.active').getAttribute('id'),'slide-21');
   await page.click('#appendix'); assert.equal(await page.locator('.slide.active').getAttribute('id'),'slide-1');
-  await page.locator('.slide.active h2').click(); await page.keyboard.press('End'); assert.equal(await page.locator('.slide.active').getAttribute('id'),'slide-24');
+  await page.locator('.slide.active h2').click(); await page.keyboard.press('End'); assert.equal(await page.locator('.slide.active').getAttribute('id'),'slide-23');
   await page.keyboard.press('Home'); assert.equal(await page.locator('.slide.active').getAttribute('id'),'slide-1');
   await page.emulateMedia({media:'print'});
-  assert.equal(await page.locator('.slide:visible').count(),24);
+  assert.equal(await page.locator('.slide:visible').count(),23);
   assert.equal(await page.locator('.nav').isVisible(),false);
   await page.pdf({path:path.join(out,'print-preview.pdf'),preferCSSPageSize:true,printBackground:true});
   await page.emulateMedia({media:'screen'});
@@ -70,8 +70,8 @@ try {
     await p.screenshot({path:path.join(out,`viewport-${viewport.width}.png`)}); await c.close();
   }
   const noJs=await browser.newContext({javaScriptEnabled:false,viewport:{width:1366,height:850}});
-  const p=await noJs.newPage(); await p.goto(url); assert.equal(await p.locator('.slide:visible').count(),24); await noJs.close();
-  await fs.writeFile(path.join(out,'report.json'),JSON.stringify({slides:24,evidenceCases:16,issues},null,2));
+  const p=await noJs.newPage(); await p.goto(url); assert.equal(await p.locator('.slide:visible').count(),23); await noJs.close();
+  await fs.writeFile(path.join(out,'report.json'),JSON.stringify({slides:23,evidenceCases:16,issues},null,2));
   if(issues.length) { console.error(issues.join('\n')); process.exitCode=1; }
-  else console.log('PASS: 24 slide layouts, notes, keyboard/dropdown/hash, 16 evidence cases, print, mobile and no-JS.');
+  else console.log('PASS: 23 slide layouts, notes, keyboard/dropdown/hash, 16 evidence cases, print, mobile and no-JS.');
 } finally { await browser.close(); }
