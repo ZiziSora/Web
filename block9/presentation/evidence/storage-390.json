@@ -1,0 +1,22 @@
+{
+  "local": [],
+  "session": [],
+  "cookies": [
+    {
+      "name": "block9.refresh",
+      "value": "[?? CHE]",
+      "httpOnly": true,
+      "sameSite": "Lax",
+      "path": "/api/auth",
+      "secure": false
+    },
+    {
+      "name": "block9.anon",
+      "value": "[?? CHE]",
+      "httpOnly": true,
+      "sameSite": "Lax",
+      "path": "/",
+      "secure": false
+    }
+  ]
+}

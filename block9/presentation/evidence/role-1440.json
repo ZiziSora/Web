@@ -1,0 +1,19 @@
+{
+  "assertion": "role in localStorage does not change server identity",
+  "before": {
+    "ok": true,
+    "data": {
+      "id": "9c582c51f208defbf37194acc8e0be3fac29d8bac798a617eee643507d3cb8e6",
+      "email": "learner1440@example.com",
+      "role": "viewer"
+    }
+  },
+  "after": {
+    "ok": true,
+    "data": {
+      "id": "9c582c51f208defbf37194acc8e0be3fac29d8bac798a617eee643507d3cb8e6",
+      "email": "learner1440@example.com",
+      "role": "viewer"
+    }
+  }
+}

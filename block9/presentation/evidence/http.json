@@ -1,0 +1,5603 @@
+{
+  "environment": "Memory repository; mailer/CAPTCHA test",
+  "capturedAt": "2026-11-13T04:17:15.638Z",
+  "runs": [
+    {
+      "name": "login issues short JWT and an HttpOnly refresh cookie; cookie alone cannot authorize CRUD",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-uSZDEQQd3FPXgdZM4ioUDX+DfiY\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:06 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-khPMDBoL2KuJGiORxHbTgsSLcn0\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544026000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "84",
+            "etag": "W/\"54-bs1FVBsoenJNaGKdkunkk1yuRtU\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "id": "[REDACTED]",
+              "email": "active@example.com",
+              "role": "viewer"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/chefs/all",
+          "requestHeaders": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/dishes",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "CSRF on every mutation, exact CORS origin and public reads",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-ThavRhed1w7DFaYYE1eVuNZeYXk\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-/3EVnOH/Af1H3wEgAUjhzNS67zE\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544027000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 403,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-k3GHnwUUzJPwdCX2joGCn1BvZC0\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "CSRF_INVALID",
+              "message": "Phiên biểu mẫu không hợp lệ. Vui lòng tải lại trang."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 403,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-k3GHnwUUzJPwdCX2joGCn1BvZC0\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "CSRF_INVALID",
+              "message": "Phiên biểu mẫu không hợp lệ. Vui lòng tải lại trang."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 403,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-k3GHnwUUzJPwdCX2joGCn1BvZC0\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "CSRF_INVALID",
+              "message": "Phiên biểu mẫu không hợp lệ. Vui lòng tải lại trang."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/logout",
+          "requestHeaders": {
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 403,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-k3GHnwUUzJPwdCX2joGCn1BvZC0\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "CSRF_INVALID",
+              "message": "Phiên biểu mẫu không hợp lệ. Vui lòng tải lại trang."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/reset",
+          "requestHeaders": {
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 403,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-k3GHnwUUzJPwdCX2joGCn1BvZC0\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "CSRF_INVALID",
+              "message": "Phiên biểu mẫu không hợp lệ. Vui lòng tải lại trang."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/forgot",
+          "requestHeaders": {
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 403,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-k3GHnwUUzJPwdCX2joGCn1BvZC0\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "CSRF_INVALID",
+              "message": "Phiên biểu mẫu không hợp lệ. Vui lòng tải lại trang."
+            }
+          }
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/dishes/1",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "name": "Changed"
+          },
+          "status": 403,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-k3GHnwUUzJPwdCX2joGCn1BvZC0\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "CSRF_INVALID",
+              "message": "Phiên biểu mẫu không hợp lệ. Vui lòng tải lại trang."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/logout",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Origin": "https://evil.test"
+          },
+          "status": 403,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "82",
+            "etag": "W/\"52-8+HStbl9h2h+yeoqyq5rxtqTL8I\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "CSRF_INVALID",
+              "message": "Origin không hợp lệ."
+            }
+          }
+        },
+        {
+          "method": "OPTIONS",
+          "path": "/api/dishes/1",
+          "requestHeaders": {
+            "Origin": "http://localhost:5179",
+            "Access-Control-Request-Method": "PATCH"
+          },
+          "status": 204,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "access-control-allow-origin": "http://localhost:5179",
+            "access-control-allow-methods": "GET,POST,PATCH,DELETE,OPTIONS",
+            "access-control-allow-headers": "Content-Type,Authorization,X-CSRF-Token",
+            "access-control-allow-credentials": "true",
+            "access-control-expose-headers": "Retry-After",
+            "etag": "W/\"a-bAsFyilMr4Ra1hIU5PyoyFRunpI\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {}
+        },
+        {
+          "method": "GET",
+          "path": "/api/dishes",
+          "requestHeaders": {
+            "Origin": "http://evil.test"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "351",
+            "etag": "W/\"15f-XLut6xlT/ZzE1odNratGQis3rn8\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "items": [
+                {
+                  "id": "[REDACTED]",
+                  "name": "Bò lúc lắc",
+                  "description": "Bò mềm, hành giòn.",
+                  "price": "165000",
+                  "category": "Món Việt",
+                  "available": true,
+                  "chefs": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "An",
+                      "specialty": "Món Việt"
+                    }
+                  ],
+                  "ingredients": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "Hành tây",
+                      "unit": "kg"
+                    }
+                  ]
+                }
+              ],
+              "meta": {
+                "page": 1,
+                "pageSize": 6,
+                "pages": 1,
+                "total": 1,
+                "effectiveMode": "basic"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/dishes",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "351",
+            "etag": "W/\"15f-XLut6xlT/ZzE1odNratGQis3rn8\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "items": [
+                {
+                  "id": "[REDACTED]",
+                  "name": "Bò lúc lắc",
+                  "description": "Bò mềm, hành giòn.",
+                  "price": "165000",
+                  "category": "Món Việt",
+                  "available": true,
+                  "chefs": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "An",
+                      "specialty": "Món Việt"
+                    }
+                  ],
+                  "ingredients": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "Hành tây",
+                      "unit": "kg"
+                    }
+                  ]
+                }
+              ],
+              "meta": {
+                "page": 1,
+                "pageSize": 6,
+                "pages": 1,
+                "total": 1,
+                "effectiveMode": "basic"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/dishes/facets",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "49",
+            "etag": "W/\"31-lH9MXS3tdxHfAVqEeBhvPYADVwQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "categories": [
+                "Món Việt"
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/dishes/1",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "264",
+            "etag": "W/\"108-52WX+zrruAUaC5QB/tMjS8wdeIk\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "id": "[REDACTED]",
+              "name": "Bò lúc lắc",
+              "description": "Bò mềm, hành giòn.",
+              "price": "165000",
+              "category": "Món Việt",
+              "available": true,
+              "chefs": [
+                {
+                  "id": "[REDACTED]",
+                  "name": "An",
+                  "specialty": "Món Việt"
+                }
+              ],
+              "ingredients": [
+                {
+                  "id": "[REDACTED]",
+                  "name": "Hành tây",
+                  "unit": "kg"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "PATCH",
+          "path": "/API/DiShEs/1",
+          "requestHeaders": {
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "name": "Unauthorized"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/chefs",
+          "requestHeaders": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/ingredients/options/all",
+          "requestHeaders": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/ingredients/1",
+          "requestHeaders": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/API/CHEFS/all",
+          "requestHeaders": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/InGrEdIeNtS/1",
+          "requestHeaders": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "JWT rejects invalid signature, algorithm, issuer, audience, future issuance and missing claims",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-kiIab12yQGmMq3vJ7bQUHMMo0/I\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-u4H1UX4JonbJ18BCgUBEcALM/p4\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544027000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "both database versions and active status are checked without cache",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-gKj939NqVEzjAgDZnubIxz+6278\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:07 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-rgBLQMzRfFkpfbvQ8/KLtVJw36M\"",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544027000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-lEkGqC65mvfx8FT5k9KQOEG8VdQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "SESSION_REVOKED",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-lEkGqC65mvfx8FT5k9KQOEG8VdQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "SESSION_REVOKED",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-lEkGqC65mvfx8FT5k9KQOEG8VdQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "SESSION_REVOKED",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "refresh rotates token, keeps versions and absolute expiry; reuse revokes that session",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-VnvzkRqij5LmamKUEcofXp2Bxzg\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-acSXpkaqqkZldqdCLucxUKr83lU\"",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544028000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "89",
+            "etag": "W/\"59-HS12e2KjAt4wVvz4e+C6LO7sAek\"",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_EXPIRED",
+              "message": "Access token đã hết hạn."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-hMObNNyyHdsz8crsKqq/d3Z/yms\"",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544629000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "84",
+            "etag": "W/\"54-bs1FVBsoenJNaGKdkunkk1yuRtU\"",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "id": "[REDACTED]",
+              "email": "active@example.com",
+              "role": "viewer"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-rTzCpzyyBiDZ98Aoz8b2OF4RHds\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "Cookie": "[REDACTED]",
+            "X-CSRF-Token": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-8l88MbctBLdnVFfd0s33RbmOIDo\"",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "REFRESH_INVALID",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-lEkGqC65mvfx8FT5k9KQOEG8VdQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "SESSION_REVOKED",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-8l88MbctBLdnVFfd0s33RbmOIDo\"",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "REFRESH_INVALID",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "logout invalidates current access immediately, including expired access, preserving other devices",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-cCXT6DKtcQxDFW6Y2djWDrIUM7c\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-xMbp4LrvqLICT3F1fQrrvPRoVNE\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-HRry8stUSyXAO7UgLux72LokWG0\"",
+            "date": "Fri, 13 Nov 2026 04:17:08 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544028000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-xhRQNVP9mymT2+aVolUzrK54UV0\"",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544028000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/logout",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "23",
+            "etag": "W/\"17-kTvLMVYQOV/pMj+jt1UoZY/Aibk\"",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": null
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-lEkGqC65mvfx8FT5k9KQOEG8VdQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "SESSION_REVOKED",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "84",
+            "etag": "W/\"54-ppq9q9I9wLAB12KDoaliHAJLgL4\"",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "REFRESH_INVALID",
+              "message": "Vui lòng đăng nhập."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-bdre3NTL5rcpyBfKdsPqsUN5tjU\"",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544629000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "refresh cannot extend 8-hour deadline and final access is capped to session expiry",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-b+ixxEgzw4SzNqda0vBSRMKQEv0\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-V7ZzFQ8yXtTyYXecoKJjuXPt7ow\"",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544029000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-XBTvedWvu/b3Gl5RDx9N4/M/N3s\"",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794572229000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-43Ox/i+iMfzozoCcnwK9MfkFOZY\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-8l88MbctBLdnVFfd0s33RbmOIDo\"",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "REFRESH_INVALID",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-lEkGqC65mvfx8FT5k9KQOEG8VdQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "SESSION_REVOKED",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "registration, OTP activation and duplicate email preserve account and never auto-login",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-YgYH9IQqsfvP2pINXYybFMMhbuA\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": " New@Example.com ",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "125",
+            "etag": "W/\"7d-tBrH362YifyNJjT6bNBTAgeBlYs\"",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "CAPTCHA_REQUIRED",
+              "message": "Vui lòng xác minh reCAPTCHA hợp lệ.",
+              "captchaRequired": true
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": " New@Example.com ",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]",
+            "role": "admin"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "152",
+            "etag": "W/\"98-1E68fBICSRHxGtaMOLFVAErPDZY\"",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "next": "/activate?email=new%40example.com",
+              "message": "Nếu thông tin phù hợp, mã kích hoạt đã được gửi qua email."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": " New@Example.com ",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "152",
+            "etag": "W/\"98-1E68fBICSRHxGtaMOLFVAErPDZY\"",
+            "date": "Fri, 13 Nov 2026 04:17:09 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "next": "/activate?email=new%40example.com",
+              "message": "Nếu thông tin phù hợp, mã kích hoạt đã được gửi qua email."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": " New@Example.com ",
+            "otp": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "187",
+            "etag": "W/\"bb-mpHq3N4niDfgkUsw51sEQ9Va69I\"",
+            "date": "Fri, 13 Nov 2026 04:17:10 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mã kích hoạt không hợp lệ hoặc đã hết hạn.",
+              "fields": {
+                "otp": "[REDACTED]"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": " New@Example.com ",
+            "otp": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "53",
+            "etag": "W/\"35-fHVll/cOVDqCAxG9cMQ/MD/D1bQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:10 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "next": "/login?status=activated"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": " New@Example.com ",
+            "otp": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "187",
+            "etag": "W/\"bb-mpHq3N4niDfgkUsw51sEQ9Va69I\"",
+            "date": "Fri, 13 Nov 2026 04:17:10 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mã kích hoạt không hợp lệ hoặc đã hết hạn.",
+              "fields": {
+                "otp": "[REDACTED]"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:10 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": " New@Example.com ",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "627",
+            "etag": "W/\"273-bZ6dkCM9krSQgD3+8kQjB7ZOBEE\"",
+            "date": "Fri, 13 Nov 2026 04:17:10 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544029000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "new@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        }
+      ],
+      "snapshots": [
+        {
+          "label": "User ??ng k?",
+          "data": {
+            "id": "[REDACTED]",
+            "email": "new@example.com",
+            "passwordHash": "[REDACTED]",
+            "status": "pending",
+            "role": "viewer",
+            "emailVerifiedAt": null,
+            "userVersion": 0,
+            "createdAt": {}
+          }
+        },
+        {
+          "label": "Email OTP test",
+          "data": [
+            {
+              "kind": "activation",
+              "email": "new@example.com",
+              "value": "[REDACTED]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "password length counts Unicode characters and enforces bcrypt byte limit",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-upWH0gZPd/ydO+UD6uMD5fbd10E\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:10 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "invalid0@test.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "225",
+            "etag": "W/\"e1-h8tOufVxAPA6xImPIbRW/5Ft39U\"",
+            "date": "Fri, 13 Nov 2026 04:17:10 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mật khẩu cần ít nhất 8 ký tự và tối đa 72 byte UTF-8.",
+              "fields": {
+                "password": "[REDACTED]"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "invalid1@test.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "225",
+            "etag": "W/\"e1-h8tOufVxAPA6xImPIbRW/5Ft39U\"",
+            "date": "Fri, 13 Nov 2026 04:17:10 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mật khẩu cần ít nhất 8 ký tự và tối đa 72 byte UTF-8.",
+              "fields": {
+                "password": "[REDACTED]"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "invalid2@test.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "225",
+            "etag": "W/\"e1-h8tOufVxAPA6xImPIbRW/5Ft39U\"",
+            "date": "Fri, 13 Nov 2026 04:17:10 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mật khẩu cần ít nhất 8 ký tự và tối đa 72 byte UTF-8.",
+              "fields": {
+                "password": "[REDACTED]"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "valid0@test.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "152",
+            "etag": "W/\"98-xhj6EHU8YiYF+Vx/gamLEu0kfyM\"",
+            "date": "Fri, 13 Nov 2026 04:17:10 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "next": "/activate?email=valid0%40test.com",
+              "message": "Nếu thông tin phù hợp, mã kích hoạt đã được gửi qua email."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "valid1@test.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "152",
+            "etag": "W/\"98-6rppUSOBXWTdcEQPzYF1FMWetHQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:10 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "next": "/activate?email=valid1%40test.com",
+              "message": "Nếu thông tin phù hợp, mã kích hoạt đã được gửi qua email."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "valid2@test.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "152",
+            "etag": "W/\"98-VcW4SDCpS7kGULQhJgP3tP+G38s\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "next": "/activate?email=valid2%40test.com",
+              "message": "Nếu thông tin phù hợp, mã kích hoạt đã được gửi qua email."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "confirm@test.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "174",
+            "etag": "W/\"ae-eX3P7LpB3/pq8qZre0sb2kkFzMQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mật khẩu nhập lại không khớp.",
+              "fields": {
+                "passwordConfirm": "[REDACTED]"
+              }
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "OTP expiry, resend cooldown, old-code invalidation and lock survive resend",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-mS06Al4P6sm5ugrhhYKkYOqcTJA\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp@test.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "149",
+            "etag": "W/\"95-BS0Namdkr+mTV0aMnldEnbp28gI\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "next": "/activate?email=otp%40test.com",
+              "message": "Nếu thông tin phù hợp, mã kích hoạt đã được gửi qua email."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate/resend",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp@test.com"
+          },
+          "status": 429,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "retry-after": "60",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "126",
+            "etag": "W/\"7e-+HEGVNVvgcStsOyho/5vtkeU/Tw\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "RATE_LIMITED",
+              "message": "Bạn đã thử quá nhiều lần. Vui lòng chờ.",
+              "retryAfter": 60
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate/resend",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp@test.com"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "125",
+            "etag": "W/\"7d-dDHyNpfyhfayy/P5tvWlqB7Qo7w\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "message": "Nếu thông tin phù hợp, mã kích hoạt đã được gửi qua email.",
+              "retryAfter": 60
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp@test.com",
+            "otp": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "187",
+            "etag": "W/\"bb-mpHq3N4niDfgkUsw51sEQ9Va69I\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mã kích hoạt không hợp lệ hoặc đã hết hạn.",
+              "fields": {
+                "otp": "[REDACTED]"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp@test.com",
+            "otp": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "187",
+            "etag": "W/\"bb-mpHq3N4niDfgkUsw51sEQ9Va69I\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mã kích hoạt không hợp lệ hoặc đã hết hạn.",
+              "fields": {
+                "otp": "[REDACTED]"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp@test.com",
+            "otp": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "187",
+            "etag": "W/\"bb-mpHq3N4niDfgkUsw51sEQ9Va69I\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mã kích hoạt không hợp lệ hoặc đã hết hạn.",
+              "fields": {
+                "otp": "[REDACTED]"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp@test.com",
+            "otp": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "187",
+            "etag": "W/\"bb-mpHq3N4niDfgkUsw51sEQ9Va69I\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mã kích hoạt không hợp lệ hoặc đã hết hạn.",
+              "fields": {
+                "otp": "[REDACTED]"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp@test.com",
+            "otp": "[REDACTED]"
+          },
+          "status": 429,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "retry-after": "900",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "127",
+            "etag": "W/\"7f-2VWu6BYpqoyuHrSCdnQjQL9i9Qg\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "RATE_LIMITED",
+              "message": "Bạn đã thử quá nhiều lần. Vui lòng chờ.",
+              "retryAfter": 900
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate/resend",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp@test.com"
+          },
+          "status": 429,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "retry-after": "60",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "126",
+            "etag": "W/\"7e-+HEGVNVvgcStsOyho/5vtkeU/Tw\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "RATE_LIMITED",
+              "message": "Bạn đã thử quá nhiều lần. Vui lòng chờ.",
+              "retryAfter": 60
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp@test.com",
+            "otp": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "187",
+            "etag": "W/\"bb-mpHq3N4niDfgkUsw51sEQ9Va69I\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mã kích hoạt không hợp lệ hoặc đã hết hạn.",
+              "fields": {
+                "otp": "[REDACTED]"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate/resend",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp@test.com"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "125",
+            "etag": "W/\"7d-dDHyNpfyhfayy/P5tvWlqB7Qo7w\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "message": "Nếu thông tin phù hợp, mã kích hoạt đã được gửi qua email.",
+              "retryAfter": 60
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp@test.com",
+            "otp": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "53",
+            "etag": "W/\"35-fHVll/cOVDqCAxG9cMQ/MD/D1bQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "next": "/login?status=activated"
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "login requires captcha after third failure, solving captcha does not reset failure count",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-TwHXQ35gkQ84riAw6lTjjFmAtI0\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "125",
+            "etag": "W/\"7d-69acBltQbM5d3PJv5tiQdMrPaHY\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "LOGIN_FAILED",
+              "message": "Email hoặc mật khẩu không hợp lệ.",
+              "captchaRequired": false
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "125",
+            "etag": "W/\"7d-69acBltQbM5d3PJv5tiQdMrPaHY\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "LOGIN_FAILED",
+              "message": "Email hoặc mật khẩu không hợp lệ.",
+              "captchaRequired": false
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-zDaWKvK8c1Xzpelv9MSnKkgXrEQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "LOGIN_FAILED",
+              "message": "Email hoặc mật khẩu không hợp lệ.",
+              "captchaRequired": true
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "125",
+            "etag": "W/\"7d-tBrH362YifyNJjT6bNBTAgeBlYs\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "CAPTCHA_REQUIRED",
+              "message": "Vui lòng xác minh reCAPTCHA hợp lệ.",
+              "captchaRequired": true
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-zDaWKvK8c1Xzpelv9MSnKkgXrEQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "LOGIN_FAILED",
+              "message": "Email hoặc mật khẩu không hợp lệ.",
+              "captchaRequired": true
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-zDaWKvK8c1Xzpelv9MSnKkgXrEQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "LOGIN_FAILED",
+              "message": "Email hoặc mật khẩu không hợp lệ.",
+              "captchaRequired": true
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-zDaWKvK8c1Xzpelv9MSnKkgXrEQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "LOGIN_FAILED",
+              "message": "Email hoặc mật khẩu không hợp lệ.",
+              "captchaRequired": true
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-zDaWKvK8c1Xzpelv9MSnKkgXrEQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "LOGIN_FAILED",
+              "message": "Email hoặc mật khẩu không hợp lệ.",
+              "captchaRequired": true
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-zDaWKvK8c1Xzpelv9MSnKkgXrEQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "LOGIN_FAILED",
+              "message": "Email hoặc mật khẩu không hợp lệ.",
+              "captchaRequired": true
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "124",
+            "etag": "W/\"7c-zDaWKvK8c1Xzpelv9MSnKkgXrEQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "LOGIN_FAILED",
+              "message": "Email hoặc mật khẩu không hợp lệ.",
+              "captchaRequired": true
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 429,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "retry-after": "900",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "127",
+            "etag": "W/\"7f-2VWu6BYpqoyuHrSCdnQjQL9i9Qg\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "RATE_LIMITED",
+              "message": "Bạn đã thử quá nhiều lần. Vui lòng chờ.",
+              "retryAfter": 900
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-UtFWK3Sm2YDJvdDM4lazUMlU5Yo\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 429,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "retry-after": "900",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "127",
+            "etag": "W/\"7f-2VWu6BYpqoyuHrSCdnQjQL9i9Qg\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "RATE_LIMITED",
+              "message": "Bạn đã thử quá nhiều lần. Vui lòng chờ.",
+              "retryAfter": 900
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-LahoPZ/6M74Mn9jXw/1yEUiWXwE\"",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544931000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "forgot has uniform responses; reset is single-use and revokes access/refresh on every device",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-B1Wpsa1KuwcCaXR2WFC0xW378Xc\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-V48C79mtTL0Flm8SxQpoNbAFRxI\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:11 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-m2UKNbXmZjTiiwfF/IJoyw8uhbA\"",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544031000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-UN33G24no0Z9P3x4sBKjroLujz8\"",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544031000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/forgot",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "129",
+            "etag": "W/\"81-co+MY5I18Vmm5ImMIRNWHbX7hss\"",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "message": "Nếu thông tin phù hợp, email hướng dẫn đặt lại mật khẩu sẽ được gửi."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/forgot",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "unknown@test.com"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "129",
+            "etag": "W/\"81-co+MY5I18Vmm5ImMIRNWHbX7hss\"",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "message": "Nếu thông tin phù hợp, email hướng dẫn đặt lại mật khẩu sẽ được gửi."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/reset/prepare",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "token": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "23",
+            "etag": "W/\"17-kTvLMVYQOV/pMj+jt1UoZY/Aibk\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": null
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/reset/prepare",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "23",
+            "etag": "W/\"17-kTvLMVYQOV/pMj+jt1UoZY/Aibk\"",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": null
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/reset",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "174",
+            "etag": "W/\"ae-eX3P7LpB3/pq8qZre0sb2kkFzMQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mật khẩu nhập lại không khớp.",
+              "fields": {
+                "passwordConfirm": "[REDACTED]"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/reset",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "49",
+            "etag": "W/\"31-Cabg5mmitJEqND4655++N3cQvBg\"",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "next": "/login?status=reset"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-lEkGqC65mvfx8FT5k9KQOEG8VdQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "SESSION_REVOKED",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-lEkGqC65mvfx8FT5k9KQOEG8VdQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "SESSION_REVOKED",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-8l88MbctBLdnVFfd0s33RbmOIDo\"",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "REFRESH_INVALID",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/reset/prepare",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "token": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "154",
+            "etag": "W/\"9a-BM36OZzellU31QgBAIrI786RoAY\"",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.",
+              "fields": {}
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "125",
+            "etag": "W/\"7d-69acBltQbM5d3PJv5tiQdMrPaHY\"",
+            "date": "Fri, 13 Nov 2026 04:17:12 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "LOGIN_FAILED",
+              "message": "Email hoặc mật khẩu không hợp lệ.",
+              "captchaRequired": false
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-VnXRPndZwlpWBPolEr9afhvD6g8\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544031000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        }
+      ],
+      "snapshots": [
+        {
+          "label": "Reset sau prepare",
+          "data": {
+            "id": "[REDACTED]",
+            "userId": "active-user",
+            "tokenHash": "[REDACTED]",
+            "expiresAt": {},
+            "usedAt": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "new reset supersedes old, token expires, SMTP errors do not disclose secrets",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-H+rsCty2NuO50Xr5kGtDK/lwtgg\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/forgot",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "129",
+            "etag": "W/\"81-co+MY5I18Vmm5ImMIRNWHbX7hss\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "message": "Nếu thông tin phù hợp, email hướng dẫn đặt lại mật khẩu sẽ được gửi."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/forgot",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "129",
+            "etag": "W/\"81-co+MY5I18Vmm5ImMIRNWHbX7hss\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "message": "Nếu thông tin phù hợp, email hướng dẫn đặt lại mật khẩu sẽ được gửi."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/reset/prepare",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "token": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "154",
+            "etag": "W/\"9a-BM36OZzellU31QgBAIrI786RoAY\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.",
+              "fields": {}
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/reset/prepare",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "token": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "154",
+            "etag": "W/\"9a-BM36OZzellU31QgBAIrI786RoAY\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.",
+              "fields": {}
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-RWmx46lF0RNMwpKJdQuM5PbKaU8\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/forgot",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "129",
+            "etag": "W/\"81-co+MY5I18Vmm5ImMIRNWHbX7hss\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "message": "Nếu thông tin phù hợp, email hướng dẫn đặt lại mật khẩu sẽ được gửi."
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "concurrent refresh reuse revokes the family; logout racing refresh never resurrects session",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-AdNEORgc+R30zqETUzM8PknJ1Lw\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-2XO2dzeVH73UJW+vKG9PgtFvhi4\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544033000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-7ci03uLrBya/IiIxTlX5xjHQ784\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "Cookie": "[REDACTED]",
+            "X-CSRF-Token": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-8l88MbctBLdnVFfd0s33RbmOIDo\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "REFRESH_INVALID",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "Cookie": "[REDACTED]",
+            "X-CSRF-Token": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-2XO2dzeVH73UJW+vKG9PgtFvhi4\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544033000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-lEkGqC65mvfx8FT5k9KQOEG8VdQ\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "SESSION_REVOKED",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-DR+6jvGSb408+Th/wbr2nVVBxiQ\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-LgsWhAEcG53tVz+EjiR1BkJ88P8\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544033000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/logout",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "23",
+            "etag": "W/\"17-kTvLMVYQOV/pMj+jt1UoZY/Aibk\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": null
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-LgsWhAEcG53tVz+EjiR1BkJ88P8\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544033000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-8l88MbctBLdnVFfd0s33RbmOIDo\"",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "REFRESH_INVALID",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "server config requires independent secrets and HTTPS production origin",
+      "status": "PASS",
+      "http": [],
+      "snapshots": []
+    },
+    {
+      "name": "TTL environment config defaults, seconds conversion and invalid values",
+      "status": "PASS",
+      "http": [],
+      "snapshots": []
+    },
+    {
+      "name": "custom TTL controls JWT, refresh cookie/database deadline and rotation without extending login",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-I3JYfDP9XC3o/g/UXNEronvfm90\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:13 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-cG2OZHtK/mbYEQQFvZSiSVreoFA\"",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794543438000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "89",
+            "etag": "W/\"59-HS12e2KjAt4wVvz4e+C6LO7sAek\"",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_EXPIRED",
+              "message": "Access token đã hết hạn."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-YVcgLvrvY/PUY3wm/7L70MHHqnc\"",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794543444000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-IS4ZRAqgEKNdJllVWBwBwzsVrnc\"",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794543453000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "105",
+            "etag": "W/\"69-8l88MbctBLdnVFfd0s33RbmOIDo\"",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "REFRESH_INVALID",
+              "message": "Phiên đăng nhập đã hết hiệu lực."
+            }
+          }
+        }
+      ],
+      "snapshots": []
+    },
+    {
+      "name": "Google verifier checks hostname, fails closed on network/malformed/secret error",
+      "status": "PASS",
+      "http": [],
+      "snapshots": []
+    },
+    {
+      "name": "Acceptance: anonymous mutations, pending, wrong CAPTCHA, payload role, forgot limit",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-qx3im2oNBZ+muAtBGmTvjvtTzE4\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/dishes",
+          "requestHeaders": {
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/dishes/1",
+          "requestHeaders": {
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/dishes/1",
+          "requestHeaders": {
+            "Content-Type": "application/json"
+          },
+          "request": {},
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "pending@example.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "125",
+            "etag": "W/\"7d-tBrH362YifyNJjT6bNBTAgeBlYs\"",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "CAPTCHA_REQUIRED",
+              "message": "Vui lòng xác minh reCAPTCHA hợp lệ.",
+              "captchaRequired": true
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "pending@example.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "125",
+            "etag": "W/\"7d-tBrH362YifyNJjT6bNBTAgeBlYs\"",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "CAPTCHA_REQUIRED",
+              "message": "Vui lòng xác minh reCAPTCHA hợp lệ.",
+              "captchaRequired": true
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "pending@example.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "156",
+            "etag": "W/\"9c-2xXNfjYr5efCf/4zGiS4rQLpI4Y\"",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "next": "/activate?email=pending%40example.com",
+              "message": "Nếu thông tin phù hợp, mã kích hoạt đã được gửi qua email."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "pending@example.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "125",
+            "etag": "W/\"7d-69acBltQbM5d3PJv5tiQdMrPaHY\"",
+            "date": "Fri, 13 Nov 2026 04:17:14 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "LOGIN_FAILED",
+              "message": "Email hoặc mật khẩu không hợp lệ.",
+              "captchaRequired": false
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-sMNklh782Lv8g/+Rm7gXv2vK/Ek\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544034000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/me",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 401,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "102",
+            "etag": "W/\"66-5XTkQBhRk/3y7WbkUF+NRs3+INo\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "ACCESS_INVALID",
+              "message": "Vui lòng đăng nhập để tiếp tục."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/forgot",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "limit@example.com"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "129",
+            "etag": "W/\"81-co+MY5I18Vmm5ImMIRNWHbX7hss\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "message": "Nếu thông tin phù hợp, email hướng dẫn đặt lại mật khẩu sẽ được gửi."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/forgot",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "limit@example.com"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "129",
+            "etag": "W/\"81-co+MY5I18Vmm5ImMIRNWHbX7hss\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "message": "Nếu thông tin phù hợp, email hướng dẫn đặt lại mật khẩu sẽ được gửi."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/forgot",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "limit@example.com"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "129",
+            "etag": "W/\"81-co+MY5I18Vmm5ImMIRNWHbX7hss\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "message": "Nếu thông tin phù hợp, email hướng dẫn đặt lại mật khẩu sẽ được gửi."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/forgot",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "limit@example.com"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "129",
+            "etag": "W/\"81-co+MY5I18Vmm5ImMIRNWHbX7hss\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "message": "Nếu thông tin phù hợp, email hướng dẫn đặt lại mật khẩu sẽ được gửi."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/forgot",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "limit@example.com"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "129",
+            "etag": "W/\"81-co+MY5I18Vmm5ImMIRNWHbX7hss\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "message": "Nếu thông tin phù hợp, email hướng dẫn đặt lại mật khẩu sẽ được gửi."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/forgot",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "limit@example.com"
+          },
+          "status": 429,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "retry-after": "3600",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "128",
+            "etag": "W/\"80-QKEkxbFmg4a8hE/Jez9yDUG+6M4\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "RATE_LIMITED",
+              "message": "Bạn đã thử quá nhiều lần. Vui lòng chờ.",
+              "retryAfter": 3600
+            }
+          }
+        }
+      ],
+      "snapshots": [
+        {
+          "label": "Pending",
+          "data": {
+            "id": "[REDACTED]",
+            "email": "pending@example.com",
+            "passwordHash": "[REDACTED]",
+            "status": "pending",
+            "role": "viewer",
+            "emailVerifiedAt": null,
+            "userVersion": 0,
+            "createdAt": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Acceptance: public query parity and OTP pending unchanged",
+      "status": "PASS",
+      "http": [
+        {
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "99",
+            "etag": "W/\"63-9AeayoAk0adN8+H+V8I3nlK5OD0\"",
+            "set-cookie": "[REDACTED]",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "csrfToken": "[REDACTED]"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "active@example.com",
+            "password": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "set-cookie": "[REDACTED]",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "507",
+            "etag": "W/\"1fb-krRTN4Eq/WOdez/IM5/Kj7hWxzg\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "accessToken": "[REDACTED]",
+              "expiresAt": 1794544035000,
+              "user": {
+                "id": "[REDACTED]",
+                "email": "active@example.com",
+                "role": "viewer"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/dishes",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "351",
+            "etag": "W/\"15f-XLut6xlT/ZzE1odNratGQis3rn8\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "items": [
+                {
+                  "id": "[REDACTED]",
+                  "name": "Bò lúc lắc",
+                  "description": "Bò mềm, hành giòn.",
+                  "price": "165000",
+                  "category": "Món Việt",
+                  "available": true,
+                  "chefs": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "An",
+                      "specialty": "Món Việt"
+                    }
+                  ],
+                  "ingredients": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "Hành tây",
+                      "unit": "kg"
+                    }
+                  ]
+                }
+              ],
+              "meta": {
+                "page": 1,
+                "pageSize": 6,
+                "pages": 1,
+                "total": 1,
+                "effectiveMode": "basic"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/dishes",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "351",
+            "etag": "W/\"15f-XLut6xlT/ZzE1odNratGQis3rn8\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "items": [
+                {
+                  "id": "[REDACTED]",
+                  "name": "Bò lúc lắc",
+                  "description": "Bò mềm, hành giòn.",
+                  "price": "165000",
+                  "category": "Món Việt",
+                  "available": true,
+                  "chefs": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "An",
+                      "specialty": "Món Việt"
+                    }
+                  ],
+                  "ingredients": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "Hành tây",
+                      "unit": "kg"
+                    }
+                  ]
+                }
+              ],
+              "meta": {
+                "page": 1,
+                "pageSize": 6,
+                "pages": 1,
+                "total": 1,
+                "effectiveMode": "basic"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/dishes",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "351",
+            "etag": "W/\"15f-Zt5kxhcbweE3q/k3fkyNnOOajJo\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "items": [
+                {
+                  "id": "[REDACTED]",
+                  "name": "Bò lúc lắc",
+                  "description": "Bò mềm, hành giòn.",
+                  "price": "165000",
+                  "category": "Món Việt",
+                  "available": true,
+                  "chefs": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "An",
+                      "specialty": "Món Việt"
+                    }
+                  ],
+                  "ingredients": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "Hành tây",
+                      "unit": "kg"
+                    }
+                  ]
+                }
+              ],
+              "meta": {
+                "page": 1,
+                "pageSize": 1,
+                "pages": 1,
+                "total": 1,
+                "effectiveMode": "basic"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/dishes",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "351",
+            "etag": "W/\"15f-Zt5kxhcbweE3q/k3fkyNnOOajJo\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "items": [
+                {
+                  "id": "[REDACTED]",
+                  "name": "Bò lúc lắc",
+                  "description": "Bò mềm, hành giòn.",
+                  "price": "165000",
+                  "category": "Món Việt",
+                  "available": true,
+                  "chefs": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "An",
+                      "specialty": "Món Việt"
+                    }
+                  ],
+                  "ingredients": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "Hành tây",
+                      "unit": "kg"
+                    }
+                  ]
+                }
+              ],
+              "meta": {
+                "page": 1,
+                "pageSize": 1,
+                "pages": 1,
+                "total": 1,
+                "effectiveMode": "basic"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/dishes",
+          "requestHeaders": {},
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "354",
+            "etag": "W/\"162-pAPdKDoe/fbHjk6MSXeVT5dG5JY\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "items": [
+                {
+                  "id": "[REDACTED]",
+                  "name": "Bò lúc lắc",
+                  "description": "Bò mềm, hành giòn.",
+                  "price": "165000",
+                  "category": "Món Việt",
+                  "available": true,
+                  "chefs": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "An",
+                      "specialty": "Món Việt"
+                    }
+                  ],
+                  "ingredients": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "Hành tây",
+                      "unit": "kg"
+                    }
+                  ]
+                }
+              ],
+              "meta": {
+                "page": 1,
+                "pageSize": 6,
+                "pages": 1,
+                "total": 1,
+                "effectiveMode": "advanced"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/dishes",
+          "requestHeaders": {
+            "Authorization": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "354",
+            "etag": "W/\"162-pAPdKDoe/fbHjk6MSXeVT5dG5JY\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "items": [
+                {
+                  "id": "[REDACTED]",
+                  "name": "Bò lúc lắc",
+                  "description": "Bò mềm, hành giòn.",
+                  "price": "165000",
+                  "category": "Món Việt",
+                  "available": true,
+                  "chefs": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "An",
+                      "specialty": "Món Việt"
+                    }
+                  ],
+                  "ingredients": [
+                    {
+                      "id": "[REDACTED]",
+                      "name": "Hành tây",
+                      "unit": "kg"
+                    }
+                  ]
+                }
+              ],
+              "meta": {
+                "page": 1,
+                "pageSize": 6,
+                "pages": 1,
+                "total": 1,
+                "effectiveMode": "advanced"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp-pending@example.com",
+            "password": "[REDACTED]",
+            "passwordConfirm": "[REDACTED]",
+            "recaptchaToken": "[REDACTED]"
+          },
+          "status": 200,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "160",
+            "etag": "W/\"a0-Ufp8ZKAImHsvBosGSx2PQSA/ysg\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": true,
+            "data": {
+              "next": "/activate?email=otp-pending%40example.com",
+              "message": "Nếu thông tin phù hợp, mã kích hoạt đã được gửi qua email."
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp-pending@example.com",
+            "otp": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "187",
+            "etag": "W/\"bb-mpHq3N4niDfgkUsw51sEQ9Va69I\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mã kích hoạt không hợp lệ hoặc đã hết hạn.",
+              "fields": {
+                "otp": "[REDACTED]"
+              }
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/activate",
+          "requestHeaders": {
+            "X-CSRF-Token": "[REDACTED]",
+            "Content-Type": "application/json"
+          },
+          "request": {
+            "email": "otp-pending@example.com",
+            "otp": "[REDACTED]"
+          },
+          "status": 400,
+          "responseHeaders": {
+            "x-content-type-options": "nosniff",
+            "cache-control": "no-store",
+            "referrer-policy": "no-referrer",
+            "vary": "Origin",
+            "content-type": "application/json; charset=utf-8",
+            "content-length": "187",
+            "etag": "W/\"bb-mpHq3N4niDfgkUsw51sEQ9Va69I\"",
+            "date": "Fri, 13 Nov 2026 04:17:15 GMT",
+            "connection": "close"
+          },
+          "response": {
+            "ok": false,
+            "error": {
+              "code": "VALIDATION_FAILED",
+              "message": "Mã kích hoạt không hợp lệ hoặc đã hết hạn.",
+              "fields": {
+                "otp": "[REDACTED]"
+              }
+            }
+          }
+        }
+      ],
+      "snapshots": [
+        {
+          "label": "Pending after invalid OTP",
+          "data": {
+            "id": "[REDACTED]",
+            "email": "otp-pending@example.com",
+            "passwordHash": "[REDACTED]",
+            "status": "pending",
+            "role": "viewer",
+            "emailVerifiedAt": null,
+            "userVersion": 0,
+            "createdAt": {}
+          }
+        }
+      ]
+    }
+  ]
+}

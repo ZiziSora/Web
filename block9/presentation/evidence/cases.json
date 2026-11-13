@@ -1,0 +1,202 @@
+[
+  {
+    "id": "J05",
+    "title": "Preflight Authorization",
+    "action": "OPTIONS /api/dishes/1, origin fixture, method PATCH",
+    "expected": "204; Allow-Origin đúng origin, Allow-Headers có Authorization; thiếu CSRF bị 403",
+    "status": "PASS",
+    "runs": [
+      "CSRF on every mutation, exact CORS origin and public reads"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "J01",
+    "title": "Mutation không token",
+    "action": "Gọi ba phương thức trực tiếp, không có Bearer",
+    "expected": "401 trước khi thực hiện nghiệp vụ",
+    "status": "PASS",
+    "runs": [
+      "Acceptance: anonymous mutations, pending, wrong CAPTCHA, payload role, forgot limit"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "J02",
+    "title": "API trực tiếp",
+    "action": "Dùng HTTP client gọi endpoint bảo vệ và đối chiếu contract mà React gọi",
+    "expected": "Cookie đơn lẻ không cấp quyền; Bearer hợp lệ cho phép đọc",
+    "status": "PASS",
+    "runs": [
+      "login issues short JWT and an HttpOnly refresh cookie; cookie alone cannot authorize CRUD",
+      "CSRF on every mutation, exact CORS origin and public reads"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "J03",
+    "title": "JWT không hợp lệ",
+    "action": "Thay chữ ký/claims; tiến đồng hồ fixture qua thời hạn access",
+    "expected": "Chữ ký/claims sai bị từ chối; token hết hạn trả ACCESS_EXPIRED",
+    "status": "PASS",
+    "runs": [
+      "JWT rejects invalid signature, algorithm, issuer, audience, future issuance and missing claims",
+      "refresh rotates token, keeps versions and absolute expiry; reuse revokes that session",
+      "custom TTL controls JWT, refresh cookie/database deadline and rotation without extending login"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "J04",
+    "title": "Sửa role",
+    "action": "Gán role admin trong localStorage; thay role trong payload JWT",
+    "expected": "Identity không đổi khi sửa storage; JWT sửa payload bị 401",
+    "status": "PASS",
+    "runs": [
+      "Acceptance: anonymous mutations, pending, wrong CAPTCHA, payload role, forgot limit"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "J06",
+    "title": "GET công khai",
+    "action": "GET /api/dishes, facets, detail; tìm kiếm và phân trang theo contract",
+    "expected": "HTTP 200; envelope và dữ liệu danh sách giữ contract nghiệp vụ",
+    "status": "PASS",
+    "runs": [
+      "CSRF on every mutation, exact CORS origin and public reads",
+      "Acceptance: public query parity and OTP pending unchanged"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "R01",
+    "title": "Đăng ký role admin",
+    "action": "POST register kèm role admin và CAPTCHA fixture hợp lệ",
+    "expected": "User được lưu với role viewer và status pending; password là bcrypt",
+    "status": "PASS",
+    "runs": [
+      "registration, OTP activation and duplicate email preserve account and never auto-login"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "R02",
+    "title": "CAPTCHA đăng ký",
+    "action": "Gửi đăng ký không recaptchaToken và gửi token không hợp lệ",
+    "expected": "400; repository không có user, số email test không tăng",
+    "status": "PASS",
+    "runs": [
+      "registration, OTP activation and duplicate email preserve account and never auto-login",
+      "Acceptance: anonymous mutations, pending, wrong CAPTCHA, payload role, forgot limit"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "R03",
+    "title": "OTP không hợp lệ",
+    "action": "OTP sai, resend thay mã, hết hạn, dùng lại OTP thành công",
+    "expected": "Các request lỗi bị từ chối; pending giữ nguyên trước kích hoạt; user active không bị đổi về pending",
+    "status": "PASS",
+    "runs": [
+      "registration, OTP activation and duplicate email preserve account and never auto-login",
+      "OTP expiry, resend cooldown, old-code invalidation and lock survive resend",
+      "Acceptance: public query parity and OTP pending unchanged"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "R04",
+    "title": "Pending login",
+    "action": "Đăng ký thành công nhưng chưa kích hoạt rồi gọi login",
+    "expected": "Request bị từ chối; không có data.accessToken",
+    "status": "PASS",
+    "runs": [
+      "Acceptance: anonymous mutations, pending, wrong CAPTCHA, payload role, forgot limit"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "R05",
+    "title": "CAPTCHA login",
+    "action": "Sai ba lần, tiếp tục login bỏ recaptchaToken",
+    "expected": "CAPTCHA_REQUIRED; không cấp token; giải CAPTCHA không xóa số lần sai",
+    "status": "PASS",
+    "runs": [
+      "login requires captcha after third failure, solving captcha does not reset failure count"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "F01",
+    "title": "Forgot email có/không",
+    "action": "Gửi cùng API với email tồn tại và không tồn tại",
+    "expected": "Cùng HTTP status và cùng response body",
+    "status": "PASS",
+    "runs": [
+      "forgot has uniform responses; reset is single-use and revokes access/refresh on every device"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "F02",
+    "title": "Forgot rate limit",
+    "action": "Gửi quá 5 lần/giờ/email bằng fixture",
+    "expected": "429 RATE_LIMITED; có Retry-After",
+    "status": "PASS",
+    "runs": [
+      "Acceptance: anonymous mutations, pending, wrong CAPTCHA, payload role, forgot limit"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "F03",
+    "title": "Reset prepare",
+    "action": "Mở link reset rồi reload, chưa submit mật khẩu",
+    "expected": "usedAt vẫn null; prepare không trả token ra response",
+    "status": "PASS",
+    "runs": [
+      "forgot has uniform responses; reset is single-use and revokes access/refresh on every device"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "F04",
+    "title": "Reset token lỗi",
+    "action": "Tạo link mới, dùng link cũ; tiến quá hạn; dùng lại link đã reset",
+    "expected": "400; không đổi mật khẩu bằng token lỗi",
+    "status": "PASS",
+    "runs": [
+      "forgot has uniform responses; reset is single-use and revokes access/refresh on every device",
+      "new reset supersedes old, token expires, SMTP errors do not disclose secrets"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  },
+  {
+    "id": "F05",
+    "title": "Reset thành công",
+    "action": "POST reset, thử mật khẩu cũ/mới và JWT/refresh trên hai thiết bị",
+    "expected": "Không cấp accessToken khi reset; mật khẩu mới đăng nhập được; access/refresh cũ bị từ chối",
+    "status": "PASS",
+    "runs": [
+      "forgot has uniform responses; reset is single-use and revokes access/refresh on every device"
+    ],
+    "source": "api/src/auth.ts · app.ts · tokens.ts",
+    "environment": "Memory repository; mailer/CAPTCHA test"
+  }
+]
