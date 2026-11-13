@@ -1,3 +1,4 @@
+import { installCaptcha } from './captcha-fixture.js';
 import { authFixture, credentials } from '../api/test/auth-fixture.js';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -27,8 +28,10 @@ await page.addInitScript((apiOrigin)=>{
  };
 },apiOrigin);
 
+await installCaptcha(page.context(), auth);
 await page.goto(origin+'/login');
 await page.locator('#email').fill(credentials.email);await page.locator('#password').fill(credentials.password);
+await page.getByRole('button',{name:'Tôi không phải người máy'}).click();
 await page.getByRole('button',{name:'Đăng nhập',exact:true}).click();await page.waitForURL('**/admin/dishes');
 for(const route of ['/dishes','/dishes/1','/admin/chefs','/admin/ingredients/new']){await page.goto(origin+route);await page.getByRole('heading').first().waitFor();await page.reload();await page.getByRole('heading').first().waitFor();}
 await page.goto(origin+'/dishes');await page.getByRole('heading',{name:'Bò lúc lắc',exact:true}).waitFor();

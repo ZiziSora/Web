@@ -68,7 +68,7 @@ Các trang `/register`, `/activate`, `/login`, `/forgot`, `/reset` là React, đ
 | POST /api/auth/register | `{email,password,passwordConfirm,recaptchaToken}` → next `/activate?email=...`; email trùng không đổi tài khoản/gửi lại mã |
 | POST /api/auth/activate | `{email,otp}` → next `/login?status=activated`, không tự login |
 | POST /api/auth/activate/resend | `{email}` → thông báo chung, cooldown 60 giây |
-| POST /api/auth/login | `{email,password,recaptchaToken?}` → `{accessToken,expiresAt,user}` và Set-Cookie refresh |
+| POST /api/auth/login | `{email,password,recaptchaToken}` → `{accessToken,expiresAt,user}` và Set-Cookie refresh |
 | POST /api/auth/refresh | Refresh cookie → token mới, JSON access grant; không trả raw refresh trong JSON |
 | POST /api/auth/logout | Thu hồi phiên từ refresh cookie, kể cả access đã hết hạn; xóa cookie |
 | POST /api/auth/forgot | `{email}` → thông báo chung cho email có/không tồn tại |
@@ -81,11 +81,11 @@ API đọc `/api/dishes`, `/api/dishes/facets`, `/api/dishes/:id` công khai. M�
 
 Email trim + lowercase, không bỏ dấu chấm/+tag. Mật khẩu không trim, ít nhất 8 ký tự Unicode và tối đa 72 byte UTF-8, bcrypt cost 12. OTP 6 số lưu HMAC; reset token 32 byte lưu SHA-256. Email reset trỏ frontend; trang reset chuyển token sang digest trong session rồi loại token khỏi URL. Referrer-Policy=no-referrer; không echo token vào form.
 
-reCAPTCHA v2 bắt buộc ở register; login yêu cầu sau lần sai thứ ba. React tải script một lần, render theo vòng đời trang và reset sau lần gửi sử dụng token. API gọi Google SiteVerify với timeout 8 giây và kiểm tra hostname. Token dùng một lần, có hạn hai phút; Google lỗi thì báo thử lại, không bỏ qua xác minh. [Google SiteVerify](https://developers.google.com/recaptcha/docs/verify)
+reCAPTCHA v2 bắt buộc ở register và login ngay từ lần đầu. Nút đăng nhập chỉ bật sau khi xác minh; API luôn kiểm tra CAPTCHA trước khi kiểm tra mật khẩu. React tải script một lần, render theo vòng đời trang và reset sau lần gửi sử dụng token. API gọi Google SiteVerify với timeout 8 giây và kiểm tra hostname. Token dùng một lần, có hạn hai phút; Google lỗi thì báo thử lại, không bỏ qua xác minh. [Google SiteVerify](https://developers.google.com/recaptcha/docs/verify)
 
 | Giới hạn | Chính sách |
 | --- | --- |
-| Login/email | 15 phút; reCAPTCHA sau 3 lần sai; sai 10 lần khóa 15 phút |
+| Login/email | 15 phút; reCAPTCHA bắt buộc mỗi lần đăng nhập; sai 10 lần khóa 15 phút |
 | Login/IP | 60 request/15 phút, kể cả thiếu reCAPTCHA |
 | Register/IP | 10 request/giờ |
 | OTP | Hạn 10 phút; sai 5 lần khóa 15 phút; resend không xóa attempts |

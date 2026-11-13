@@ -18,7 +18,7 @@ async function setup(ttls: { accessTokenTtlMs?: number; refreshTokenTtlMs?: numb
     const agent = request.agent(app);
     const csrf = (await agent.get('/api/auth/csrf').expect(200)).body.data.csrfToken as string;
     const post = (path: string, data: object = {}) => agent.post('/api/auth' + path).set('X-CSRF-Token', csrf).send(data);
-    const login = () => post('/login', credentials).expect(200);
+    const login = () => post('/login', { ...credentials, recaptchaToken: fixture.captcha() }).expect(200);
     return { agent, csrf, post, login };
   }
   return { ...fixture, app, browser };
@@ -149,7 +149,7 @@ test('registration, OTP activation and duplicate email preserve account and neve
   await b.post('/activate', { email, otp }).expect(200);
   await b.post('/activate', { email, otp }).expect(400);
   await b.agent.get('/api/auth/me').expect(401);
-  await b.post('/login', { email, password: 'Password8!' }).expect(200);
+  await b.post('/login', { email, password: 'Password8!', recaptchaToken: f.captcha() }).expect(200);
 });
 
 test('password length counts Unicode characters and enforces bcrypt byte limit', async () => {
@@ -177,11 +177,34 @@ test('OTP expiry, resend cooldown, old-code invalidation and lock survive resend
   await b.post('/activate', { email, otp: f.emails.at(-1)!.value }).expect(200);
 });
 
-test('login requires captcha after third failure, solving captcha does not reset failure count', async () => {
+test('login requires valid captcha on the first attempt and rejects reused tokens', async () => {
+  const f = await setup(), b = await f.browser();
+  for (const recaptchaToken of [undefined, '', 'invalid', 'expired']) {
+    const res = await b.post('/login', { ...credentials, recaptchaToken }).expect(400);
+    assert.equal(res.body.error.code, 'CAPTCHA_REQUIRED');
+    assert.equal(res.body.error.captchaRequired, true);
+    assert.equal(res.body.data, undefined);
+    assert.equal(((res.headers['set-cookie'] as unknown as string[]) ?? []).some((cookie: string) => cookie.startsWith('block9.refresh=')), false);
+  }
+  const recaptchaToken = f.captcha();
+  await b.post('/login', { ...credentials, recaptchaToken }).expect(200);
+  assert.equal((await b.post('/login', { ...credentials, recaptchaToken }).expect(400)).body.error.code, 'CAPTCHA_REQUIRED');
+});
+
+test('login fails closed when the captcha provider is unavailable', async () => {
+  const f = await setup(), b = await f.browser();
+  f.deps.captcha.verify = async () => { throw new CaptchaUnavailable(); };
+  const res = await b.post('/login', { ...credentials, recaptchaToken: 'token' }).expect(503);
+  assert.equal(res.body.error.code, 'CAPTCHA_UNAVAILABLE');
+  assert.equal(res.body.error.captchaRequired, true);
+  assert.equal(res.body.data, undefined);
+});
+
+test('solving captcha does not reset login failure count or bypass account lock', async () => {
   const f = await setup(), b = await f.browser(), bad = { ...credentials, password: 'bad' };
   for (let i = 0; i < 3; i++) {
-    const res = await b.post('/login', bad).expect(400);
-    assert.equal(res.body.error.captchaRequired, i === 2);
+    const res = await b.post('/login', { ...bad, recaptchaToken: f.captcha() }).expect(400);
+    assert.equal(res.body.error.captchaRequired, true);
   }
   assert.equal((await b.post('/login', credentials).expect(400)).body.error.code, 'CAPTCHA_REQUIRED');
   for (let i = 3; i < 9; i++) await b.post('/login', { ...bad, recaptchaToken: f.captcha() }).expect(400);
@@ -210,8 +233,8 @@ test('forgot has uniform responses; reset is single-use and revokes access/refre
   for (const grant of [one, two]) await request(f.app).get('/api/auth/me').set('Authorization', bearer(grant.body.data.accessToken)).expect(401);
   await b.post('/refresh').expect(401);
   await a.post('/reset/prepare', { token: rawToken }).expect(400);
-  await a.post('/login', credentials).expect(400);
-  await a.post('/login', { ...credentials, password: 'NewPassword8!' }).expect(200);
+  assert.equal((await a.post('/login', { ...credentials, recaptchaToken: f.captcha() }).expect(400)).body.error.code, 'LOGIN_FAILED');
+  await a.post('/login', { ...credentials, password: 'NewPassword8!', recaptchaToken: f.captcha() }).expect(200);
 });
 
 test('new reset supersedes old, token expires, SMTP errors do not disclose secrets', async () => {

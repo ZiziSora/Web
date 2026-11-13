@@ -1,9 +1,10 @@
+import { installCaptcha } from './captcha-fixture.js';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { chromium, type BrowserContext, type Page } from 'playwright-core';
+import { chromium, type Page } from 'playwright-core';
 import { createApp } from '../api/src/app.js';
 import { MemoryStore } from '../api/test/memory-store.js';
 import { authFixture, credentials } from '../api/test/auth-fixture.js';
@@ -23,22 +24,6 @@ const errors: string[] = [];
 let refreshRequests = 0;
 server.on('request', req => { if (req.url === '/api/auth/refresh' && req.method === 'POST') refreshRequests++; });
 
-async function installCaptcha(context: BrowserContext) {
-  await context.exposeBinding('block9TestCaptcha', () => f.captcha());
-  await context.route('https://www.google.com/recaptcha/api.js?**', route => route.fulfill({
-    status: 200, contentType: 'application/javascript', body: `
-    let nextId=0;const widgets=new Map();
-    window.grecaptcha={
-      render(target,options){
-        const id=nextId++;widgets.set(id,options);
-        const button=document.createElement('button');button.type='button';button.textContent='Tôi không phải người máy';
-        button.style.cssText='width:304px;max-width:100%;height:78px;background:#fafafa;border:1px solid #d3d3d3;border-radius:3px;color:#222;font:14px Arial';
-        button.onclick=async()=>{options.callback(await window.block9TestCaptcha());button.textContent='Đã xác minh';button.disabled=true;};
-        target.append(button);window.block9TestExpire=()=>options['expired-callback']();window.block9TestError=()=>options['error-callback']();return id;
-      },reset(id){widgets.delete(id);}
-    };window.block9RecaptchaReady();`,
-  }));
-}
 const watch = (page: Page) => page.on('pageerror', error => errors.push(error.message));
 const ready = async (page: Page) => { await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]')); };
 const noOverflow = async (page: Page) => assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
@@ -50,7 +35,7 @@ try {
   for (const width of [1440, 390]) {
     console.log(`Auth browser: ${width}px account flow`);
     const context = await browser.newContext({ viewport: { width, height: 1000 }, reducedMotion: 'reduce' });
-    await installCaptcha(context);
+    await installCaptcha(context, f);
     const page = await context.newPage(); watch(page);
     let documents = 0; page.on('request', req => { if (req.isNavigationRequest() && req.frame() === page.mainFrame()) documents++; });
     await page.goto(origin + '/dishes');
@@ -74,6 +59,7 @@ try {
     await noOverflow(page); await page.screenshot({ path: `artifacts/auth-activate-${width}.png`, fullPage: true });
     await page.getByRole('button', { name: 'Kích hoạt', exact: true }).click(); await page.waitForURL('**/login?status=activated');
     await page.locator('#email').fill(email); await page.locator('#password').fill(password);
+    await page.getByRole('button', { name: 'Tôi không phải người máy' }).click();
     await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click(); await page.waitForURL('**/admin/dishes'); await ready(page);
     assert.equal(documents, 1, 'registration, activation and login are CSR transitions');
     await noOverflow(page);
@@ -104,11 +90,14 @@ try {
     await page.waitForURL('**/login'); await tab.waitForURL('**/login');
 
     await page.locator('#email').fill(email); await page.locator('#password').fill(password);
+    await page.getByRole('button', { name: 'Tôi không phải người máy' }).click();
     await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click(); await page.waitForURL('**/admin/dishes');
     // A second device has an independent refresh cookie and must also be revoked by reset.
     const device = await browser.newContext({ viewport: { width, height: 900 } });
+    await installCaptcha(device, f);
     const other = await device.newPage(); watch(other);
     await other.goto(origin + '/login'); await other.locator('#email').fill(email); await other.locator('#password').fill(password);
+    await other.getByRole('button', { name: 'Tôi không phải người máy' }).click();
     await other.getByRole('button', { name: 'Đăng nhập', exact: true }).click(); await other.waitForURL('**/admin/dishes');
     await page.locator('.main-nav').getByRole('button', { name: 'Đăng xuất', exact: true }).click(); await page.waitForURL('**/login');
     await page.getByRole('link', { name: 'Quên mật khẩu?' }).click();
@@ -126,15 +115,18 @@ try {
     await page.getByRole('button', { name: 'Đổi mật khẩu', exact: true }).click(); await page.waitForURL('**/login?status=reset');
     await other.locator('.admin-nav a[href="/admin/chefs"]').click(); await other.waitForURL('**/login');
     await page.locator('#email').fill(email); await page.locator('#password').fill('NewPassword8!');
+    await page.getByRole('button', { name: 'Tôi không phải người máy' }).click();
     await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click(); await page.waitForURL('**/admin/dishes');
     await context.close(); await device.close();
   }
-  // Widget expiration/errors and login challenge escalation use the actual React
+  // Widget expiration/errors and mandatory login verification use the actual React
   // component with an intercepted provider script, never a runtime bypass.
-  const context = await browser.newContext({ viewport: { width: 390, height: 900 } }); await installCaptcha(context);
+  const context = await browser.newContext({ viewport: { width: 390, height: 900 } }); await installCaptcha(context, f);
   const page = await context.newPage(); watch(page);
   await page.goto(origin + '/login'); await page.locator('#email').fill(credentials.email); await page.locator('#password').fill('bad');
-  for (let i = 0; i < 3; i++) { await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click(); await page.getByRole('alert').filter({ hasText: 'Email hoặc mật khẩu' }).waitFor(); await ready(page); }
+  assert.equal(await page.getByRole('button', { name: 'Đăng nhập', exact: true }).isDisabled(), true);
+  await noOverflow(page); await page.screenshot({ path: 'artifacts/auth-login-captcha-390.png', fullPage: true });
+  for (let i = 0; i < 3; i++) { await page.getByRole('button', { name: 'Tôi không phải người máy' }).click(); await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click(); await page.getByRole('alert').filter({ hasText: 'Email hoặc mật khẩu' }).waitFor(); await ready(page); assert.equal(await page.getByRole('button', { name: 'Đăng nhập', exact: true }).isDisabled(), true); }
   await page.getByRole('button', { name: 'Tôi không phải người máy' }).click();
   await page.evaluate(() => (window as unknown as { block9TestExpire(): void }).block9TestExpire());
   assert.equal(await page.getByRole('button', { name: 'Đăng nhập', exact: true }).isDisabled(), true);
@@ -167,8 +159,9 @@ try {
   await page.waitForURL('**/login');
   await context.close();
 
-  const networkContext=await browser.newContext(); const networkPage=await networkContext.newPage(); watch(networkPage);
+  const networkContext=await browser.newContext(); await installCaptcha(networkContext, f); const networkPage=await networkContext.newPage(); watch(networkPage);
   await networkPage.goto(origin+'/login'); await networkPage.locator('#email').fill(credentials.email); await networkPage.locator('#password').fill(credentials.password);
+  await networkPage.getByRole('button', { name: 'Tôi không phải người máy' }).click();
   await networkPage.getByRole('button',{name:'Đăng nhập',exact:true}).click(); await networkPage.waitForURL('**/admin/dishes'); await ready(networkPage);
   f.advance(f.deps.config.accessTokenTtlMs+1000);
   let networkRefreshAttempts=0;

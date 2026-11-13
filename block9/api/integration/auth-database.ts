@@ -34,7 +34,7 @@ test('PostgreSQL: restart persistence, refresh/logout/reset races, atomic OTP an
       const post = (path: string, data: object = {}) => agent.post('/api/auth' + path).set('X-CSRF-Token', csrf).send(data);
       return { agent, post, csrf, anon };
     }
-    const a = await browser(), first = await a.post('/login', credentials).expect(200);
+    const a = await browser(), first = await a.post('/login', { ...credentials, recaptchaToken: f.captcha() }).expect(200);
     const access = first.body.data.accessToken, claims = decodeJwt(access);
     const cookie = (first.headers['set-cookie'] as unknown as string[]).find(x => x.startsWith('block9.refresh='))!.split(';')[0];
     await db.$disconnect();
@@ -47,7 +47,7 @@ test('PostgreSQL: restart persistence, refresh/logout/reset races, atomic OTP an
       assert.deepEqual(rotations.map(r => r.status).sort(), [200, 401]);
       await request(app).get('/api/auth/me').set('Authorization', 'Bearer ' + rotations.find(r => r.status === 200)!.body.data.accessToken).expect(401);
       assert.ok((await restartedDb.authSession.findUniqueOrThrow({ where: { id: String(claims.sid) } })).revokedAt);
-      const b = await browser(), login = await b.post('/login', credentials).expect(200);
+      const b = await browser(), login = await b.post('/login', { ...credentials, recaptchaToken: f.captcha() }).expect(200);
       await Promise.all([b.post('/refresh'), b.post('/logout')]);
       assert.ok((await restartedDb.authSession.findUniqueOrThrow({ where: { id: String(decodeJwt(login.body.data.accessToken).sid) } })).revokedAt);
 
@@ -56,7 +56,8 @@ test('PostgreSQL: restart persistence, refresh/logout/reset races, atomic OTP an
       const otp = f.emails.at(-1)!.value;
       const activations = await Promise.all([c.post('/activate', { email, otp }), c.post('/activate', { email, otp })]);
       assert.deepEqual(activations.map(r => r.status).sort(), [200, 400]);
-      await Promise.all(Array.from({ length: 3 }, () => c.post('/login', { ...credentials, password: 'wrongpass' })));
+      const failures = await Promise.all(Array.from({ length: 3 }, () => c.post('/login', { ...credentials, password: 'wrongpass', recaptchaToken: f.captcha() })));
+      assert.ok(failures.every(result => result.body.error.code === 'LOGIN_FAILED'));
       assert.equal((await c.post('/login', credentials).expect(400)).body.error.captchaRequired, true);
 
       await c.post('/forgot', { email: credentials.email }).expect(200);

@@ -23,7 +23,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
   const loc = useLocation(), navigate = useNavigate(), auth = useAuth(), Icon = icons[mode];
   const [email, setEmail] = useState(() => new URLSearchParams(loc.search).get('email') ?? '');
   const [error, setError] = useState<ApiError | null>(null), [message, setMessage] = useState('');
-  const [busy, setBusy] = useState(false), [captchaRequired, setCaptchaRequired] = useState(mode === 'register');
+  const [busy, setBusy] = useState(false), [captchaRequired, setCaptchaRequired] = useState(mode === 'register' || mode === 'login');
   const [recaptchaToken, setRecaptchaToken] = useState(''), [resetKey, setResetKey] = useState(0);
   const [cooldown, setCooldown] = useState(mode === 'activate' && loc.state?.sent ? 60 : 0), [retryAfter, setRetryAfter] = useState(0);
   const [prepared, setPrepared] = useState(mode !== 'reset');
