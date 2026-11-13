@@ -52,10 +52,10 @@ export async function authFixture(repository: AuthRepository = new MemoryAuthRep
   return { deps, repository, emails, advance: (ms: number) => { time += ms; },
     captcha: () => { const token = randomBytes(24).toString('hex'); captchaTokens.add(token); return token; } };
 }
-export async function loginClient(app: ReturnType<typeof createApp>) {
+export async function loginClient(app: ReturnType<typeof createApp>, recaptchaToken: string) {
   const agent = request.agent(app);
   const csrf = (await agent.get('/api/auth/csrf').expect(200)).body.data.csrfToken as string;
-  const result = await agent.post('/api/auth/login').set('X-CSRF-Token', csrf).send(credentials).expect(200);
+  const result = await agent.post('/api/auth/login').set('X-CSRF-Token', csrf).send({ ...credentials, recaptchaToken }).expect(200);
   const access = result.body.data.accessToken as string;
   return {
     get: (url: string) => agent.get(url).set('Authorization', 'Bearer ' + access),

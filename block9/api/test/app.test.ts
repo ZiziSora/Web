@@ -9,7 +9,7 @@ let store: MemoryStore;
 let app: ReturnType<typeof createApp>;
 let client: Awaited<ReturnType<typeof loginClient>>;
 let auth: Awaited<ReturnType<typeof authFixture>>;
-beforeEach(async () => { store = new MemoryStore(); auth = await authFixture(); app = createApp(store, {auth: auth.deps}); client = await loginClient(app); });
+beforeEach(async () => { store = new MemoryStore(); auth = await authFixture(); app = createApp(store, {auth: auth.deps}); client = await loginClient(app, auth.captcha()); });
 const inputs = { dishes: { name: 'Món thử', description: 'Mô tả', price: '123456.78', category: 'Việt', available: false, chefIds: [1], ingredientIds: [1] }, chefs: { name: 'Bình', specialty: 'Âu' }, ingredients: { name: 'Muối', unit: 'gram' } };
 for (const r of ['dishes', 'chefs', 'ingredients'] as const)
     test(`${r}: CRUD, validation, PATCH giữ trường bỏ qua`, async () => {

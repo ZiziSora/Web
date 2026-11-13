@@ -174,18 +174,17 @@ export function authentication(deps: AuthDependencies) {
     const email = normalizeEmail(req.body?.email);
     const seconds = await db.atomic(async tx => Math.max(await rate(tx, 'login:ip', req.ip ?? '', 60, 15 * MINUTE), wait((await loginState(tx, email)).lockedUntil)));
     if (seconds) return limited(res, seconds);
-    const state = await loginState(db, email);
-    if (state.count >= 3 && !await captcha(req, res)) return;
+    if (!await captcha(req, res)) return;
     const user = await db.userByEmail(email);
     const matches = validPassword(req.body?.password) && await bcrypt.compare(req.body.password, user?.passwordHash ?? await dummyHash);
     if (!matches || user?.status !== 'active') {
       const result = await db.atomic(async tx => {
         const row = await loginState(tx, email); row.count++;
         if (row.count >= 10 && !wait(row.lockedUntil)) row.lockedUntil = new Date(now() + 15 * MINUTE);
-        await tx.write('authRateLimit', row); return { seconds: wait(row.lockedUntil), captchaRequired: row.count >= 3 };
+        await tx.write('authRateLimit', row); return { seconds: wait(row.lockedUntil) };
       });
       if (result.seconds) return limited(res, result.seconds);
-      return authError(res, 400, 'LOGIN_FAILED', 'Email hoặc mật khẩu không hợp lệ.', { captchaRequired: result.captchaRequired });
+      return authError(res, 400, 'LOGIN_FAILED', 'Email hoặc mật khẩu không hợp lệ.', { captchaRequired: true });
     }
     const result = await db.atomic(async tx => {
       const current = await tx.read('user', user.id);

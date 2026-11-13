@@ -1,3 +1,4 @@
+import { installCaptcha } from './captcha-fixture.js';
 import { authFixture, credentials } from '../api/test/auth-fixture.js';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
@@ -18,7 +19,7 @@ await new Promise<void>(r => server.once('listening', r));
 const address = server.address();
 if (!address || typeof address === 'string')
     throw new Error('No API port');
-const web = spawn(process.execPath, [resolve('node_modules/vite/bin/vite.js'), '--host', 'localhost', '--port', String(webPort), '--strictPort'], { cwd: resolve('web'), env: { ...process.env, VITE_API_BASE_URL: `http://localhost:${address.port}/api` }, stdio: 'pipe' });
+const web = spawn(process.execPath, [resolve('node_modules/vite/bin/vite.js'), '--host', 'localhost', '--port', String(webPort), '--strictPort'], { cwd: resolve('web'), env: { ...process.env, VITE_API_BASE_URL: `http://localhost:${address.port}/api`, VITE_RECAPTCHA_SITE_KEY: 'browser-test-public-key' }, stdio: 'pipe' });
 web.stdout.resume();
 web.stderr.resume();
 let browser;
@@ -46,9 +47,11 @@ try {
       const text = message.text();
       if (['error', 'warning'].includes(message.type()) && text.includes('key') && /spread|spreading/i.test(text)) errors.push(text);
     });
+    await installCaptcha(page.context(), auth);
     await page.goto(webOrigin + '/login');
     await page.locator('#email').fill(credentials.email);
     await page.locator('#password').fill(credentials.password);
+    await page.getByRole('button', {name:'Tôi không phải người máy'}).click();
     await page.getByRole('button', {name:'Đăng nhập',exact:true}).click();
     await page.waitForURL('**/admin/dishes');
     await page.goto(webOrigin + '/dishes');
