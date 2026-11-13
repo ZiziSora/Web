@@ -7,9 +7,10 @@ import type { AuthConfig } from './auth-config.js';
 import type { AuthMailer } from './auth-mail.js';
 import { CaptchaUnavailable, type CaptchaVerifier } from './recaptcha.js';
 import { authError, opaque, tokenSessions } from './token-sessions.js';
-import { SESSION_MS } from './tokens.js';
 
 const MINUTE = 60000, HOUR = 3600000;
+// Anonymous form state has a separate fixed lifetime from login/refresh tokens.
+const ANONYMOUS_SESSION_MS = 8 * HOUR;
 const text = (value: unknown) => typeof value === 'string' ? value : '';
 export const normalizeEmail = (value: unknown) => text(value).trim().toLowerCase();
 export const validEmail = (email: string) => email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -33,13 +34,13 @@ export function authentication(deps: AuthDependencies) {
   const sessionMiddleware = session({
     name: 'block9.anon', secret: config.sessionSecret, store: new PersistentSessionStore(db, now),
     resave: false, saveUninitialized: false, rolling: false,
-    cookie: { httpOnly: true, sameSite: 'lax', secure: config.secure, path: '/', maxAge: SESSION_MS },
+    cookie: { httpOnly: true, sameSite: 'lax', secure: config.secure, path: '/', maxAge: ANONYMOUS_SESSION_MS },
   });
   const initialize: RequestHandler = (req, _res, next) => {
     // Only the bootstrap endpoint creates anonymous sessions. Public reads and
     // unauthorized API calls do not race to overwrite the browser's cookie.
     if (req.path === '/api/auth/csrf') {
-      req.session.absoluteExpiresAt ??= now() + SESSION_MS;
+      req.session.absoluteExpiresAt ??= now() + ANONYMOUS_SESSION_MS;
       req.session.csrf ??= opaque();
     }
     if (req.session.absoluteExpiresAt) req.session.cookie.maxAge = Math.max(0, req.session.absoluteExpiresAt - now());

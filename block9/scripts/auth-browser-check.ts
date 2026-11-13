@@ -7,7 +7,6 @@ import { chromium, type BrowserContext, type Page } from 'playwright-core';
 import { createApp } from '../api/src/app.js';
 import { MemoryStore } from '../api/test/memory-store.js';
 import { authFixture, credentials } from '../api/test/auth-fixture.js';
-import { ACCESS_MS } from '../api/src/tokens.js';
 
 const port = 20000 + Math.floor(Math.random() * 20000), origin = `http://localhost:${port}`;
 const f = await authFixture(undefined, origin), store = new MemoryStore();
@@ -85,7 +84,7 @@ try {
 
     console.log(`Auth browser: ${width}px refresh/multiple tabs`);
     // In-tab single flight: three requests must rotate exactly once and retry once.
-    f.advance(ACCESS_MS + 1000);
+    f.advance(f.deps.config.accessTokenTtlMs + 1000);
     const refreshBefore = refreshRequests;
     const resources = await page.evaluate(async () => {
       const modulePath = '/src/api/client.ts';
@@ -96,7 +95,7 @@ try {
 
     const tab = await context.newPage(); watch(tab);
     await tab.goto(origin + '/admin/chefs'); await tab.locator('.resource-table').waitFor();
-    f.advance(ACCESS_MS + 1000);
+    f.advance(f.deps.config.accessTokenTtlMs + 1000);
     await Promise.all([page, tab].map(p => p.evaluate(async () => {
       const modulePath = '/src/api/client.ts'; const { api } = await import(modulePath); return api('/ingredients/all');
     })));
@@ -171,7 +170,7 @@ try {
   const networkContext=await browser.newContext(); const networkPage=await networkContext.newPage(); watch(networkPage);
   await networkPage.goto(origin+'/login'); await networkPage.locator('#email').fill(credentials.email); await networkPage.locator('#password').fill(credentials.password);
   await networkPage.getByRole('button',{name:'Đăng nhập',exact:true}).click(); await networkPage.waitForURL('**/admin/dishes'); await ready(networkPage);
-  f.advance(ACCESS_MS+1000);
+  f.advance(f.deps.config.accessTokenTtlMs+1000);
   let networkRefreshAttempts=0;
   await networkPage.route('**/api/auth/refresh', route=>{
     if(route.request().method()==='OPTIONS')return route.continue();

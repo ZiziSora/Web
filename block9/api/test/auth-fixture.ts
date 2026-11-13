@@ -1,3 +1,4 @@
+import { authConfig } from '../src/auth-config.js';
 import bcrypt from 'bcrypt';
 import request from 'supertest';
 import { randomBytes } from 'node:crypto';
@@ -44,7 +45,7 @@ export async function authFixture(repository: AuthRepository = new MemoryAuthRep
   let time = Date.now(); const captchaTokens = new Set<string>();
   const deps: AuthDependencies = {
     repository, now: () => time,
-    config: { sessionSecret: 'test-session-secret-32-bytes-long!!', tokenSecret: 'test-token-secret-different-32-bytes', jwtSecret: 'test-jwt-secret-different-32-bytes!!', baseUrl: origin, secure: false, trustProxyHops: 0 },
+    config: authConfig({ SESSION_SECRET: 'test-session-secret-32-bytes-long!!', AUTH_TOKEN_SECRET: 'test-token-secret-different-32-bytes', JWT_SECRET: 'test-jwt-secret-different-32-bytes!!', APP_BASE_URL: origin }),
     mailer: { activation: async (email, value) => { emails.push({ kind: 'activation', email, value }); }, reset: async (email, value) => { emails.push({ kind: 'reset', email, value }); } },
     captcha: { verify: async token => captchaTokens.delete(token) }, logger: { error: () => {} },
   };

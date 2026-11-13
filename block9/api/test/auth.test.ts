@@ -6,12 +6,13 @@ import { createApp } from '../src/app.js';
 import { digest } from '../src/auth-store.js';
 import { authFixture, credentials } from './auth-fixture.js';
 import { MemoryStore } from './memory-store.js';
-import { ACCESS_MS, SESSION_MS, ISSUER, AUDIENCE } from '../src/tokens.js';
+import { ISSUER, AUDIENCE } from '../src/tokens.js';
 import { authConfig } from '../src/auth-config.js';
 import { CaptchaUnavailable, googleRecaptcha } from '../src/recaptcha.js';
 
-async function setup() {
+async function setup(ttls: { accessTokenTtlMs?: number; refreshTokenTtlMs?: number } = {}) {
   const fixture = await authFixture();
+  Object.assign(fixture.deps.config, ttls);
   const app = createApp(new MemoryStore(), { auth: fixture.deps });
   async function browser() {
     const agent = request.agent(app);
@@ -90,7 +91,7 @@ test('both database versions and active status are checked without cache', async
 test('refresh rotates token, keeps versions and absolute expiry; reuse revokes that session', async () => {
   const f = await setup(), b = await f.browser(), first = await b.login(), oldCookie = refreshCookie(first), oldClaims = decodeJwt(first.body.data.accessToken);
   const before = (await f.repository.read('authSession', String(oldClaims.sid)))!;
-  f.advance(ACCESS_MS + 1000);
+  f.advance(f.deps.config.accessTokenTtlMs + 1000);
   const expired = await b.agent.get('/api/auth/me').set('Authorization', bearer(first.body.data.accessToken)).expect(401);
   assert.equal(expired.body.error.code, 'ACCESS_EXPIRED');
   const next = await b.post('/refresh').expect(200), newCookie = refreshCookie(next);
@@ -110,7 +111,7 @@ test('refresh rotates token, keeps versions and absolute expiry; reuse revokes t
 
 test('logout invalidates current access immediately, including expired access, preserving other devices', async () => {
   const f = await setup(), a = await f.browser(), b = await f.browser(), one = await a.login(), two = await b.login();
-  f.advance(ACCESS_MS + 1000);
+  f.advance(f.deps.config.accessTokenTtlMs + 1000);
   await a.post('/logout').expect(200);
   const row = (await f.repository.read('authSession', String(decodeJwt(one.body.data.accessToken).sid)))!;
   assert.equal(row.sessionVersion, 1); assert.ok(row.revokedAt);
@@ -124,7 +125,7 @@ test('logout invalidates current access immediately, including expired access, p
 test('refresh cannot extend 8-hour deadline and final access is capped to session expiry', async () => {
   const f = await setup(), b = await f.browser(), first = await b.login();
   const session = (await f.repository.read('authSession', String(decodeJwt(first.body.data.accessToken).sid)))!;
-  f.advance(SESSION_MS - 60_000);
+  f.advance(f.deps.config.refreshTokenTtlMs - 60_000);
   const near = await b.post('/refresh').expect(200);
   assert.ok(near.body.data.expiresAt <= session.expiresAt.getTime());
   f.advance(60_001);
@@ -252,6 +253,39 @@ test('server config requires independent secrets and HTTPS production origin', (
   assert.throws(() => authConfig({ ...env, JWT_SECRET: env.SESSION_SECRET }));
   assert.throws(() => authConfig({ ...env, NODE_ENV: 'production' }));
   assert.throws(() => authConfig({ ...env, JWT_SECRET: '' }));
+});
+
+test('TTL environment config defaults, seconds conversion and invalid values', () => {
+  const env = { SESSION_SECRET: 's'.repeat(40), AUTH_TOKEN_SECRET: 't'.repeat(40), JWT_SECRET: 'j'.repeat(40), APP_BASE_URL: 'http://localhost:5179' };
+  const defaults = authConfig(env);
+  assert.equal(defaults.accessTokenTtlMs, 600_000);
+  assert.equal(defaults.refreshTokenTtlMs, 28_800_000);
+  const custom = authConfig({ ...env, ACCESS_TOKEN_TTL_SECONDS: '5', REFRESH_TOKEN_TTL_SECONDS: '20' });
+  assert.equal(custom.accessTokenTtlMs, 5000); assert.equal(custom.refreshTokenTtlMs, 20000);
+  for (const key of ['ACCESS_TOKEN_TTL_SECONDS', 'REFRESH_TOKEN_TTL_SECONDS']) {
+    for (const value of ['', ' ', '0', '-1', '1.5', '10m', 'Infinity', '1e3', '9007199254740991'])
+      assert.throws(() => authConfig({ ...env, [key]: value }), new RegExp(key));
+  }
+});
+
+test('custom TTL controls JWT, refresh cookie/database deadline and rotation without extending login', async () => {
+  const f = await setup({ accessTokenTtlMs: 5000, refreshTokenTtlMs: 20000 });
+  const b = await f.browser(), initial = await b.login(), access = initial.body.data.accessToken;
+  const claims = decodeJwt(access);
+  assert.equal(Number(claims.exp) - Number(claims.iat), 5);
+  assert.match((initial.headers['set-cookie'] as unknown as string[]).find(c => c.startsWith('block9.refresh='))!, /Max-Age=20;/);
+  const row = (await f.repository.read('authSession', String(claims.sid)))!;
+  assert.equal(row.expiresAt.getTime() - row.createdAt.getTime(), 20000);
+  f.advance(6000);
+  assert.equal((await b.agent.get('/api/auth/me').set('Authorization', bearer(access)).expect(401)).body.error.code, 'ACCESS_EXPIRED');
+  await b.post('/refresh').expect(200);
+  f.advance(11000);
+  const last = await b.post('/refresh').expect(200);
+  assert.ok(last.body.data.expiresAt <= row.expiresAt.getTime());
+  const replacement = (await f.repository.read('refreshToken', digest(tokenIn(refreshCookie(last)))))!;
+  assert.deepEqual(replacement.expiresAt, row.expiresAt);
+  f.advance(3001);
+  await b.post('/refresh').expect(401);
 });
 
 test('Google verifier checks hostname, fails closed on network/malformed/secret error', async () => {

@@ -8,6 +8,7 @@ Cần Node >=22.12, PostgreSQL (có thể dùng Supabase), SMTP và cặp khóa 
 
 - `DATABASE_URL`: kết nối PostgreSQL với `?schema=block9`; giữ các query kết nối khác như `sslmode`. Runtime/CLI/seed/search chỉ chấp nhận `block9` hoặc schema test `block9_test_<hex>`, tránh trỏ nhầm block khác.
 - `PORT=3009`, `SPA_ORIGIN=http://localhost:5179`, `APP_BASE_URL=http://localhost:5179`. Hai origin frontend phải khớp. Link email reset lấy từ APP_BASE_URL, không lấy header Host.
+- `ACCESS_TOKEN_TTL_SECONDS=600`: hạn access token tính bằng giây. `REFRESH_TOKEN_TTL_SECONDS=28800`: hạn cố định của phiên đăng nhập/refresh token từ lúc login. Chỉ nhận số nguyên dương; bỏ trống hoặc giá trị sai làm server từ chối khởi chạy. Không khai báo thì dùng mặc định 600/28800 giây. Restart API sau khi sửa. Session ẩn danh CSRF/reset giữ hạn riêng 8 giờ.
 - `SESSION_SECRET`, `AUTH_TOKEN_SECRET`, `JWT_SECRET`: ba secret ngẫu nhiên **khác nhau**, mỗi secret ít nhất 32 byte, ổn định qua restart. Có thể tự chạy `node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"` ba lần rồi điền các kết quả riêng.
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`: 587 với `SMTP_SECURE=false` yêu cầu STARTTLS; 465 dùng `true`. Không fallback sang log OTP/token khi gửi thư lỗi.
 - `RECAPTCHA_SECRET_KEY` chỉ ở API; `VITE_RECAPTCHA_SITE_KEY` là site key công khai ở frontend. Cho phép `localhost` trong cấu hình domain của Google; backend kiểm tra hostname khớp SPA_ORIGIN. Không dùng khóa v3 hoặc Enterprise API thay cho khóa v2/SiteVerify.
@@ -40,9 +41,9 @@ npm run preview
 
 ## Access token, refresh token và versioning
 
-Access token là JWT HS256, hạn tối đa 10 phút, chứa `sub`, `sid`, `userVersion`, `sessionVersion`, `iat`, `exp`, issuer `the-table-block9` và audience `the-table-block9-api`. Token giữ trong bộ nhớ React, gửi bằng `Authorization: Bearer ...`; không lưu localStorage/sessionStorage. API kiểm tra chữ ký, thuật toán, issuer, audience, hạn và **trạng thái/version hiện tại trong database ở mỗi lần xác thực**, không cache version.
+Access token là JWT HS256, hạn theo `ACCESS_TOKEN_TTL_SECONDS` (mặc định 10 phút), chứa `sub`, `sid`, `userVersion`, `sessionVersion`, `iat`, `exp`, issuer `the-table-block9` và audience `the-table-block9-api`. Token giữ trong bộ nhớ React, gửi bằng `Authorization: Bearer ...`; không lưu localStorage/sessionStorage. API kiểm tra chữ ký, thuật toán, issuer, audience, hạn và **trạng thái/version hiện tại trong database ở mỗi lần xác thực**, không cache version.
 
-Mỗi login tạo AuthSession riêng, hạn cố định 8 giờ. Refresh token là chuỗi ngẫu nhiên 32 byte; database chỉ lưu SHA-256. Cookie `block9.refresh` là HttpOnly, SameSite=Lax, Path=/api/auth, Secure ở production, không có Domain. Token mới không vượt hạn phiên; access token cuối cũng bị giới hạn bởi mốc này.
+Mỗi login tạo AuthSession riêng, hạn cố định theo `REFRESH_TOKEN_TTL_SECONDS` (mặc định 8 giờ). Refresh token là chuỗi ngẫu nhiên 32 byte; database chỉ lưu SHA-256. Cookie `block9.refresh` là HttpOnly, SameSite=Lax, Path=/api/auth, Secure ở production, không có Domain. Thay đổi refresh TTL áp dụng cho phiên tạo bởi lần login mới; các phiên đang có giữ expiresAt đã lưu. Giảm access TTL cũng khiến JWT cũ có thời lượng dài hơn cấu hình mới bị từ chối khi kiểm tra. Token mới không vượt hạn phiên; access token cuối cũng bị giới hạn bởi mốc này.
 
 | Thao tác | Version | Refresh token |
 | --- | --- | --- |

@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import type { Request, Response, RequestHandler } from 'express';
 import { digest, type AuthRepository, type User, type AuthSession } from './auth-store.js';
 import type { AuthConfig } from './auth-config.js';
-import { accessTokens, SESSION_MS } from './tokens.js';
+import { accessTokens } from './tokens.js';
 
 export const opaque = () => randomBytes(32).toString('hex');
 export const publicUser = (user: User) => ({ id: user.id, email: user.email, role: user.role });
@@ -10,7 +10,7 @@ export function authError(res: Response, status: number, code: string, message: 
   return res.status(status).json({ ok: false, error: { code, message, ...extra } });
 }
 export function tokenSessions(repository: AuthRepository, config: AuthConfig, now: () => number) {
-  const jwt = accessTokens(config.jwtSecret, now);
+  const jwt = accessTokens(config.jwtSecret, now, config.accessTokenTtlMs);
   const cookieOptions = { httpOnly: true, sameSite: 'lax' as const, secure: config.secure, path: '/api/auth' };
   const refreshCookie = (req: Request) => {
     const value = req.headers.cookie?.split(';').map(x => x.trim()).find(x => x.startsWith('block9.refresh='))?.slice('block9.refresh='.length) ?? '';
@@ -19,7 +19,7 @@ export function tokenSessions(repository: AuthRepository, config: AuthConfig, no
   const active = (identity: { user: User; session: AuthSession } | null) => identity && identity.user.status === 'active'
     && !identity.session.revokedAt && identity.session.expiresAt.getTime() > now();
   async function create(tx: AuthRepository, user: User) {
-    const session: AuthSession = { id: opaque(), userId: user.id, sessionVersion: 0, createdAt: new Date(now()), expiresAt: new Date(now() + SESSION_MS), revokedAt: null };
+    const session: AuthSession = { id: opaque(), userId: user.id, sessionVersion: 0, createdAt: new Date(now()), expiresAt: new Date(now() + config.refreshTokenTtlMs), revokedAt: null };
     const refreshToken = opaque();
     await tx.write('authSession', session);
     await tx.write('refreshToken', { id: digest(refreshToken), sessionId: session.id, createdAt: new Date(now()), expiresAt: session.expiresAt, usedAt: null, revokedAt: null, replacedBy: null });
