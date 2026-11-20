@@ -1,0 +1,53 @@
+{
+  "name": "@table/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "prisma generate && tsc",
+    "start": "node dist/src/server.js",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:inspect": "tsx scripts/db-inspect.ts",
+    "seed": "prisma db seed",
+    "test:db": "tsx --test integration/*.ts",
+    "db:search:setup": "tsx scripts/search-setup.ts",
+    "db:push": "prisma db push",
+    "admin:create": "tsx scripts/create-admin.ts",
+    "data:copy": "tsx scripts/copy-data.ts"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.0.0",
+    "@prisma/client": "^7.0.0",
+    "@types/qrcode": "^1.5.6",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.0.0",
+    "express": "^5.1.0",
+    "express-session": "^1.19.0",
+    "jose": "^6.1.0",
+    "nodemailer": "^10.3.1",
+    "pg": "^8.16.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.0",
+    "@types/method-override": "^3.0.0",
+    "@types/node": "^22.0.0",
+    "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.15.0",
+    "@types/supertest": "^6.0.0",
+    "playwright-core": "^1.56.0",
+    "prisma": "^7.0.0",
+    "supertest": "^7.1.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
