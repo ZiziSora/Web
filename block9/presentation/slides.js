@@ -34,7 +34,7 @@
     document.getElementById('progress').style.width = `${(current + 1) / slides.length * 100}%`;
     document.getElementById('announcement').textContent = `Slide ${current + 1}: ${slides[current].dataset.title}`;
     document.querySelector('.notes-content').innerHTML = slides[current].querySelector('.speaker-notes').innerHTML;
-    document.title = `Block 9 · ${current + 1}/24 · ${slides[current].dataset.title}`;
+    document.title = `Block 9 · ${current + 1}/${slides.length} · ${slides[current].dataset.title}`;
   }
   function go(index) {
     current = Math.max(0, Math.min(slides.length - 1, index));

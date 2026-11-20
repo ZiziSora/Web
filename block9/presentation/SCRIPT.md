@@ -112,8 +112,3 @@ Nêu thao tác, đối chiếu assertion và mở hồ sơ minh chứng khi cầ
 Các mặc định được đối chiếu với mã nguồn Block 9
 
 Nêu thao tác, đối chiếu assertion và mở hồ sơ minh chứng khi cần. Đây là môi trường cô lập; không dùng để khẳng định SMTP, Google hay PostgreSQL thật đã hoạt động.
-
-## 24. A4 · Chạy lại và phần cần bổ sung
-Không kết luận thay cho nghiệm thu dịch vụ thật
-
-Nêu thao tác, đối chiếu assertion và mở hồ sơ minh chứng khi cần. Đây là môi trường cô lập; không dùng để khẳng định SMTP, Google hay PostgreSQL thật đã hoạt động.

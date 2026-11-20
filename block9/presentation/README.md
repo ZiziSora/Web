@@ -1,6 +1,6 @@
 # Block 9 — slide HTML minh chứng
 
-Mở index.html trực tiếp trong Chrome/Edge. Không cần server hoặc CDN. Có 20 slide chính và 4 phụ lục; bàn phím ← →, Home/End, dropdown, N mở ghi chú, toàn màn hình và In/PDF. Ảnh có thể nhấp mở lớn; evidence.html có lọc theo mã.
+Mở index.html trực tiếp trong Chrome/Edge. Không cần server hoặc CDN. Có 20 slide chính và 3 phụ lục; bàn phím ← →, Home/End, dropdown, N mở ghi chú, toàn màn hình và In/PDF. Ảnh có thể nhấp mở lớn; evidence.html có lọc theo mã.
 
 ## Nguồn và giới hạn
 
