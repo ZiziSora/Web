@@ -5,6 +5,7 @@ import { ApiError } from '../api/errors';
 import { clearAuth, login, submitAuth } from '../auth/state';
 import { useAuth } from '../auth/useAuth';
 import { Recaptcha } from '../auth/Recaptcha';
+import { ActionTooltip } from '../components/ActionTooltip';
 
 type Mode = 'login' | 'register' | 'activate' | 'forgot' | 'reset';
 const titles = { login: 'Đăng nhập', register: 'Tạo tài khoản', activate: 'Kích hoạt email', forgot: 'Quên mật khẩu', reset: 'Đặt lại mật khẩu' };
@@ -14,7 +15,7 @@ function PasswordField({ confirm = false, loginMode = false, newPassword = false
   const [visible, setVisible] = useState(false), id = confirm ? 'passwordConfirm' : 'password';
   return <div className="field"><div className="auth-label-row"><label htmlFor={id}>{confirm ? 'Nhập lại mật khẩu' : 'Mật khẩu'}{!confirm && newPassword ? ' mới' : ''}</label>{loginMode && <Link to="/forgot">Quên mật khẩu?</Link>}</div>
     <div className="auth-input"><LockKeyhole aria-hidden="true" /><input id={id} name={id} type={visible ? 'text' : 'password'} autoComplete={loginMode ? 'current-password' : 'new-password'} required aria-invalid={!!error} aria-describedby={error ? id + '-error' : undefined} />
-      <button className="auth-password-toggle" type="button" aria-label={(visible ? 'Ẩn' : 'Hiện') + (confirm ? ' mật khẩu nhập lại' : ' mật khẩu')} aria-pressed={visible} onClick={() => setVisible(x => !x)}>{visible ? <EyeOff /> : <Eye />}</button></div>
+      <ActionTooltip label={(visible ? 'Ẩn' : 'Hiện') + (confirm ? ' mật khẩu nhập lại' : ' mật khẩu')}><button className="auth-password-toggle icon-button" type="button" aria-label={(visible ? 'Ẩn' : 'Hiện') + (confirm ? ' mật khẩu nhập lại' : ' mật khẩu')} aria-pressed={visible} onClick={() => setVisible(x => !x)}>{visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button></ActionTooltip></div>
     {error && <p id={id + '-error'} className="field-error">{error}</p>}
     {!confirm && !loginMode && <p className="field-hint">Tối thiểu 8 ký tự, tối đa 72 byte UTF-8.</p>}
   </div>;

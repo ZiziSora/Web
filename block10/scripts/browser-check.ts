@@ -54,6 +54,10 @@ try {
     await page.getByRole('button', {name:'Tôi không phải người máy'}).click();
     await page.getByRole('button', {name:'Đăng nhập',exact:true}).click();
     await page.waitForURL('**/admin/dishes');
+    const editAction=page.locator('.row-actions a').first();await editAction.waitFor();
+    await editAction.focus();await page.getByRole('tooltip').waitFor();assert.ok((await page.getByRole('tooltip').innerText()).startsWith('Sửa '));
+    await page.keyboard.press('Escape');assert.equal(await page.getByRole('tooltip').count(),0);
+    const editBox=await editAction.boundingBox();assert.ok(editBox&&editBox.width>=44&&editBox.height>=44);
     await page.goto(webOrigin + '/dishes');
     await page.getByRole('heading', { name: 'Bò lúc lắc', exact: true }).waitFor();
     await mkdir('artifacts', { recursive: true });
@@ -112,8 +116,11 @@ try {
         const routes = resource === 'dishes' ? ['/dishes','/admin/dishes'] : ['/admin/' + resource];
         for (const path of routes) {
           await page.goto(webOrigin + path);
+          await page.locator('.account-email').waitFor();
           await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'));
           const selector = path === '/dishes' ? '.book-content .dish-card' : '.resource-table tbody tr';
+          if(count) await page.locator(selector).first().waitFor().catch(async()=>{throw new Error(`List not ready: count=${count} path=${path} body=${(await page.locator('main').innerText()).slice(0,800)}`);});
+          else await page.getByRole('heading',{name:path==='/dishes'?'Chưa có món phù hợp.':'Chưa có kết quả phù hợp.',exact:true}).waitFor().catch(async()=>{throw new Error(`Empty list not ready: count=${count} path=${path} body=${(await page.locator('main').innerText()).slice(0,800)}`);});
           assert.equal(await page.locator(selector).count(), Math.min(count,6));
           assert.equal(await page.getByRole('navigation',{name:'Phân trang'}).count(), count>6?1:0);
           if(path==='/dishes') assert.equal(await page.getByRole('form',{name:'Đi tới trang thực đơn'}).count(),count>6?1:0);
@@ -128,6 +135,7 @@ try {
             await page.locator('h1:focus, h2:focus').waitFor();
             if(path==='/dishes') assert.equal(await page.locator('.dish-number').first().innerText(),'07');
             await page.reload();
+            await page.locator('.account-email').waitFor();
             await page.locator(selector).first().waitFor();
             assert.ok((await page.locator(selector).first().innerText()).includes('Mục 7'));
             await page.getByRole('link',{name:'Trang trước',exact:true}).click();
@@ -139,6 +147,7 @@ try {
           }
           if (count === 7) {
             await page.goto(webOrigin+path+'?q='+encodeURIComponent('Mục'));
+            await page.locator('.account-email').waitFor();
             await page.locator(selector).first().waitFor();
             await page.getByRole('heading').first().click();
             await page.keyboard.press('ArrowLeft');
@@ -164,6 +173,7 @@ try {
           }
           for(const bad of ['0','-1','abc','1.5','9007199254740992','999']) {
             await page.goto(webOrigin+path+'?page='+bad);
+            await page.locator('.account-email').waitFor();
             await page.waitForFunction(()=>!document.querySelector('[aria-busy="true"]'));
             const expected = bad==='999' && count>6 ? String(Math.ceil(count/6)) : null;
             try { await page.waitForURL(url=>url.searchParams.get('page')===expected); } catch { throw new Error(`Page normalization failed: count=${count} path=${path} input=${bad} expected=${expected} actual=${page.url()} body=${(await page.locator('main').innerText()).slice(0,500)}`); }
