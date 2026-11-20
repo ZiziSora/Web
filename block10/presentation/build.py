@@ -96,7 +96,7 @@ def add(title, lead, body, notes, sources, appendix=False):
 
 
 add('Block 10 · Phân quyền & MFA', 'THE TABLE / React CSR + Express API + PostgreSQL',
-    '<div class="cover-content"><p class="hero">Đúng người.<br>Đúng quyền.<br>Thêm một lớp xác thực.</p><div class="cover-topics"><span>01 · Ma trận RBAC</span><span>02 · Sơ đồ luồng phân quyền & MFA</span></div><p class="muted">9 slide chính · 1 phụ lục · Khoảng 10–12 phút</p></div>',
+    '<div class="cover-content"><p class="hero">Đúng người.<br>Đúng quyền.<br>Thêm một lớp xác thực.</p><div class="cover-topics"><span>01 · Ma trận RBAC</span><span>02 · Luồng & thông số MFA</span></div><p class="muted">11 slide chính · 1 phụ lục · Khoảng 12–15 phút</p></div>',
     'Giới thiệu hai nội dung trọng tâm: ma trận quyền viewer/editor/admin và các sơ đồ nhóm tự dựng theo mã nguồn để giải thích luồng phân quyền, bật MFA và đăng nhập MFA. Bộ slide dùng template Block 9 nhưng trình bày hành vi Block 10.',
     ['../README.md'])
 
@@ -146,9 +146,33 @@ add('Sơ đồ đăng nhập MFA', 'Tài khoản bật MFA phải hoàn tất y�
     'Sau khi password, trạng thái active và CAPTCHA theo quy tắc đều đạt, hệ thống kiểm tra MFA. Chưa bật MFA thì cấp access và refresh như bình thường. Đã bật thì chỉ tạo challenge 5 phút trong cookie block10.mfa HttpOnly; chưa có grant. Ở /mfa, người dùng nhập TOTP hoặc recovery code chưa dùng. API kiểm tra hạn challenge, account version và khóa xác minh; thành công mới tiêu thụ challenge và cấp phiên. Mỗi bước TOTP chỉ chấp nhận một lần trên toàn tài khoản. Sai 5 lần khóa xác minh 15 phút; đăng nhập lại không xóa bộ đếm.',
     ['../api/src/auth.ts', '../api/src/security.ts', '../api/src/token-sessions.ts'])
 
+add('Thông số thời gian MFA', 'TOTP đổi mỗi 30 giây; thiết lập và phiên chờ có hạn riêng',
+    table(['Thông số', 'Giá trị đang áp dụng'], [
+        ['Mã Authenticator', '<strong>6 chữ số</strong> · TOTP SHA1'],
+        ['Chu kỳ đổi OTP', '<strong>30 giây</strong>'],
+        ['Cửa sổ xác minh OTP', 'Bước hiện tại và <strong>±1 bước 30 giây</strong>'],
+        ['Thiết lập QR / secret mới', '<strong>5 phút</strong> để xác nhận mã từ secret mới'],
+        ['Phiên chờ MFA khi đăng nhập', '<strong>5 phút</strong> sau bước mật khẩu hợp lệ'],
+        ['Thời gian khóa xác minh', '<strong>15 phút</strong> khi nhập sai đủ 5 lần'],
+    ], 'mfa-params') + '<div class="callout">OTP đã được chấp nhận không dùng lại. Chưa xác minh MFA thì chưa cấp access / refresh token.</div>',
+    'Phân biệt chu kỳ mã với thời hạn thao tác: mã TOTP gồm 6 số, đổi mỗi 30 giây; server xét bước hiện tại, bước trước và bước sau để dung sai đồng hồ. Đây không phải một mã cố định có hạn 5 phút. Hạn 5 phút áp dụng riêng cho thiết lập QR/secret và challenge đăng nhập. Challenge hết hạn thì phải đăng nhập lại; thiết lập hết hạn thì tạo lại QR. OTP đã chấp nhận không dùng lại ở thao tác tiếp theo: cần chờ mã mới hoặc dùng recovery code chưa dùng.',
+    ['../api/src/security.ts'])
+
+add('Giới hạn nhập mã MFA', 'Bộ đếm lưu theo tài khoản, dùng chung giữa các thao tác xác minh bảo mật',
+    table(['Tình huống', 'Hành vi'], [
+        ['Nhập sai đủ 5 lần', '<strong>Khóa 15 phút</strong>; API trả 429 và Retry-After'],
+        ['Đổi tab / đăng nhập lại', '<strong>Không xóa</strong> bộ đếm sai hoặc thời gian khóa'],
+        ['Xác minh thành công', 'Đưa bộ đếm sai về <strong>0</strong>'],
+        ['Hết thời gian khóa', 'Xóa bộ đếm và trạng thái khóa khi kiểm tra lại'],
+        ['Dùng lại OTP đã được chấp nhận', '<strong>Từ chối</strong> trên toàn tài khoản'],
+        ['Recovery code sai / đã dùng', 'Từ chối; tính vào bộ đếm sai khi xác minh MFA'],
+    ], 'mfa-params') + '<div class="callout">Giới hạn MFA tách biệt với giới hạn nhập sai mật khẩu đăng nhập và OTP kích hoạt email.</div>',
+    'Bộ đếm attempts và lockedUntil nằm trong trạng thái bảo mật của tài khoản ở PostgreSQL, không phụ thuộc tab hoặc bộ nhớ trình duyệt. Các bước xác minh MFA, xác nhận setup và xác thực lại trong Settings dùng chung bộ đếm; xác thực lại sai mật khẩu hiện tại cũng tính là một lần sai. Xác minh thành công xóa attempts; sau khi hết khóa, lần kiểm tra tiếp theo xóa bộ đếm và khóa. Mã sai, mã TOTP bị dùng lại hoặc recovery code đã dùng đều bị từ chối. Hết hạn challenge không được xử lý như một lần nhập mã sai.',
+    ['../api/src/security.ts', '../api/src/auth.ts'])
+
 add('Recovery code & Settings', 'Giữ quyền kiểm soát khi đổi mật khẩu hoặc thay thiết bị',
-    '<div class="cols"><div><h3>Recovery code</h3><ul class="clean-list"><li>10 mã mỗi bộ; mỗi mã chỉ dùng một lần.</li><li>Hiển thị một lần; có sao chép / tải xuống.</li><li>Database lưu HMAC; tạo bộ mới vô hiệu bộ cũ.</li></ul></div><div><h3>Thao tác bảo mật</h3><ul class="clean-list"><li>Đổi mật khẩu, bật / thay / tắt MFA.</li><li>Xác nhận mật khẩu và yếu tố cũ nếu MFA đang bật.</li><li>Thành công → thu hồi mọi phiên; vẫn cho lưu recovery mới.</li></ul></div></div><div class="callout"><strong>Reset mật khẩu giữ nguyên MFA.</strong> Mất cả Authenticator và recovery code: hiện chưa có luồng admin / email bỏ qua MFA.</div>',
-    'Recovery code thay thế OTP khi mất thiết bị; mỗi mã là 128 bit ngẫu nhiên và dùng một lần. Chỉ mã HMAC được lưu, không lưu plaintext. Bộ recovery mới hủy bộ cũ. Sau các thao tác bảo mật, người dùng cần đăng nhập lại; giao diện giữ recovery mới để họ lưu trước khi rời trang. Việc reset password không được dùng để tắt MFA.',
+    '<div class="cols"><div><h3>Recovery code</h3><ul class="clean-list"><li><strong>10 mã/bộ</strong> · 32 ký tự hex/mã · dùng 1 lần.</li><li>Hiển thị một lần; có sao chép / tải xuống.</li><li>Không đặt hạn thời gian; database lưu HMAC.</li><li>Mã đã dùng bị hủy; tạo bộ mới hoặc thay / tắt MFA hủy cả bộ cũ.</li></ul></div><div><h3>Thao tác bảo mật</h3><ul class="clean-list"><li>Đổi mật khẩu, bật / thay / tắt MFA.</li><li>Xác nhận mật khẩu và yếu tố cũ nếu MFA đang bật.</li><li>Thành công → thu hồi mọi phiên; vẫn cho lưu recovery mới.</li></ul></div></div><div class="callout"><strong>Reset mật khẩu giữ nguyên MFA.</strong> Mất cả Authenticator và recovery code: hiện chưa có luồng admin / email bỏ qua MFA.</div>',
+    'Recovery code thay thế OTP khi mất thiết bị; có 10 mã mỗi bộ, mỗi mã là 128 bit ngẫu nhiên được biểu diễn bằng 32 ký tự hex và dùng một lần. Chưa đặt thời hạn cho recovery code; mã mất hiệu lực khi đã dùng, tạo bộ mới, thay hoặc tắt MFA. Chỉ mã HMAC được lưu, không lưu plaintext. Sau các thao tác bảo mật, người dùng cần đăng nhập lại; giao diện giữ recovery mới để họ lưu trước khi rời trang. Việc reset password không được dùng để tắt MFA.',
     ['../api/src/security.ts', '../web/src/pages/Security.tsx', '../README.md'])
 
 add('Kịch bản trình diễn', 'Thực hiện lần lượt để đối chiếu ma trận quyền và hai lớp xác thực',

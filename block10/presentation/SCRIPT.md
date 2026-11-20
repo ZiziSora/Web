@@ -56,15 +56,31 @@ Sau khi password, trạng thái active và CAPTCHA theo quy tắc đều đạt,
 
 Nguồn: ../api/src/auth.ts, ../api/src/security.ts, ../api/src/token-sessions.ts
 
-## 8. Recovery code & Settings
+## 8. Thông số thời gian MFA
+
+TOTP đổi mỗi 30 giây; thiết lập và phiên chờ có hạn riêng
+
+Phân biệt chu kỳ mã với thời hạn thao tác: mã TOTP gồm 6 số, đổi mỗi 30 giây; server xét bước hiện tại, bước trước và bước sau để dung sai đồng hồ. Đây không phải một mã cố định có hạn 5 phút. Hạn 5 phút áp dụng riêng cho thiết lập QR/secret và challenge đăng nhập. Challenge hết hạn thì phải đăng nhập lại; thiết lập hết hạn thì tạo lại QR. OTP đã chấp nhận không dùng lại ở thao tác tiếp theo: cần chờ mã mới hoặc dùng recovery code chưa dùng.
+
+Nguồn: ../api/src/security.ts
+
+## 9. Giới hạn nhập mã MFA
+
+Bộ đếm lưu theo tài khoản, dùng chung giữa các thao tác xác minh bảo mật
+
+Bộ đếm attempts và lockedUntil nằm trong trạng thái bảo mật của tài khoản ở PostgreSQL, không phụ thuộc tab hoặc bộ nhớ trình duyệt. Các bước xác minh MFA, xác nhận setup và xác thực lại trong Settings dùng chung bộ đếm; xác thực lại sai mật khẩu hiện tại cũng tính là một lần sai. Xác minh thành công xóa attempts; sau khi hết khóa, lần kiểm tra tiếp theo xóa bộ đếm và khóa. Mã sai, mã TOTP bị dùng lại hoặc recovery code đã dùng đều bị từ chối. Hết hạn challenge không được xử lý như một lần nhập mã sai.
+
+Nguồn: ../api/src/security.ts, ../api/src/auth.ts
+
+## 10. Recovery code & Settings
 
 Giữ quyền kiểm soát khi đổi mật khẩu hoặc thay thiết bị
 
-Recovery code thay thế OTP khi mất thiết bị; mỗi mã là 128 bit ngẫu nhiên và dùng một lần. Chỉ mã HMAC được lưu, không lưu plaintext. Bộ recovery mới hủy bộ cũ. Sau các thao tác bảo mật, người dùng cần đăng nhập lại; giao diện giữ recovery mới để họ lưu trước khi rời trang. Việc reset password không được dùng để tắt MFA.
+Recovery code thay thế OTP khi mất thiết bị; có 10 mã mỗi bộ, mỗi mã là 128 bit ngẫu nhiên được biểu diễn bằng 32 ký tự hex và dùng một lần. Chưa đặt thời hạn cho recovery code; mã mất hiệu lực khi đã dùng, tạo bộ mới, thay hoặc tắt MFA. Chỉ mã HMAC được lưu, không lưu plaintext. Sau các thao tác bảo mật, người dùng cần đăng nhập lại; giao diện giữ recovery mới để họ lưu trước khi rời trang. Việc reset password không được dùng để tắt MFA.
 
 Nguồn: ../api/src/security.ts, ../web/src/pages/Security.tsx, ../README.md
 
-## 9. Kịch bản trình diễn
+## 11. Kịch bản trình diễn
 
 Thực hiện lần lượt để đối chiếu ma trận quyền và hai lớp xác thực
 
@@ -72,7 +88,7 @@ Chuẩn bị ba tài khoản active mang ba vai trò. Dùng các cửa sổ ho�
 
 Nguồn: ../README.md, ../api/test/security.test.ts, ../scripts/security-browser-check.ts
 
-## 10. A1 · Nguồn đối chiếu
+## 12. A1 · Nguồn đối chiếu
 
 Sơ đồ tự dựng theo mã nguồn Block 10; template kế thừa Block 9
 

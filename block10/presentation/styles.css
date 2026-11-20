@@ -27,5 +27,7 @@ h2{margin-top:18px}.body h3{margin:8px 0 18px}.body p{margin:12px 0}
 #slide-7 .diagram img{height:440px}#slide-7 .diagram figcaption{margin-top:2px}
 .body .demo-table{font-size:19px}.body .demo-table tbody th{font-size:20px}.body .demo-table th:first-child{width:18%}
 .body .demo-table td,.body .demo-table tbody th{padding:13px 15px}
-#slide-10 table th:first-child{width:39%}#slide-10 table td{font-size:18px;overflow-wrap:anywhere}
+[data-appendix="true"] table th:first-child{width:39%}[data-appendix="true"] table td{font-size:18px;overflow-wrap:anywhere}
 @media print{.diagram img{max-height:440px}}
+
+.body .mfa-params th:first-child{width:35%}.body .mfa-params td,.body .mfa-params tbody th{padding:10px 15px;font-size:21px}.body .mfa-params thead th{padding:11px 15px}

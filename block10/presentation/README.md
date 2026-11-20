@@ -2,13 +2,16 @@
 
 Mở `index.html` trực tiếp bằng Chrome/Edge, không cần server, CDN hoặc ứng dụng đang chạy. Template 16:9, màu sắc và điều khiển kế thừa `block9/presentation`.
 
-Có 9 slide chính và 1 phụ lục, khoảng 10–12 phút:
+Có 11 slide chính và 1 phụ lục, khoảng 12–15 phút:
 
 - Slide 3: ma trận RBAC viewer/editor/admin.
 - Slide 4: sơ đồ luồng phân quyền tại API.
 - Slide 6: sơ đồ bật/thay Authenticator.
 - Slide 7: sơ đồ đăng nhập MFA.
-- Slide 9: kịch bản trình diễn.
+- Slide 8: thông số thời gian MFA (OTP, QR/secret, phiên chờ, khóa).
+- Slide 9: giới hạn nhập mã, bộ đếm theo tài khoản và chống dùng lại.
+- Slide 10: recovery code và Settings, gồm độ dài/thời hạn mã.
+- Slide 11: kịch bản trình diễn.
 
 Sơ đồ SVG trong `assets/` được tự dựng theo mã nguồn Block 10 và có thể mở độc lập. Nội dung phân biệt 401 (xác thực/phiên không hợp lệ) với 403 (thiếu quyền), challenge MFA với phiên đăng nhập, và quyền editor đối với món ăn với quyền xem/chọn đầu bếp/nguyên liệu.
 
